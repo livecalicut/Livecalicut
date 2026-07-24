@@ -45,13 +45,14 @@ export const FloatingAiButton: React.FC = () => {
 
   return (
     <>
-      {/* Floating Sparkles Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-20 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-xl shadow-cyan-600/30 hover:scale-105 transition-all flex items-center gap-2 font-bold text-xs"
+        aria-label="Ask AI Concierge"
+        className="fixed bottom-20 right-5 z-50 flex items-center gap-2 rounded-2xl border border-[#2563EB]/20 bg-[#2563EB] px-3.5 py-3 text-white shadow-lg shadow-[#2563EB]/20 transition hover:bg-[#1D4ED8] sm:right-6"
       >
-        <Sparkles className="w-5 h-5 fill-white animate-pulse" />
-        <span>Ask AI Concierge</span>
+        <Sparkles className="h-4 w-4" />
+        <span className="hidden text-[12px] font-semibold sm:inline">Ask AI</span>
       </button>
 
       {/* Interactive Chat Overlay Window */}

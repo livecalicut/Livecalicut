@@ -43,20 +43,34 @@ export async function requireAuth(): Promise<RequireAuthResult | NextResponse> {
     );
   }
 
-  // Fetch the user's role from the user_roles linking table using the Admin client to bypass RLS
+  // Fetch roles (user may have more than one)
   const supabaseAdmin = await createAdminClient();
-  const { data: userRole } = await supabaseAdmin
+  const { data: userRoles } = await supabaseAdmin
     .from('user_roles')
     .select('roles(name)')
-    .eq('user_id', user.id)
-    .single();
+    .eq('user_id', user.id);
 
-  // Handle potential array or single object from PostgREST
-  const rawRoles = userRole?.roles as any;
-  const role = Array.isArray(rawRoles) ? rawRoles[0]?.name : rawRoles?.name;
-  
-  // Emergency fallback if Vercel DB query fails
-  let roleName = role ?? 'User';
+  const roleNames = (userRoles || [])
+    .map((row) => {
+      const raw = row.roles as { name?: string } | { name?: string }[] | null;
+      if (Array.isArray(raw)) return raw[0]?.name;
+      return raw?.name;
+    })
+    .filter(Boolean) as string[];
+
+  const priority = [
+    'Super Admin',
+    'City Admin',
+    'Moderator',
+    'Marketing Executive',
+    'Merchant',
+    'User',
+    'Guest',
+  ];
+
+  let roleName =
+    priority.find((role) => roleNames.includes(role)) ?? roleNames[0] ?? 'User';
+
   if (roleName === 'User' && user.email === 'arjunworks96@gmail.com') {
     roleName = 'Super Admin';
   }

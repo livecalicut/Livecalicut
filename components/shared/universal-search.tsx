@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, MapPin, Sparkles } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/Select';
@@ -45,15 +45,14 @@ export const UniversalSearch: React.FC<UniversalSearchProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-3xl mx-auto h-[60px] p-2 rounded-2xl bg-white border border-[#E5E7EB] shadow-md flex items-center gap-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-[#2563EB]/30 focus-within:border-[#2563EB] hover:border-[#2563EB]/50"
+      className="mx-auto flex h-[56px] w-full max-w-3xl items-center gap-1.5 rounded-2xl border border-[#E5E7EB] bg-white p-1.5 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] transition-all duration-200 focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/20"
     >
-      {/* Location Selector */}
-      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] text-[13px] text-[#111827] shrink-0 h-[44px]">
-        <MapPin className="w-4 h-4 text-[#2563EB] shrink-0" />
+      <div className="hidden h-[44px] shrink-0 items-center gap-1.5 rounded-xl bg-[#F8FAFC] px-3 text-[13px] text-[#111827] sm:flex">
+        <MapPin className="h-3.5 w-3.5 shrink-0 text-[#2563EB]" />
         <Select
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="border-none bg-transparent h-full py-0 px-0 text-[13px] font-bold shadow-none focus:ring-0 focus:outline-none"
+          className="h-full border-none bg-transparent px-0 py-0 text-[13px] font-semibold shadow-none focus:outline-none focus:ring-0"
         >
           {locationsList.map((loc) => (
             <option key={loc} value={loc} className="bg-white text-[#111827]">
@@ -63,22 +62,23 @@ export const UniversalSearch: React.FC<UniversalSearchProps> = ({
         </Select>
       </div>
 
-      {/* Input Query */}
-      <div className="relative flex-1 h-full flex items-center">
-        <Search className="w-4 h-4 absolute left-3 text-[#6B7280] pointer-events-none" />
+      <div className="relative flex h-full flex-1 items-center">
+        <Search className="pointer-events-none absolute left-3 h-4 w-4 text-[#9CA3AF]" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="border-none bg-transparent pl-9 pr-3 h-full text-[15px] font-medium focus-visible:ring-0 focus-visible:border-none shadow-none text-[#111827] placeholder:text-[#6B7280]"
+          className="h-full border-none bg-transparent pl-9 pr-3 text-[14px] font-medium text-[#111827] shadow-none placeholder:text-[#9CA3AF] focus-visible:border-none focus-visible:ring-0 sm:text-[15px]"
         />
       </div>
 
-      {/* Action Submit Button */}
-      <Button type="submit" className="h-[44px] px-6 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl gap-1.5 shrink-0">
-        <Sparkles className="w-4 h-4" />
-        Search
+      <Button
+        type="submit"
+        className="h-[42px] shrink-0 gap-1.5 rounded-xl bg-[#2563EB] px-4 font-semibold text-white hover:bg-[#1D4ED8] sm:px-5"
+      >
+        <Search className="h-4 w-4" />
+        <span className="hidden sm:inline">Search</span>
       </Button>
     </form>
   );

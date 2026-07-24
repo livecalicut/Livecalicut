@@ -51,15 +51,15 @@ export default async function HomePage() {
   ] = await Promise.all([
     supabase
       .from('businesses')
-      .select('id, slug, name, business_categories(name), areas(name), avg_rating, review_count, phone')
+      .select('id, slug, name, phone, rating_avg, review_count, social_media, business_categories(name), areas(name)')
       .eq('status', 'active')
       .eq('is_featured', true)
       .is('deleted_at', null)
-      .order('avg_rating', { ascending: false })
+      .order('rating_avg', { ascending: false })
       .limit(4),
     supabase
       .from('jobs')
-      .select('id, slug, title, salary_min, salary_max, salary_currency, job_type, companies(name), areas(name)')
+      .select('id, slug, title, salary, employment_type, companies(name, logo), areas(name)')
       .eq('status', 'published')
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
@@ -131,9 +131,9 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="divide-y divide-[#E5E7EB] w-full">
+    <div className="divide-y divide-[#E5E7EB] m-0 w-full p-0">
       {/* SECTION 1: HERO OS LAUNCHER - FULL WIDTH EDGE-TO-EDGE VIDEO CANVAS */}
-      <section id="hero-section" className="w-full relative bg-white overflow-hidden">
+      <section id="hero-section" className="relative m-0 w-full overflow-hidden bg-white p-0">
         <HeroBanner
           title={cmsData.hero?.title}
           subtitle={cmsData.hero?.subtitle}
@@ -245,10 +245,11 @@ export default async function HomePage() {
                 name={biz.name}
                 category={biz.business_categories?.name ?? 'Business'}
                 location={biz.areas?.name ?? 'Kozhikode'}
-                rating={biz.avg_rating ?? 0}
+                rating={biz.rating_avg ?? 0}
                 reviewCount={biz.review_count ?? 0}
                 phone={biz.phone}
                 isVerified
+                image={biz.social_media?.cover_image || null}
               />
             ))}
           </ResponsiveGrid>
@@ -265,12 +266,7 @@ export default async function HomePage() {
             viewAllLabel="View All Jobs"
           />
           <ResponsiveGrid cols={3}>
-            {activeJobs.map((job: any) => {
-              const salaryLabel =
-                job.salary_min && job.salary_max
-                  ? `${job.salary_currency ?? '₹'}${Number(job.salary_min).toLocaleString('en-IN')} – ${Number(job.salary_max).toLocaleString('en-IN')} / mo`
-                  : undefined;
-              return (
+            {activeJobs.map((job: any) => (
                 <JobCard
                   key={job.id}
                   id={job.id}
@@ -278,11 +274,11 @@ export default async function HomePage() {
                   title={job.title}
                   company={job.companies?.name ?? 'Company'}
                   location={job.areas?.name ?? 'Kozhikode'}
-                  jobType={job.job_type ?? 'Full Time'}
-                  salary={salaryLabel}
+                  jobType={job.employment_type ?? 'full-time'}
+                  salary={job.salary}
+                  image={job.companies?.logo || null}
                 />
-              );
-            })}
+            ))}
           </ResponsiveGrid>
         </Section>
       )}

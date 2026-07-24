@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Header } from './header';
 import { Footer } from './footer';
@@ -9,11 +11,9 @@ interface PageContainerProps {
 
 export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col relative bg-white text-slate-900 selection:bg-blue-600 selection:text-white transition-colors w-full">
+    <div className="relative m-0 flex min-h-screen w-full flex-col overflow-x-clip bg-white p-0 text-[#111827] selection:bg-[#2563EB] selection:text-white">
       <Header />
-      <main className="flex-1 w-full relative z-10">
-        {children}
-      </main>
+      <main className="relative z-10 m-0 w-full flex-1 overflow-visible p-0">{children}</main>
       <Footer />
       <MobileBottomNav />
     </div>

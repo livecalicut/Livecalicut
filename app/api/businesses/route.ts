@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   let query = supabase
     .from('businesses')
-    .select('*, business_categories(name, slug), areas(name, slug)')
+    .select('*, business_categories(name, slug), areas(name, slug), social_media')
     .is('deleted_at', null)
     .eq('status', 'active');
 
@@ -23,7 +23,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ data });
+  const mapped = (data || []).map((b: any) => ({
+    ...b,
+    category: b.business_categories?.name || b.category,
+    location: b.areas?.name || b.location,
+    area: b.areas?.name,
+    rating: b.rating_avg ?? b.rating ?? 0,
+    cover_image: b.social_media?.cover_image || b.cover_image || null,
+  }));
+
+  return NextResponse.json({ data: mapped });
 }
 
 export async function POST(request: Request) {

@@ -24,7 +24,11 @@ export const Section: React.FC<SectionProps> = ({
   };
 
   return (
-    <section id={id} className={cn('w-full py-20 lg:py-24 overflow-hidden', bgClasses[bgVariant], className)} {...props}>
+    <section
+      id={id}
+      className={cn('m-0 w-full overflow-x-clip py-14 lg:py-16', bgClasses[bgVariant], className)}
+      {...props}
+    >
       <Container className="space-y-8">
         {disableAnimation ? (
           children

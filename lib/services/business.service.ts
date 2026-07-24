@@ -31,7 +31,15 @@ export class BusinessService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+
+    return (data || []).map((b: any) => ({
+      ...b,
+      category: b.business_categories?.name || b.category,
+      location: b.areas?.name || b.location,
+      area: b.areas?.name,
+      rating: b.rating_avg ?? b.rating ?? 0,
+      cover_image: b.social_media?.cover_image || b.cover_image || null,
+    }));
   }
 
   static async getBusinessBySlug(slug: string) {

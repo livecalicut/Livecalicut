@@ -118,6 +118,7 @@ export default function BusinessDirectoryPage() {
                 reviewCount={b.review_count ?? 0}
                 phone={b.phone}
                 isVerified={b.is_verified}
+                image={b.cover_image || null}
               />
             ))}
           </ResponsiveGrid>

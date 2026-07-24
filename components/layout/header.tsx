@@ -87,14 +87,14 @@ export const Header: React.FC = () => {
 
         {/* Global Actions */}
         <div className="flex items-center gap-2.5">
-          {/* Quick Search Launcher */}
+          {/* Quick Search — icon only to avoid competing with hero search */}
           <Link
             href="/search"
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] text-xs text-[#6B7280] hover:border-[#2563EB] hover:text-[#111827] transition-all cursor-pointer shadow-xs"
+            aria-label="Search Kozhikode"
+            title="Search (⌘K)"
+            className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:border-[#2563EB] hover:text-[#2563EB]"
           >
-            <Search className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span className="font-medium">Search Kozhikode...</span>
-            <kbd className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-[#6B7280] bg-white border border-[#E5E7EB] rounded-lg">⌘K</kbd>
+            <Search className="h-4 w-4" />
           </Link>
 
           <NotificationIcon />

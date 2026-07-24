@@ -1,42 +1,36 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { SetupService } from '@/lib/services/setup.service';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const startTime = Date.now();
-  let dbStatus = 'unhealthy';
-  let latencyMs = 0;
-
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase.from('cities').select('id').limit(1);
-    latencyMs = Date.now() - startTime;
-
-    if (!error && data) {
-      dbStatus = 'healthy';
-    }
-  } catch (err) {
-    dbStatus = 'error';
-  }
-
+  const status = await SetupService.getStatus();
+  const cities = status.tables.find((t) => t.table === 'cities');
+  const dbHealthy = cities?.status === 'ok';
   const memoryUsage = process.memoryUsage();
-
-  const isHealthy = dbStatus === 'healthy';
 
   return NextResponse.json(
     {
-      status: isHealthy ? 'healthy' : 'degraded',
-      timestamp: new Date().toISOString(),
+      status: dbHealthy ? 'healthy' : status.overall === 'degraded' ? 'degraded' : 'unhealthy',
+      timestamp: status.timestamp,
       version: '1.0.0-production',
+      setup: {
+        overall: status.overall,
+        path: '/setup',
+        nextSteps: status.nextSteps,
+      },
       services: {
         database: {
-          status: dbStatus,
-          latencyMs,
+          status: cities?.status === 'ok' ? 'healthy' : cities?.status ?? 'unhealthy',
+          latencyMs: cities?.latencyMs ?? status.latencyMs,
+          rowCount: cities?.count,
+          error: cities?.error,
         },
-        supabaseRealtime: {
-          status: 'operational',
-        },
-        razorpayGateway: {
-          status: 'configured',
+        env: {
+          status: status.env.every((e) => !e.required || e.present) ? 'ok' : 'incomplete',
+          serviceRoleConfigured: Boolean(
+            status.env.find((e) => e.key === 'SUPABASE_SERVICE_ROLE_KEY')?.present
+          ),
         },
       },
       system: {
@@ -47,6 +41,6 @@ export async function GET() {
         },
       },
     },
-    { status: isHealthy ? 200 : 503 }
+    { status: dbHealthy ? 200 : 503 }
   );
 }

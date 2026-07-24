@@ -3,12 +3,15 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin } from 'lucide-react';
+import { CoverImage } from '@/components/shared/cover-image';
 
 interface EventCardProps {
   title: string;
   date: string;
   venue: string;
   category: string;
+  image?: string | null;
+  href?: string;
 }
 
 export const EventCard: React.FC<EventCardProps> = ({
@@ -16,43 +19,37 @@ export const EventCard: React.FC<EventCardProps> = ({
   date,
   venue,
   category,
+  image,
+  href = '/events',
 }) => {
   return (
-    <Link href="/events" className="block group h-full">
-      <Card className="h-full flex flex-col justify-between p-4 space-y-4 surface-card transition-all duration-200">
-        {/* Photo Container - Fixed 180px */}
-        <div className="w-full h-[180px] rounded-xl bg-[#F8FAFC] overflow-hidden relative shrink-0">
-          <div className="w-full h-full bg-gradient-to-br from-[#2563EB]/10 to-slate-200/50 flex items-center justify-center text-xs text-[#6B7280] font-medium group-hover:scale-105 transition-transform duration-300">
-            <span>Event Poster</span>
-          </div>
-          <Badge variant="secondary" className="absolute top-2.5 left-2.5 bg-slate-900/80 text-white border-none text-[10px] font-bold shadow-sm">
+    <Link href={href} className="group block h-full">
+      <Card className="surface-card flex h-full flex-col justify-between space-y-4 p-4 transition-all duration-200">
+        <div className="relative h-[180px] w-full shrink-0 overflow-hidden rounded-xl">
+          <CoverImage src={image} alt={title} />
+          <Badge className="absolute left-2.5 top-2.5 border-none bg-slate-900/80 text-[10px] font-bold text-white shadow-sm">
             {category}
           </Badge>
         </div>
 
-        {/* Flexible Content */}
-        <div className="flex-1 flex flex-col justify-between space-y-2">
+        <div className="flex flex-1 flex-col justify-between space-y-2">
           <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 w-fit">
-              <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
+            <div className="inline-flex w-fit items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#2563EB]">
+              <Calendar className="h-3.5 w-3.5 text-[#2563EB]" />
               <span>{date}</span>
             </div>
-
-            <h4 className="text-[18px] font-bold text-[#111827] group-hover:text-[#2563EB] transition-colors line-clamp-2 leading-snug">
+            <h4 className="line-clamp-2 text-[18px] font-bold leading-snug text-[#111827] transition-colors group-hover:text-[#2563EB]">
               {title}
             </h4>
           </div>
         </div>
 
-        {/* Pinned Footer */}
-        <div className="mt-auto pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-[13px] text-[#6B7280]">
+        <div className="mt-auto flex items-center justify-between border-t border-[#E5E7EB] pt-3 text-[13px] text-[#6B7280]">
           <span className="flex items-center gap-1.5 font-medium">
-            <MapPin className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#2563EB]" />
             <span className="truncate">{venue}</span>
           </span>
-          <span className="font-bold text-[#2563EB] group-hover:translate-x-0.5 transition-transform">
-            Book →
-          </span>
+          <span className="font-bold text-[#2563EB]">Details →</span>
         </div>
       </Card>
     </Link>
