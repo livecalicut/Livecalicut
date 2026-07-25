@@ -68,12 +68,9 @@ export async function requireAuth(): Promise<RequireAuthResult | NextResponse> {
     'Guest',
   ];
 
-  let roleName =
-    priority.find((role) => roleNames.includes(role)) ?? roleNames[0] ?? 'User';
-
-  if (roleName === 'User' && user.email === 'arjunworks96@gmail.com') {
-    roleName = 'Super Admin';
-  }
+  // Role comes from user_roles only. A previous version escalated a specific
+  // hard-coded email address to Super Admin; grant that through the database.
+  const roleName = priority.find((role) => roleNames.includes(role)) ?? roleNames[0] ?? 'User';
 
   return {
     user: {

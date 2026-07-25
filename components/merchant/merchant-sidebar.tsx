@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
 import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
 import {
   LayoutDashboard,
@@ -122,10 +123,28 @@ export const MerchantSidebar: React.FC = () => {
   const [businessCategories, setBusinessCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [businessName, setBusinessName] = useState('');
+  const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
     fetchOwnerBusinesses();
   }, []);
+
+  // Nav items arrive after the merchant's categories resolve, so the entrance
+  // is keyed to `loading` rather than mount.
+  useGSAP(
+    () => {
+      if (loading || prefersReducedMotion()) return;
+
+      gsap.from('[data-nav-item]', {
+        opacity: 0,
+        x: -12,
+        duration: 0.35,
+        stagger: 0.02,
+        ease: 'liveEase',
+      });
+    },
+    { scope: ref, dependencies: [loading] }
+  );
 
   const fetchOwnerBusinesses = async () => {
     try {
@@ -187,20 +206,26 @@ export const MerchantSidebar: React.FC = () => {
       <Link
         key={item.href}
         href={item.href}
-        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+        aria-current={isActive ? 'page' : undefined}
+        data-nav-item
+        className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-1 focus-visible:outline-none ${
           isActive
             ? 'bg-[#2563EB] text-white shadow-md shadow-blue-500/20'
-            : 'text-[#4B5563] hover:text-[#111827] hover:bg-[#F8FAFC]'
+            : 'text-[#4B5563] hover:bg-[#F8FAFC] hover:text-[#111827]'
         }`}
       >
-        <Icon className="w-4 h-4 shrink-0" />
+        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="truncate">{item.label}</span>
       </Link>
     );
   };
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-[#E5E7EB] min-h-screen p-4 space-y-6 flex flex-col justify-between shadow-xs">
+    <aside
+      ref={ref}
+      aria-label="Merchant navigation"
+      className="flex min-h-screen w-64 shrink-0 flex-col justify-between space-y-6 border-r border-[#E5E7EB] bg-white p-4 shadow-xs"
+    >
       <div className="space-y-6">
         {/* Brand Header */}
         <div className="px-2 py-2 border-b border-[#E5E7EB] pb-4">

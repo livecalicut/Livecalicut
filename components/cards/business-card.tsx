@@ -26,7 +26,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
   location,
   rating,
   reviewCount,
-  phone = '+91 98765 43210',
+  phone,
   isVerified = true,
   image,
 }) => {
@@ -53,11 +53,17 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB]">
                 {category}
               </span>
-              <div className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">
-                <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                <span>{rating > 0 ? rating.toFixed(1) : '4.8'}</span>
-                <span className="font-normal text-[#6B7280]">({reviewCount})</span>
-              </div>
+              {reviewCount > 0 ? (
+                <div className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">
+                  <Star className="h-3 w-3 fill-amber-500 text-amber-500" aria-hidden="true" />
+                  <span>{rating.toFixed(1)}</span>
+                  <span className="font-normal text-[#6B7280]">({reviewCount})</span>
+                </div>
+              ) : (
+                <span className="rounded-full border border-[#E5E7EB] bg-slate-50 px-2 py-0.5 text-[11px] font-bold text-[#9CA3AF]">
+                  No reviews
+                </span>
+              )}
             </div>
 
             <h4 className="line-clamp-2 text-[18px] font-bold leading-snug text-[#111827] transition-colors group-hover:text-[#2563EB]">
@@ -72,10 +78,14 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
         </div>
 
         <div className="mt-auto flex items-center justify-between border-t border-[#E5E7EB] pt-3 text-[13px] text-[#6B7280]">
-          <span className="flex items-center gap-1 font-medium text-[#111827]">
-            <Phone className="h-3.5 w-3.5 text-[#2563EB]" />
-            {phone}
-          </span>
+          {phone ? (
+            <span className="flex items-center gap-1 font-medium text-[#111827]">
+              <Phone className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
+              {phone}
+            </span>
+          ) : (
+            <span />
+          )}
           <span className="font-bold text-[#2563EB] transition-transform group-hover:translate-x-0.5">
             View →
           </span>

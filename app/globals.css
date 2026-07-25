@@ -88,6 +88,36 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Accessibility baseline ---------------------------------------------------
+   A visible focus ring on every interactive element, for keyboard users only.
+   Components may override the colour, but never remove the outline. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Only suppress the default ring where a focus-visible style is supported,
+   so older engines keep their native indicator. */
+@supports selector(:focus-visible) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* Screen-reader-only text that becomes visible when focused (skip links). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Glassmorphism Navbar */
 .glass-nav {
   background-color: rgba(255, 255, 255, 0.95) !important;
@@ -115,6 +145,29 @@ body {
 .bg-hero-grid {
   background-image: radial-gradient(rgba(37, 99, 235, 0.14) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+/* GSAP reveal targets start hidden, then GSAP tweens them in. The noscript and
+   reduced-motion overrides below guarantee the content is never permanently
+   invisible when the animation cannot or should not run. */
+.gsap-reveal {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gsap-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Motion Effects & Animation Keyframes */

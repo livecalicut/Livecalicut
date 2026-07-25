@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { MerchantService } from '@/lib/services/merchant.service';
+import { requireAuth } from '@/lib/supabase/require-auth';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const metrics = await MerchantService.getDashboardMetrics(session.user.id);
+    const metrics = await MerchantService.getDashboardMetrics(auth.supabase, auth.user.id);
     return NextResponse.json({ data: metrics });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -1,7 +1,5 @@
 import React from 'react';
 import { Smartphone, Download, ShieldCheck, Zap } from 'lucide-react';
-import Link from 'next/link';
-
 export const AppDownloadBanner: React.FC = () => {
   return (
     <div className="surface-card p-8 lg:p-12 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white border-none shadow-xl rounded-3xl overflow-hidden relative">
@@ -20,21 +18,17 @@ export const AppDownloadBanner: React.FC = () => {
             Get instant push notifications for 24/7 blood bank emergencies, live beach traffic alerts, Cyberpark walk-in interviews, and local news releases.
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4">
-            <Link
-              href="/download"
-              className="inline-flex items-center gap-2 px-6 h-[48px] rounded-2xl bg-white text-[#2563EB] font-bold text-[15px] hover:bg-blue-50 transition-all shadow-md"
-            >
-              <Download className="w-4 h-4" />
-              <span>Get iOS App</span>
-            </Link>
-            <Link
-              href="/download"
-              className="inline-flex items-center gap-2 px-6 h-[48px] rounded-2xl bg-slate-900 text-white font-bold text-[15px] hover:bg-slate-800 transition-all shadow-md"
-            >
-              <Download className="w-4 h-4" />
-              <span>Get Android App</span>
-            </Link>
+          {/* The mobile apps are not published yet, so these announce rather
+              than link to a /download route that does not exist. */}
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <span className="inline-flex h-[48px] items-center gap-2 rounded-2xl bg-white/90 px-6 text-[15px] font-bold text-[#2563EB] shadow-md">
+              <Download className="h-4 w-4" aria-hidden="true" />
+              <span>iOS app — coming soon</span>
+            </span>
+            <span className="inline-flex h-[48px] items-center gap-2 rounded-2xl bg-slate-900 px-6 text-[15px] font-bold text-white shadow-md">
+              <Download className="h-4 w-4" aria-hidden="true" />
+              <span>Android app — coming soon</span>
+            </span>
           </div>
         </div>
 

@@ -27,6 +27,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="light" suppressHydrationWarning>
+      <head>
+        <noscript>
+          {/* Without JS the GSAP reveals never run, so reveal everything up front. */}
+          <style>{`.gsap-reveal { opacity: 1 !important; }`}</style>
+        </noscript>
+      </head>
       <body className="m-0 min-h-screen overflow-y-auto bg-white p-0 text-slate-900 antialiased" suppressHydrationWarning>
         <AppProviders>
           <AnnouncementBanner />

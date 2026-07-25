@@ -1,55 +1,54 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/src/store/useAuthStore';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuthStore, type UserRole } from '@/src/store/useAuthStore';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: string[];
+  allowedRoles?: UserRole[];
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
-  const { user, profile } = useAuthStore();
+  const pathname = usePathname();
+  const { user, roleName, isLoading, initializeAuth } = useAuthStore();
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    async function verifyAuthGuard() {
-      try {
-        setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
+    initializeAuth().finally(() => setInitialized(true));
+  }, [initializeAuth]);
 
-        // If local Zustand store has session or Supabase session exists, allow access
-        if (!session?.user && !user && !profile) {
-          router.push('/login');
-          return;
-        }
+  const authenticated = Boolean(user);
+  const permitted = !allowedRoles || allowedRoles.includes(roleName);
+  const settled = initialized && !isLoading;
 
-        setAuthorized(true);
-      } catch (error) {
-        console.error('Error verifying protected route:', error);
-        setAuthorized(true);
-      } finally {
-        setLoading(false);
-      }
+  useEffect(() => {
+    if (!settled) return;
+
+    if (!authenticated) {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
     }
 
-    verifyAuthGuard();
-  }, [supabase, router, allowedRoles, user, profile]);
+    if (!permitted) {
+      router.replace('/unauthorized');
+    }
+  }, [settled, authenticated, permitted, router, pathname]);
 
-  if (loading) {
+  // Render nothing until the role is known and allowed. Failing closed here is
+  // deliberate: an error or slow profile fetch must never expose the workspace.
+  if (!settled || !authenticated || !permitted) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 text-[#2563EB] animate-spin" />
-        <span className="text-xs text-[#6B7280] font-bold">Opening LiveCalicut Control Center...</span>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3" role="status">
+        <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" aria-hidden="true" />
+        <span className="text-xs font-bold text-[#6B7280]">
+          Opening LiveCalicut Control Center...
+        </span>
       </div>
     );
   }
 
-  return authorized ? <>{children}</> : null;
+  return <>{children}</>;
 };

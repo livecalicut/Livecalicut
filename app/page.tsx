@@ -121,13 +121,13 @@ export default async function HomePage() {
     { title: 'Jobs & Hiring', desc: 'Cyberpark & local openings', icon: <Briefcase className="w-5 h-5" />, href: '/jobs', badge: 'Cyberpark', badgeVariant: 'warning' as const },
     { title: 'Buy & Sell', desc: 'Pre-owned items & cars', icon: <ShoppingBag className="w-5 h-5" />, href: '/marketplace', badge: 'Classifieds', badgeVariant: 'success' as const },
     { title: 'Properties', desc: 'Plots, villas & rentals', icon: <Building className="w-5 h-5" />, href: '/properties', badge: 'Real Estate' },
-    { title: 'Tourism & Stays', desc: 'Beach spots & resorts', icon: <Compass className="w-5 h-5" />, href: '/tourism', badge: 'Guide' },
-    { title: 'Education', desc: 'Colleges & coaching hubs', icon: <GraduationCap className="w-5 h-5" />, href: '/education', badge: 'Academia' },
-    { title: 'Healthcare', desc: 'Hospitals & 24/7 labs', icon: <Activity className="w-5 h-5" />, href: '/healthcare', badge: 'Medical', badgeVariant: 'info' as const },
+    { title: 'Tourism & Stays', desc: 'Beach spots & resorts', icon: <Compass className="w-5 h-5" />, href: '/explore', badge: 'Guide' },
+    { title: 'Education', desc: 'Colleges & coaching hubs', icon: <GraduationCap className="w-5 h-5" />, href: '/business/search?q=education', badge: 'Academia' },
+    { title: 'Healthcare', desc: 'Hospitals & 24/7 labs', icon: <Activity className="w-5 h-5" />, href: '/business/search?q=healthcare', badge: 'Medical', badgeVariant: 'info' as const },
     { title: 'Restaurants', desc: 'Malabar dining & cafes', icon: <Utensils className="w-5 h-5" />, href: '/restaurants', badge: 'Dine Out' },
     { title: 'Hotels & Stays', desc: 'Boutique stays & suites', icon: <Hotel className="w-5 h-5" />, href: '/hotels', badge: 'Hospitality' },
-    { title: 'Emergency 24/7', desc: 'Helplines & blood banks', icon: <Ambulance className="w-5 h-5" />, href: '/emergency', badge: '24/7 Priority', badgeVariant: 'destructive' as const },
-    { title: 'Community', desc: 'Neighborhood forums', icon: <Users className="w-5 h-5" />, href: '/community', badge: 'Residents' },
+    { title: 'Emergency 24/7', desc: 'Helplines & blood banks', icon: <Ambulance className="w-5 h-5" />, href: '/business/search?q=emergency', badge: '24/7 Priority', badgeVariant: 'destructive' as const },
+    { title: 'Community', desc: 'Neighborhood forums', icon: <Users className="w-5 h-5" />, href: '/feed', badge: 'Residents' },
   ];
 
   return (
@@ -353,10 +353,10 @@ export default async function HomePage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/community"
+              href="/feed"
               className="inline-flex items-center gap-2 px-8 h-[48px] rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#2563EB] text-[#111827] font-bold text-[15px] transition-all shadow-sm"
             >
-              <span>Join Community Forum</span>
+              <span>Open City Feed</span>
             </Link>
           </div>
         </div>

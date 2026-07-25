@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AdminSidebar } from '@/components/admin/admin-sidebar';
-import { AdminHeader } from '@/components/admin/admin-header';
 import { MapPin, Plus, Search, Loader2, X, Trash2 } from 'lucide-react';
 
 type City = { id: string; name: string; slug: string };
@@ -102,103 +100,91 @@ export default function AdminLocationsPage() {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-[#111827]">
-      <AdminSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminHeader
-          breadcrumbs={[
-            { label: 'Admin', href: '/admin' },
-            { label: 'Locations' },
-          ]}
-        />
-
-        <main className="flex-1 space-y-5 overflow-y-auto p-6 lg:p-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[#111827]">Locations</h1>
-              <p className="mt-1 text-sm text-[#6B7280]">
-                Areas and wards shown across the public site
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-xs font-bold text-white hover:bg-[#1D4ED8]"
-            >
-              <Plus className="h-4 w-4" />
-              Add location
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:w-80">
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#6B7280]" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search locations…"
-                className="h-9 w-full rounded-xl border border-[#D1D5DB] bg-white pl-9 pr-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563EB]"
-              />
-            </div>
-            <p className="text-xs font-semibold text-[#6B7280]">{filtered.length} locations</p>
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-[#6B7280]">
-              <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
-              Loading…
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-14 text-center">
-              <MapPin className="mx-auto h-10 w-10 text-[#D1D5DB]" />
-              <p className="mt-3 text-sm font-semibold text-[#6B7280]">No locations yet</p>
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-xs font-bold text-white hover:bg-[#1D4ED8]"
-              >
-                <Plus className="h-4 w-4" />
-                Add location
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] uppercase tracking-wide text-[#6B7280]">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Area</th>
-                    <th className="px-4 py-3 font-semibold">City</th>
-                    <th className="px-4 py-3 font-semibold">Pincode</th>
-                    <th className="px-4 py-3 font-semibold text-right"> </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((loc) => (
-                    <tr key={loc.id} className="border-t border-[#F3F4F6]">
-                      <td className="px-4 py-3 font-semibold text-[#111827]">{loc.name}</td>
-                      <td className="px-4 py-3 text-[#6B7280]">
-                        {loc.cities?.name || '—'}
-                      </td>
-                      <td className="px-4 py-3 text-[#6B7280]">{loc.pincode || '—'}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => deleteLocation(loc.id)}
-                          className="rounded-lg p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </main>
+    <>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#111827]">Locations</h1>
+          <p className="mt-1 text-sm text-[#6B7280]">
+            Areas and wards shown across the public site
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-xs font-bold text-white hover:bg-[#1D4ED8]"
+        >
+          <Plus className="h-4 w-4" />
+          Add location
+        </button>
       </div>
+
+      <div className="flex flex-col gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:w-80">
+          <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#6B7280]" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search locations…"
+            className="h-9 w-full rounded-xl border border-[#D1D5DB] bg-white pl-9 pr-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563EB]"
+          />
+        </div>
+        <p className="text-xs font-semibold text-[#6B7280]">{filtered.length} locations</p>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 py-16 text-sm text-[#6B7280]">
+          <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
+          Loading…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-14 text-center">
+          <MapPin className="mx-auto h-10 w-10 text-[#D1D5DB]" />
+          <p className="mt-3 text-sm font-semibold text-[#6B7280]">No locations yet</p>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-xs font-bold text-white hover:bg-[#1D4ED8]"
+          >
+            <Plus className="h-4 w-4" />
+            Add location
+          </button>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] uppercase tracking-wide text-[#6B7280]">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Area</th>
+                <th className="px-4 py-3 font-semibold">City</th>
+                <th className="px-4 py-3 font-semibold">Pincode</th>
+                <th className="px-4 py-3 font-semibold text-right"> </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((loc) => (
+                <tr key={loc.id} className="border-t border-[#F3F4F6]">
+                  <td className="px-4 py-3 font-semibold text-[#111827]">{loc.name}</td>
+                  <td className="px-4 py-3 text-[#6B7280]">
+                    {loc.cities?.name || '—'}
+                  </td>
+                  <td className="px-4 py-3 text-[#6B7280]">{loc.pincode || '—'}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => deleteLocation(loc.id)}
+                      className="rounded-lg p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -283,6 +269,6 @@ export default function AdminLocationsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

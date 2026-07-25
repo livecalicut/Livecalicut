@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
 import { useAuthStore, UserRole } from '@/src/store/useAuthStore';
 import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
 import {
@@ -42,6 +43,24 @@ interface NavGroup {
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const { hasRole, roleName } = useAuthStore();
+  const ref = useRef<HTMLElement>(null);
+
+  // Staggered entrance for the nav items, once per mount. Because the sidebar
+  // now lives in the layout this plays on first load only, not on navigation.
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+
+      gsap.from('[data-nav-item]', {
+        opacity: 0,
+        x: -12,
+        duration: 0.35,
+        stagger: 0.02,
+        ease: 'liveEase',
+      });
+    },
+    { scope: ref }
+  );
 
   const navGroups: NavGroup[] = [
     {
@@ -89,15 +108,19 @@ export const AdminSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-[#E5E7EB] min-h-screen p-4 space-y-6 flex flex-col justify-between shadow-xs">
+    <aside
+      ref={ref}
+      aria-label="Admin navigation"
+      className="flex min-h-screen w-64 shrink-0 flex-col justify-between space-y-6 border-r border-[#E5E7EB] bg-white p-4 shadow-xs"
+    >
       <div className="space-y-6">
         {/* Admin Brand Logo Header */}
-        <div className="px-2 py-2 border-b border-[#E5E7EB] pb-4">
+        <div className="border-b border-[#E5E7EB] px-2 py-2 pb-4">
           <div className="flex items-center gap-2">
             <LiveCalicutLogo showSubtitle={false} />
           </div>
-          <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[10px] font-extrabold text-[#2563EB] tracking-wide uppercase font-sans">
-            <ShieldCheck className="w-3 h-3 text-[#2563EB]" />
+          <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 font-sans text-[10px] font-extrabold tracking-wide text-[#2563EB] uppercase">
+            <ShieldCheck className="h-3 w-3 text-[#2563EB]" />
             <span>Admin OS • {roleName}</span>
           </div>
         </div>
@@ -107,15 +130,22 @@ export const AdminSidebar: React.FC = () => {
           {navGroups.map((group) => {
             if (!hasRole(group.allowedRoles)) return null;
 
+            const visibleItems = group.items.filter((item) => hasRole(item.allowedRoles));
+            if (visibleItems.length === 0) return null;
+
             return (
               <div key={group.group} className="space-y-1.5">
-                <h5 className="px-3 text-[10px] font-extrabold text-[#9CA3AF] tracking-widest uppercase font-sans">
+                <h5
+                  id={`nav-group-${group.group.replace(/\s+/g, '-').toLowerCase()}`}
+                  className="px-3 font-sans text-[10px] font-extrabold tracking-widest text-[#9CA3AF] uppercase"
+                >
                   {group.group}
                 </h5>
-                <nav className="space-y-0.5">
-                  {group.items.map((item) => {
-                    if (!hasRole(item.allowedRoles)) return null;
-
+                <nav
+                  aria-labelledby={`nav-group-${group.group.replace(/\s+/g, '-').toLowerCase()}`}
+                  className="space-y-0.5"
+                >
+                  {visibleItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
 
@@ -123,13 +153,15 @@ export const AdminSidebar: React.FC = () => {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                        aria-current={isActive ? 'page' : undefined}
+                        data-nav-item
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-1 focus-visible:outline-none ${
                           isActive
                             ? 'bg-[#2563EB] text-white shadow-md shadow-blue-500/20'
-                            : 'text-[#4B5563] hover:text-[#111827] hover:bg-[#F8FAFC]'
+                            : 'text-[#4B5563] hover:bg-[#F8FAFC] hover:text-[#111827]'
                         }`}
                       >
-                        <Icon className="w-4 h-4 shrink-0" />
+                        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                         <span className="truncate">{item.label}</span>
                       </Link>
                     );
@@ -142,12 +174,12 @@ export const AdminSidebar: React.FC = () => {
       </div>
 
       {/* Exit Control Center Shortcut */}
-      <div className="pt-4 border-t border-[#E5E7EB]">
+      <div className="border-t border-[#E5E7EB] pt-4">
         <Link
           href="/"
-          className="flex items-center gap-2 px-3 py-2 text-xs text-[#6B7280] hover:text-[#111827] font-bold hover:bg-[#F8FAFC] rounded-xl transition-all"
+          className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-[#6B7280] transition-all hover:bg-[#F8FAFC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none"
         >
-          <ArrowLeft className="w-4 h-4 text-[#2563EB]" />
+          <ArrowLeft className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
           <span>Exit to Public Portal</span>
         </Link>
       </div>

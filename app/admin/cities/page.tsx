@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AdminSidebar } from '@/components/admin/admin-sidebar';
-import { AdminHeader } from '@/components/admin/admin-header';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
@@ -93,72 +91,65 @@ export default function AdminCitiesPage() {
   const filteredCities = cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.state.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-[#111827]">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <AdminHeader breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Cities & Wards' }]} />
+    <>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
+            <MapPin className="w-7 h-7 text-[#2563EB]" />
+            <span>Cities & Regional Bounds</span>
+          </h1>
+          <p className="text-sm text-[#6B7280]">Configure multi-city tenant structures, municipal ward zones, and regional expansion bounds</p>
+        </div>
 
-        <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-                <MapPin className="w-7 h-7 text-[#2563EB]" />
-                <span>Cities & Regional Bounds</span>
-              </h1>
-              <p className="text-sm text-[#6B7280]">Configure multi-city tenant structures, municipal ward zones, and regional expansion bounds</p>
-            </div>
-
-            <button
-              onClick={() => setShowModal(true)}
-              className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
-            >
-              <Plus className="w-4 h-4" /> Add New City Tenant
-            </button>
-          </div>
-
-          {/* Search Bar Card */}
-          <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search city tenant..."
-                className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#D1D5DB] bg-white text-xs text-[#111827] font-semibold focus:border-[#2563EB] focus:outline-none placeholder:text-[#9CA3AF]"
-              />
-            </div>
-            <span className="text-xs font-bold text-[#6B7280]">Configured Tenants: {filteredCities.length}</span>
-          </Card>
-
-          {/* Cities List */}
-          {loading ? (
-            <div className="text-center py-12 text-[#6B7280] text-sm font-medium">Loading configured city bounds...</div>
-          ) : filteredCities.length === 0 ? (
-            <div className="text-center py-12 text-[#6B7280] text-sm font-medium">No city tenants found.</div>
-          ) : (
-            <div className="space-y-3">
-              {filteredCities.map((c) => (
-                <Card key={c.id} className="p-5 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between gap-4 hover:border-blue-200 transition-all">
-                  <div className="space-y-1">
-                    <h4 className="text-base font-bold text-[#111827] font-sans flex items-center gap-2">
-                      <span>{c.name}, {c.state}</span>
-                    </h4>
-                    <p className="text-xs text-[#6B7280]">
-                      {c.areas_count > 0 ? `${c.areas_count} Municipal Wards Configured` : 'Target Regional Node'} • <span className="font-mono text-[11px]">/{c.slug}</span>
-                    </p>
-                  </div>
-
-                  <Badge variant={c.status.includes('Active') ? 'success' : 'purple'} className="px-3 py-1 rounded-full text-xs font-bold">
-                    {c.status}
-                  </Badge>
-                </Card>
-              ))}
-            </div>
-          )}
-        </main>
+        <button
+          onClick={() => setShowModal(true)}
+          className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
+        >
+          <Plus className="w-4 h-4" /> Add New City Tenant
+        </button>
       </div>
+
+      {/* Search Bar Card */}
+      <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search city tenant..."
+            className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#D1D5DB] bg-white text-xs text-[#111827] font-semibold focus:border-[#2563EB] focus:outline-none placeholder:text-[#9CA3AF]"
+          />
+        </div>
+        <span className="text-xs font-bold text-[#6B7280]">Configured Tenants: {filteredCities.length}</span>
+      </Card>
+
+      {/* Cities List */}
+      {loading ? (
+        <div className="text-center py-12 text-[#6B7280] text-sm font-medium">Loading configured city bounds...</div>
+      ) : filteredCities.length === 0 ? (
+        <div className="text-center py-12 text-[#6B7280] text-sm font-medium">No city tenants found.</div>
+      ) : (
+        <div className="space-y-3">
+          {filteredCities.map((c) => (
+            <Card key={c.id} className="p-5 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between gap-4 hover:border-blue-200 transition-all">
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-[#111827] font-sans flex items-center gap-2">
+                  <span>{c.name}, {c.state}</span>
+                </h4>
+                <p className="text-xs text-[#6B7280]">
+                  {c.areas_count > 0 ? `${c.areas_count} Municipal Wards Configured` : 'Target Regional Node'} • <span className="font-mono text-[11px]">/{c.slug}</span>
+                </p>
+              </div>
+
+              <Badge variant={c.status.includes('Active') ? 'success' : 'purple'} className="px-3 py-1 rounded-full text-xs font-bold">
+                {c.status}
+              </Badge>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Modal: Add New City Tenant */}
       {showModal && (
@@ -226,6 +217,6 @@ export default function AdminCitiesPage() {
           </Card>
         </div>
       )}
-    </div>
+    </>
   );
 }

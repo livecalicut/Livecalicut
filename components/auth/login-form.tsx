@@ -19,6 +19,26 @@ import {
 } from '@/components/ui/card';
 import { LogIn, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 
+const ROLE_LANDING: Record<string, string> = {
+  'Super Admin': '/admin',
+  'City Admin': '/admin',
+  Moderator: '/admin',
+  'Marketing Executive': '/admin',
+  Merchant: '/merchant',
+};
+
+/** Asks the server which role the new session has, and maps it to a home route. */
+async function resolveLandingRoute(): Promise<string> {
+  try {
+    const response = await fetch('/api/auth/me');
+    if (!response.ok) return '/';
+    const { roleName } = await response.json();
+    return ROLE_LANDING[roleName] ?? '/';
+  } catch {
+    return '/';
+  }
+}
+
 export const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -53,9 +73,11 @@ export const LoginForm: React.FC = () => {
 
       setSuccess('Login successful — redirecting...');
 
-      // Redirect to the originally requested page, or admin dashboard
-      const next = new URLSearchParams(window.location.search).get('next') || '/admin';
-      router.push(next);
+      // Honour ?next= when present, otherwise send the user to the workspace
+      // their role can actually open. Defaulting everyone to /admin bounced
+      // ordinary users straight to /unauthorized.
+      const next = new URLSearchParams(window.location.search).get('next');
+      router.push(next || (await resolveLandingRoute()));
       router.refresh(); // Refresh to update server-side session state
     } catch (err: any) {
       setError(err?.message || 'An unexpected error occurred. Please try again.');

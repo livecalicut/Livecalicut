@@ -23,7 +23,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     { href: '/business', label: 'Shops & Dining' },
     { href: '/jobs', label: 'Cyberpark Jobs' },
     { href: '/marketplace', label: 'Marketplace' },
-    { href: '/tourism', label: 'Beach Stays' },
+    { href: '/hotels', label: 'Beach Stays' },
   ];
 
   return (

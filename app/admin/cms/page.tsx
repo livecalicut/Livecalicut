@@ -5,8 +5,6 @@ import { MetricsEditor } from './metrics-editor';
 import { TestimonialsEditor } from './testimonials-editor';
 import { PartnersEditor } from './partners-editor';
 import { LayoutTemplate, PlaySquare, ListChecks, Users } from 'lucide-react';
-import { AdminSidebar } from '@/components/admin/admin-sidebar';
-import { AdminHeader } from '@/components/admin/admin-header';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,18 +14,13 @@ export default async function CMSDashboardPage() {
   const heroData = cmsData?.hero || {};
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-[#111827]">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <AdminHeader breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Landing Page CMS' }]} />
-
-        <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans">Landing Page CMS</h1>
-              <p className="text-sm text-[#6B7280] mt-1">Update website content dynamically without writing code.</p>
-            </div>
-          </div>
+    <>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans">Landing Page CMS</h1>
+          <p className="text-sm text-[#6B7280] mt-1">Update website content dynamically without writing code.</p>
+        </div>
+      </div>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -106,8 +99,6 @@ export default async function CMSDashboardPage() {
           <PartnersEditor initialData={cmsData?.partners || []} />
         </div>
       </div>
-        </main>
-      </div>
-    </div>
+    </>
   );
 }

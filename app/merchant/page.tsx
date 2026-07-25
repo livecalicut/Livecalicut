@@ -1,217 +1,349 @@
 import React from 'react';
-import { MerchantSidebar } from '@/components/merchant/merchant-sidebar';
-import { MerchantHeader } from '@/components/merchant/merchant-header';
+import Link from 'next/link';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
-  Store,
   ShieldCheck,
+  ShieldAlert,
   Eye,
-  PhoneCall,
   MessageCircle,
   Star,
   Users,
   Plus,
   ArrowUpRight,
-  Sparkles,
   CreditCard,
   Building2,
-  Briefcase,
-  Tag,
+  Gauge,
 } from 'lucide-react';
-import Link from 'next/link';
+import { fetchMerchantDashboardAction } from './actions';
+import { StatTile } from '@/components/dashboard/stat-tile';
 
-export default function MerchantDashboardPage() {
-  const kpis = [
-    { label: 'Monthly Storefront Views', value: '12,480', sub: '+18.4% vs last month', icon: Eye, color: 'text-[#2563EB]', bg: 'bg-blue-50', border: 'border-blue-200' },
-    { label: 'Direct Call Leads', value: '428', sub: 'Verified phone clicks', icon: PhoneCall, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-    { label: 'WhatsApp Inquiries', value: '184', sub: 'Instant chat leads', icon: MessageCircle, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200' },
-    { label: 'Customer Trust Score', value: '4.9 ★', sub: '1,240 verified reviews', icon: Star, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
-  ];
+function timeAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.round(diffMs / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.round(hours / 24);
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
+  return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+}
 
-  const recentLeads = [
-    { name: 'Dr. Faisal Rahman', phone: '+91 98950 12345', type: 'Table Reservation', Ward: 'Ward 12 Beach Road', time: '15 mins ago' },
-    { name: 'Anjali Nambiar', phone: '+91 94471 98765', type: 'Software Lead Inquiry', Ward: 'Ward 8 Cyberpark', time: '1 hour ago' },
-    { name: 'Moideenkutty K.', phone: '+91 98470 54321', type: 'Bulk Catering Query', Ward: 'Ward 1 SM Street', time: '3 hours ago' },
-  ];
+export default async function MerchantDashboardPage() {
+  const { authorized, hasBusiness, businessName, isVerified, metrics, leads, reviews, subscription } =
+    await fetchMerchantDashboardAction();
 
-  const recentReviews = [
-    { reviewer: 'Dr. Faisal', rating: 5, comment: 'Exceptional Malabar cuisine and prompt customer response. Ward physical verification gives complete peace of mind!', time: 'Today' },
-    { reviewer: 'Anjali N.', rating: 5, comment: 'Great ambiance and smooth booking process via LiveCalicut.', time: 'Yesterday' },
-  ];
+  if (!authorized) {
+    return (
+      <Card className="rounded-3xl p-10 text-center">
+        <h1 className="text-lg font-extrabold text-[#111827]">Merchant workspace</h1>
+        <p className="mt-2 text-sm text-[#6B7280]">Sign in to open your merchant dashboard.</p>
+      </Card>
+    );
+  }
+
+  if (!hasBusiness) {
+    return (
+      <Card className="rounded-3xl p-10 text-center">
+        <Building2 className="mx-auto h-8 w-8 text-[#2563EB]" aria-hidden="true" />
+        <h1 className="mt-3 text-lg font-extrabold text-[#111827]">No outlet registered yet</h1>
+        <p className="mx-auto mt-2 max-w-md text-sm text-[#6B7280]">
+          Once your business listing is created and approved by the city team, your leads, reviews
+          and performance figures will appear here.
+        </p>
+        <Link
+          href="/business/create"
+          className="mt-5 inline-flex h-11 items-center gap-1.5 rounded-xl bg-[#2563EB] px-5 text-xs font-bold text-white transition-colors hover:bg-[#1D4ED8]"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" /> Register your outlet
+        </Link>
+      </Card>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-[#111827]">
-      <MerchantSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <MerchantHeader breadcrumbs={[{ label: 'Merchant Workspace', href: '/merchant' }, { label: 'Dashboard' }]} />
-
-        <main className="flex-1 p-6 lg:p-8 space-y-8 overflow-y-auto">
-          {/* Welcome Banner Card */}
-          <Card className="p-6 sm:p-8 border border-blue-200 bg-gradient-to-r from-blue-50/80 via-white to-blue-50/80 rounded-3xl shadow-xs">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>100% Ward Physical Verification Verified</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] font-sans tracking-tight">
-                  Welcome to Paragon Restaurant Merchant OS
-                </h1>
-                <p className="text-sm text-[#6B7280]">
-                  Your commercial outlet is actively connected to Kozhikode citizens across 21 spatial wards.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 shrink-0">
-                <Link href="/merchant/profile">
-                  <button className="h-[44px] px-5 rounded-xl bg-white border border-[#E5E7EB] hover:border-[#2563EB] text-[#111827] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
-                    <Building2 className="w-4 h-4 text-[#2563EB]" /> Edit Outlet Details
-                  </button>
-                </Link>
-                <Link href="/merchant/jobs">
-                  <button className="h-[44px] px-5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
-                    <Plus className="w-4 h-4" /> Post Job Vacancy
-                  </button>
-                </Link>
-              </div>
+    <>
+      {/* Welcome Banner */}
+      <Card className="rounded-3xl border-blue-200 bg-gradient-to-r from-blue-50/80 via-white to-blue-50/80 p-6 sm:p-8">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div className="space-y-2">
+            <div
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                isVerified
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-amber-100 text-amber-800'
+              }`}
+            >
+              {isVerified ? (
+                <>
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
+                  <span>Verified listing</span>
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
+                  <span>Verification pending</span>
+                </>
+              )}
             </div>
-          </Card>
-
-          {/* High-Impact Performance KPIs */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {kpis.map((k) => {
-              const Icon = k.icon;
-              return (
-                <Card key={k.label} className="p-5 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs space-y-3 hover:border-blue-200 transition-all">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#6B7280] font-sans">{k.label}</span>
-                    <div className={`w-9 h-9 rounded-xl ${k.bg} border ${k.border} flex items-center justify-center ${k.color}`}>
-                      <Icon className="w-4.5 h-4.5" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-extrabold text-[#111827] font-sans tracking-tight">{k.value}</p>
-                    <p className="text-[11px] text-[#6B7280] font-medium mt-0.5">{k.sub}</p>
-                  </div>
-                </Card>
-              );
-            })}
+            <h1 className="font-sans text-2xl font-extrabold tracking-tight text-[#111827] sm:text-3xl">
+              {businessName}
+            </h1>
+            <p className="text-sm text-[#6B7280]">
+              Your merchant workspace for leads, reviews and listing performance.
+            </p>
           </div>
 
-          {/* Customer Leads CRM & Reviews Stream */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Column: Recent Customer Inquiries & Leads */}
-            <div className="lg:col-span-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-extrabold text-[#111827] flex items-center gap-2 font-sans">
-                  <Users className="w-5 h-5 text-[#2563EB]" />
-                  <span>Recent Customer Inquiries & Leads</span>
-                </h3>
-                <Link href="/merchant/leads" className="text-xs font-bold text-[#2563EB] hover:underline flex items-center gap-0.5">
-                  <span>View All Leads</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-3">
+            <Link
+              href="/merchant/profile"
+              className="flex h-11 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-5 text-xs font-bold text-[#111827] shadow-xs transition-all hover:border-[#2563EB]"
+            >
+              <Building2 className="h-4 w-4 text-[#2563EB]" aria-hidden="true" /> Edit outlet
+            </Link>
+            <Link
+              href="/merchant/jobs"
+              className="flex h-11 items-center gap-1.5 rounded-xl bg-[#2563EB] px-5 text-xs font-bold text-white shadow-md transition-all hover:bg-[#1D4ED8]"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" /> Post vacancy
+            </Link>
+          </div>
+        </div>
+      </Card>
 
-              <Card className="p-0 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider">
-                        <th className="py-3.5 px-6">Customer Name</th>
-                        <th className="py-3.5 px-4">Inquiry Category</th>
-                        <th className="py-3.5 px-4">Spatial Ward</th>
-                        <th className="py-3.5 px-4">Time</th>
-                        <th className="py-3.5 px-6 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                      {recentLeads.map((lead, i) => (
-                        <tr key={i} className="hover:bg-[#F8FAFC] transition-colors">
-                          <td className="py-4 px-6 font-bold text-[#111827]">{lead.name}</td>
-                          <td className="py-4 px-4 text-[#4B5563] font-medium">{lead.type}</td>
-                          <td className="py-4 px-4 text-[#6B7280] font-medium">{lead.Ward}</td>
-                          <td className="py-4 px-4 text-[#9CA3AF] text-[11px]">{lead.time}</td>
-                          <td className="py-4 px-6 text-right">
+      {/* Performance KPIs */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile title="Storefront views" value={metrics.totalViews} icon={Eye} tone="blue" />
+        <StatTile
+          title="New leads"
+          value={metrics.newLeadsCount}
+          icon={Users}
+          tone="emerald"
+          hint="Awaiting your reply"
+        />
+        <StatTile title="Reviews" value={metrics.totalReviews} icon={MessageCircle} tone="teal" />
+        <StatTile
+          title="Average rating"
+          value={metrics.ratingAvg}
+          icon={Star}
+          tone="amber"
+          hint={metrics.totalReviews > 0 ? 'Across all listings' : 'No ratings yet'}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        {/* Leads */}
+        <div className="space-y-4 lg:col-span-8">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 font-sans text-lg font-extrabold text-[#111827]">
+              <Users className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
+              <span>Recent customer inquiries</span>
+            </h2>
+            <Link
+              href="/merchant/leads"
+              className="flex shrink-0 items-center gap-0.5 text-xs font-bold text-[#2563EB] hover:underline"
+            >
+              <span>View all</span>
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <Card className="overflow-hidden rounded-3xl p-0">
+            {leads.length === 0 ? (
+              <p className="px-6 py-12 text-center text-sm text-[#6B7280]">
+                No inquiries yet. Leads from your listings will appear here.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[680px] border-collapse text-left">
+                  <caption className="sr-only">Most recent customer inquiries</caption>
+                  <thead>
+                    <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] font-extrabold tracking-wider text-[#6B7280] uppercase">
+                      <th scope="col" className="px-6 py-3.5">Customer</th>
+                      <th scope="col" className="px-4 py-3.5">Regarding</th>
+                      <th scope="col" className="px-4 py-3.5">Status</th>
+                      <th scope="col" className="px-4 py-3.5">Received</th>
+                      <th scope="col" className="px-6 py-3.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                    {leads.map((lead) => (
+                      <tr key={`${lead.kind}-${lead.id}`} className="transition-colors hover:bg-[#F8FAFC]">
+                        <td className="px-6 py-4 font-bold text-[#111827]">{lead.name}</td>
+                        <td className="px-4 py-4 font-medium text-[#4B5563]">{lead.subject}</td>
+                        <td className="px-4 py-4">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
+                              lead.status === 'pending'
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-emerald-50 text-emerald-700'
+                            }`}
+                          >
+                            {lead.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-[11px] whitespace-nowrap text-[#9CA3AF]">
+                          {timeAgo(lead.created_at)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {lead.phone ? (
                             <a
                               href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
                               target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-emerald-700"
                             >
-                              <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Contact
+                              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span>WhatsApp</span>
+                              <span className="sr-only"> {lead.name}</span>
                             </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
+                          ) : lead.email ? (
+                            <a
+                              href={`mailto:${lead.email}`}
+                              className="inline-flex items-center gap-1 rounded-xl border border-[#E5E7EB] px-3 py-1.5 text-xs font-bold text-[#111827] transition-all hover:border-[#2563EB]"
+                            >
+                              Email<span className="sr-only"> {lead.name}</span>
+                            </a>
+                          ) : (
+                            <span className="text-[11px] text-[#9CA3AF]">No contact</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Side column */}
+        <div className="space-y-6 lg:col-span-4">
+          <Card className="space-y-4 rounded-3xl p-6">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <h2 className="flex items-center gap-2 font-sans text-sm font-extrabold text-[#111827]">
+                <Gauge className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
+                <span>Profile completion</span>
+              </h2>
+              <span className="text-sm font-extrabold text-[#111827] tabular-nums">
+                {metrics.profileCompletion}%
+              </span>
+            </div>
+            <div
+              className="h-2.5 w-full overflow-hidden rounded-full bg-[#F1F5F9]"
+              role="progressbar"
+              aria-valuenow={metrics.profileCompletion}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Profile completion"
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#60A5FA]"
+                style={{ width: `${metrics.profileCompletion}%` }}
+              />
+            </div>
+            {metrics.profileCompletion < 100 && (
+              <Link
+                href="/merchant/profile"
+                className="block text-xs font-bold text-[#2563EB] hover:underline"
+              >
+                Complete your listing →
+              </Link>
+            )}
+          </Card>
+
+          <Card className="space-y-4 rounded-3xl p-6">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <h2 className="flex items-center gap-2 font-sans text-sm font-extrabold text-[#111827]">
+                <CreditCard className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
+                <span>Subscription</span>
+              </h2>
+              {subscription && (
+                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-[#2563EB] capitalize">
+                  {subscription.status}
+                </span>
+              )}
             </div>
 
-            {/* Right Column: Reviews & Subscription Plan */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Subscription Status Card */}
-              <Card className="p-6 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
-                  <h4 className="text-sm font-extrabold text-[#111827] font-sans flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-[#2563EB]" />
-                    <span>Active Merchant Tier</span>
-                  </h4>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#2563EB] text-[10px] font-bold">
-                    Verified Plan
-                  </span>
+            {subscription ? (
+              <dl className="space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <dt className="text-[#6B7280]">Plan</dt>
+                  <dd className="font-bold text-[#111827]">{subscription.planName}</dd>
                 </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6B7280]">Listing Visibility</span>
-                    <span className="font-bold text-emerald-600">Top Ward Search</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6B7280]">Lead Capture & Phone Clicks</span>
-                    <span className="font-bold text-[#111827]">Unlimited</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#6B7280]">Renews In</span>
-                    <span className="font-bold text-[#2563EB]">184 Days</span>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-[#6B7280]">Billing cycle</dt>
+                  <dd className="font-bold text-[#111827] capitalize">
+                    {subscription.billingCycle}
+                  </dd>
                 </div>
-              </Card>
+                {subscription.daysRemaining !== null && (
+                  <div className="flex items-center justify-between">
+                    <dt className="text-[#6B7280]">Renews in</dt>
+                    <dd className="font-bold text-[#2563EB]">
+                      {subscription.daysRemaining} days
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            ) : (
+              <div className="space-y-3 text-xs">
+                <p className="text-[#6B7280]">
+                  You are on the free tier. Upgrade for higher search placement and unlimited lead
+                  capture.
+                </p>
+                <Link
+                  href="/merchant/subscription"
+                  className="inline-flex rounded-xl bg-[#2563EB] px-3 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-[#1D4ED8]"
+                >
+                  View plans
+                </Link>
+              </div>
+            )}
+          </Card>
 
-              {/* Recent Reviews Feed */}
-              <Card className="p-6 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
-                  <h4 className="text-sm font-extrabold text-[#111827] font-sans">
-                    Latest Citizen Feedback
-                  </h4>
-                  <Link href="/merchant/reviews" className="text-xs text-[#2563EB] font-bold hover:underline">
-                    Manage All
-                  </Link>
-                </div>
+          <Card className="space-y-4 rounded-3xl p-6">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <h2 className="font-sans text-sm font-extrabold text-[#111827]">Latest feedback</h2>
+              <Link
+                href="/merchant/reviews"
+                className="text-xs font-bold text-[#2563EB] hover:underline"
+              >
+                Manage all
+              </Link>
+            </div>
 
-                <div className="space-y-3">
-                  {recentReviews.map((rev, i) => (
-                    <div key={i} className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] space-y-1.5 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#111827]">{rev.reviewer}</span>
-                        <div className="flex items-center text-amber-500">
-                          {[...Array(rev.rating)].map((_, r) => (
-                            <Star key={r} className="w-3 h-3 fill-amber-400" />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-[12px] text-[#4B5563] leading-relaxed italic">"{rev.comment}"</p>
+            {reviews.length === 0 ? (
+              <p className="py-4 text-center text-xs text-[#6B7280]">No reviews yet.</p>
+            ) : (
+              <ul className="space-y-3">
+                {reviews.map((review) => (
+                  <li
+                    key={review.id}
+                    className="space-y-1.5 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3.5 text-xs"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate font-bold text-[#111827]">{review.reviewer}</span>
+                      <span
+                        className="flex shrink-0 items-center text-amber-500"
+                        aria-label={`${review.rating} out of 5 stars`}
+                      >
+                        {Array.from({ length: review.rating }).map((_, i) => (
+                          <Star key={i} className="h-3 w-3 fill-amber-400" aria-hidden="true" />
+                        ))}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          </div>
-        </main>
+                    <p className="text-[12px] leading-relaxed text-[#4B5563] italic">
+                      &ldquo;{review.comment}&rdquo;
+                    </p>
+                    <p className="text-[10px] text-[#9CA3AF]">{timeAgo(review.created_at)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

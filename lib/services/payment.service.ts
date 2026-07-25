@@ -28,13 +28,37 @@ export class PaymentService {
     return data;
   }
 
-  static verifyRazorpaySignature(orderId: string, paymentId: string, signature: string, secret: string = 'test_secret_key'): boolean {
-    const generatedSignature = crypto
+  /**
+   * Verifies a Razorpay payment signature.
+   *
+   * There is deliberately no development bypass and no default secret: the
+   * previous version returned true for any signature outside production, which
+   * meant a forged callback was accepted in every non-production environment.
+   */
+  static verifyRazorpaySignature(
+    orderId: string,
+    paymentId: string,
+    signature: string,
+    secret: string = process.env.RAZORPAY_KEY_SECRET ?? ''
+  ): boolean {
+    if (!secret) {
+      console.error('[PaymentService] RAZORPAY_KEY_SECRET is not configured; rejecting payment.');
+      return false;
+    }
+    if (!orderId || !paymentId || !signature) return false;
+
+    const expected = crypto
       .createHmac('sha256', secret)
       .update(`${orderId}|${paymentId}`)
       .digest('hex');
 
-    return generatedSignature === signature || process.env.NODE_ENV !== 'production';
+    const expectedBuffer = Buffer.from(expected, 'utf8');
+    const providedBuffer = Buffer.from(signature, 'utf8');
+
+    // Length must match before timingSafeEqual, which throws on a mismatch.
+    if (expectedBuffer.length !== providedBuffer.length) return false;
+
+    return crypto.timingSafeEqual(expectedBuffer, providedBuffer);
   }
 
   static async getInvoices(merchantId: string) {

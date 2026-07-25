@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef } from 'react';
+import { gsap, useGSAP, DURATION, EASE, prefersReducedMotion } from '@/lib/gsap';
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -11,35 +11,56 @@ interface ScrollRevealProps {
   staggerChildren?: boolean;
 }
 
+const DIRECTION_OFFSET = {
+  up: { y: 40, x: 0 },
+  down: { y: -40, x: 0 },
+  left: { x: 40, y: 0 },
+  right: { x: -40, y: 0 },
+} as const;
+
 export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   children,
   delay = 0,
   direction = 'up',
   className = '',
 }) => {
-  const directionOffset = {
-    up: { y: 40, x: 0 },
-    down: { y: -40, x: 0 },
-    left: { x: 40, y: 0 },
-    right: { x: -40, y: 0 },
-  };
+  const ref = useRef<HTMLDivElement>(null);
 
-  const offset = directionOffset[direction];
+  useGSAP(
+    () => {
+      const offset = DIRECTION_OFFSET[direction];
+
+      if (prefersReducedMotion()) {
+        gsap.set(ref.current, { opacity: 1, x: 0, y: 0, scale: 1 });
+        return;
+      }
+
+      gsap.fromTo(
+        ref.current,
+        { opacity: 0, y: offset.y, x: offset.x, scale: 0.98 },
+        {
+          opacity: 1,
+          y: 0,
+          x: 0,
+          scale: 1,
+          duration: DURATION.slow,
+          delay,
+          ease: EASE.out,
+          scrollTrigger: {
+            trigger: ref.current,
+            start: 'top bottom-=80',
+            once: true,
+          },
+        }
+      );
+    },
+    { scope: ref, dependencies: [direction, delay] }
+  );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: offset.y, x: offset.x, scale: 0.98 }}
-      whileInView={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{
-        duration: 0.7,
-        delay,
-        ease: [0.16, 1, 0.3, 1], // WebAndCrafts / Apple smooth curve
-      }}
-      className={className}
-    >
+    <div ref={ref} className={`gsap-reveal ${className}`}>
       {children}
-    </motion.div>
+    </div>
   );
 };
 
@@ -47,24 +68,43 @@ export const StaggerContainer: React.FC<{ children: React.ReactNode; className?:
   children,
   className = '',
 }) => {
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: '-60px' }}
-      variants={{
-        hidden: { opacity: 0 },
-        show: {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const items = gsap.utils.toArray<HTMLElement>('[data-stagger-item]', ref.current);
+      if (!items.length) return;
+
+      if (prefersReducedMotion()) {
+        gsap.set(items, { opacity: 1, y: 0, scale: 1 });
+        return;
+      }
+
+      gsap.fromTo(
+        items,
+        { opacity: 0, y: 30, scale: 0.97 },
+        {
           opacity: 1,
-          transition: {
-            staggerChildren: 0.1,
+          y: 0,
+          scale: 1,
+          duration: DURATION.base,
+          ease: EASE.out,
+          stagger: 0.1,
+          scrollTrigger: {
+            trigger: ref.current,
+            start: 'top bottom-=60',
+            once: true,
           },
-        },
-      }}
-      className={className}
-    >
+        }
+      );
+    },
+    { scope: ref }
+  );
+
+  return (
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 };
 
@@ -73,22 +113,8 @@ export const StaggerItem: React.FC<{ children: React.ReactNode; className?: stri
   className = '',
 }) => {
   return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 30, scale: 0.97 },
-        show: {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          transition: {
-            duration: 0.55,
-            ease: [0.16, 1, 0.3, 1],
-          },
-        },
-      }}
-      className={className}
-    >
+    <div data-stagger-item className={`gsap-reveal ${className}`}>
       {children}
-    </motion.div>
+    </div>
   );
 };

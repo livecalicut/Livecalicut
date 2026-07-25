@@ -220,26 +220,35 @@ export class AdminService {
   }
 
   static async getDashboardMetrics(supabase: SupabaseClient) {
-    // Fetch counts directly from the actual tables — no hardcoded fallbacks
+    const nowIso = new Date().toISOString();
+
+    // Every count is a `head: true` request, so Postgres returns the tally
+    // without shipping any rows. All of them go out in one round trip.
     const [
       { count: totalUsers },
       { count: activeBusinesses },
       { count: publishedJobs },
       { count: marketplaceListings },
       { count: properties },
+      { count: publishedNews },
+      { count: upcomingEvents },
+      { count: reportedContent },
+      { count: pendingBusinesses },
+      { count: pendingJobs },
+      { count: pendingProperties },
     ] = await Promise.all([
       supabase.from('profiles').select('*', { count: 'exact', head: true }).is('deleted_at', null),
       supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null),
       supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null),
       supabase.from('marketplace_items').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null),
       supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null),
+      supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null),
+      supabase.from('events').select('*', { count: 'exact', head: true }).gte('start_date', nowIso).is('deleted_at', null),
+      supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
+      supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
+      supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
     ]);
-
-    // Count pending approvals
-    const { count: pendingApprovals } = await supabase
-      .from('businesses')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
 
     return {
       totalUsers: totalUsers ?? 0,
@@ -247,10 +256,10 @@ export class AdminService {
       activeJobs: publishedJobs ?? 0,
       marketplaceItems: marketplaceListings ?? 0,
       activeProperties: properties ?? 0,
-      publishedNews: 0,
-      upcomingEvents: 0,
-      reportedContent: 0,
-      pendingApprovals: pendingApprovals ?? 0,
+      publishedNews: publishedNews ?? 0,
+      upcomingEvents: upcomingEvents ?? 0,
+      reportedContent: reportedContent ?? 0,
+      pendingApprovals: (pendingBusinesses ?? 0) + (pendingJobs ?? 0) + (pendingProperties ?? 0),
     };
   }
 
@@ -282,24 +291,37 @@ export class AdminService {
     const { data: profiles } = await supabase.from('profiles').select('id, full_name, email').in('id', staffIds);
     if (!profiles) return [];
 
-    // 3. For each staff, count how many businesses they onboarded
-    const performance = await Promise.all(profiles.map(async (staff) => {
-      const { count: businessCount } = await supabase.from('businesses')
-        .select('*', { count: 'exact', head: true })
-        .eq('created_by', staff.id);
-        
-      const { count: propertiesCount } = await supabase.from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('created_by', staff.id);
-        
+    // 3. Attribute listings to staff. Two bulk queries rather than two per
+    //    person, then tally in memory — the previous version issued 2N queries.
+    const [{ data: businessRows }, { data: propertyRows }] = await Promise.all([
+      supabase.from('businesses').select('created_by').in('created_by', staffIds),
+      supabase.from('properties').select('created_by').in('created_by', staffIds),
+    ]);
+
+    const tally = (rows: { created_by: string | null }[] | null) => {
+      const counts = new Map<string, number>();
+      for (const row of rows ?? []) {
+        if (!row.created_by) continue;
+        counts.set(row.created_by, (counts.get(row.created_by) ?? 0) + 1);
+      }
+      return counts;
+    };
+
+    const businessCounts = tally(businessRows);
+    const propertyCounts = tally(propertyRows);
+
+    const performance = profiles.map((staff) => {
+      const businesses = businessCounts.get(staff.id) ?? 0;
+      const properties = propertyCounts.get(staff.id) ?? 0;
+
       return {
         id: staff.id,
         name: staff.full_name || staff.email,
-        businesses: businessCount || 0,
-        properties: propertiesCount || 0,
-        total: (businessCount || 0) + (propertiesCount || 0)
+        businesses,
+        properties,
+        total: businesses + properties,
       };
-    }));
+    });
 
     return performance.sort((a, b) => b.total - a.total);
   }
