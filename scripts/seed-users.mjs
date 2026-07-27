@@ -176,6 +176,26 @@ async function main() {
     }
   }
 
+  // Pass 3: demo listings with no owner belong to Super Admin only
+  // (other roles must not see Super Admin data)
+  const superId = idByEmail['admin@livecalicut.test'];
+  if (superId) {
+    console.log('\nAttributing unowned demo listings to Super Admin…');
+    for (const table of ['businesses', 'jobs', 'news', 'events', 'properties', 'marketplace_items']) {
+      const { error, count } = await sb
+        .from(table)
+        .update({ created_by: superId }, { count: 'exact' })
+        .is('created_by', null);
+      if (error) {
+        if (!/does not exist|schema cache|Could not find/i.test(error.message)) {
+          console.log(`⚠ ${table}: ${error.message}`);
+        }
+      } else {
+        console.log(`✓ ${table.padEnd(20)} ${count ?? 0} rows → Super Admin`);
+      }
+    }
+  }
+
   console.log('\n────────────────────────────────────────');
   console.log('Login password (all accounts):');
   console.log(`  ${PASSWORD}`);

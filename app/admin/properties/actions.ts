@@ -2,7 +2,7 @@
 
 import { requireRole } from '@/lib/supabase/require-auth';
 import { NextResponse } from 'next/server';
-import { applyCreatorScope } from '@/lib/rbac/data-scope';
+import { applyListingScope } from '@/lib/rbac/data-scope';
 import { LISTING_STAFF } from '@/lib/rbac/roles';
 
 export async function fetchAdminPropertiesAction() {
@@ -16,7 +16,7 @@ export async function fetchAdminPropertiesAction() {
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
-    query = applyCreatorScope(query, auth.user.role, auth.user.id);
+    query = await applyListingScope(query, auth.supabase, auth.user.role, auth.user.id);
 
     const { data, error } = await query;
     if (error) throw error;

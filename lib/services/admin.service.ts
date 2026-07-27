@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getVisibleProfileIds } from '@/lib/rbac/data-scope';
+import { getSuperAdminUserIds, getVisibleProfileIds } from '@/lib/rbac/data-scope';
 import { isCreatorScoped, isSuperAdmin } from '@/lib/rbac/roles';
 
 /**
@@ -252,16 +252,34 @@ export class AdminService {
     scope?: { userId: string; role: string }
   ) {
     const nowIso = new Date().toISOString();
-    const scoped = scope && isCreatorScoped(scope.role);
+    const role = scope?.role || 'User';
     const uid = scope?.userId;
+    const scoped = scope && isCreatorScoped(role);
+    const hideSuper = scope && !isSuperAdmin(role);
 
-    const scopeEq = <T extends { eq: (c: string, v: unknown) => T }>(q: T) =>
-      scoped && uid ? q.eq('created_by', uid) : q;
+    const superIds = hideSuper ? await getSuperAdminUserIds(supabase) : [];
+    const superIn = superIds.length ? `(${superIds.join(',')})` : null;
 
-    // Every count is a `head: true` request, so Postgres returns the tally
-    // without shipping any rows. All of them go out in one round trip.
+    /** Apply role listing rules onto a count query. */
+    const scopeListing = <
+      T extends {
+        eq: (c: string, v: unknown) => T;
+        not: (c: string, op: string, v: unknown) => T;
+      },
+    >(
+      q: T
+    ): T => {
+      if (scoped && uid) return q.eq('created_by', uid);
+      if (hideSuper) {
+        let next = q.not('created_by', 'is', null);
+        if (superIn) next = next.not('created_by', 'in', superIn);
+        return next;
+      }
+      return q;
+    };
+
     const [
-      { count: totalUsers },
+      usersResult,
       { count: activeBusinesses },
       { count: publishedJobs },
       { count: marketplaceListings },
@@ -274,24 +292,103 @@ export class AdminService {
       { count: pendingProperties },
     ] = await Promise.all([
       scoped && uid
-        ? supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('created_by', uid).is('deleted_at', null)
-        : supabase.from('profiles').select('*', { count: 'exact', head: true }).is('deleted_at', null),
-      scopeEq(supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null)),
-      scopeEq(supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null)),
-      scopeEq(supabase.from('marketplace_items').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null)),
-      scopeEq(supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null)),
-      scopeEq(supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null)),
-      scopeEq(supabase.from('events').select('*', { count: 'exact', head: true }).gte('start_date', nowIso).is('deleted_at', null)),
+        ? supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('created_by', uid)
+            .is('deleted_at', null)
+        : hideSuper && superIds.length
+          ? (async () => {
+              const visible = await getVisibleProfileIds(supabase, role, uid || '');
+              if (visible === 'all') {
+                return supabase
+                  .from('profiles')
+                  .select('*', { count: 'exact', head: true })
+                  .is('deleted_at', null);
+              }
+              if (visible.length === 0) return { count: 0 };
+              return supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .in('id', visible)
+                .is('deleted_at', null);
+            })()
+          : supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .is('deleted_at', null),
+      scopeListing(
+        supabase
+          .from('businesses')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'published')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('marketplace_items')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('properties')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('news')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'published')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .gte('start_date', nowIso)
+          .is('deleted_at', null)
+      ),
       scoped
         ? Promise.resolve({ count: 0 })
         : supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      scopeEq(supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null)),
-      scopeEq(supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null)),
-      scopeEq(supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null)),
+      scopeListing(
+        supabase
+          .from('businesses')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .is('deleted_at', null)
+      ),
+      scopeListing(
+        supabase
+          .from('properties')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .is('deleted_at', null)
+      ),
     ]);
 
+    const totalUsers = usersResult.count ?? 0;
+
     return {
-      totalUsers: totalUsers ?? 0,
+      totalUsers,
       activeBusinesses: activeBusinesses ?? 0,
       activeJobs: publishedJobs ?? 0,
       marketplaceItems: marketplaceListings ?? 0,
@@ -299,7 +396,8 @@ export class AdminService {
       publishedNews: publishedNews ?? 0,
       upcomingEvents: upcomingEvents ?? 0,
       reportedContent: reportedContent ?? 0,
-      pendingApprovals: (pendingBusinesses ?? 0) + (pendingJobs ?? 0) + (pendingProperties ?? 0),
+      pendingApprovals:
+        (pendingBusinesses ?? 0) + (pendingJobs ?? 0) + (pendingProperties ?? 0),
     };
   }
 

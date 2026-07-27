@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { AdminService } from '@/lib/services/admin.service';
 
-const ADMIN_ROLES = ['Moderator', 'City Admin', 'Super Admin'];
+const ADMIN_ROLES = ['Moderator', 'City Admin', 'Super Admin', 'Marketing Executive'];
 
 export async function GET() {
   try {
@@ -10,7 +10,10 @@ export async function GET() {
     const auth = await requireRole(ADMIN_ROLES);
     if (auth instanceof NextResponse) return auth;
 
-    const metrics = await AdminService.getDashboardMetrics(auth.supabase);
+    const metrics = await AdminService.getDashboardMetrics(auth.supabase, {
+      userId: auth.user.id,
+      role: auth.user.role,
+    });
     return NextResponse.json({ data: metrics });
   } catch (err: any) {
     console.error('[admin/dashboard] Error:', err.message);
