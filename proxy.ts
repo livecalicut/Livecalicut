@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 // Routes that require any authenticated user
 const AUTH_REQUIRED_ROUTES = [
   '/dashboard',
+  '/account',
   '/profile',
   '/settings',
   '/bookmarks',

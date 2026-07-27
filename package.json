@@ -11,8 +11,10 @@
     "lint": "oxlint",
     "typecheck": "tsc --noEmit --ignoreDeprecations 6.0",
     "db:check": "node scripts/db-check.mjs",
+    "db:clean": "node scripts/db-clean.mjs",
     "db:seed": "node scripts/seed.mjs",
     "db:seed:users": "node scripts/seed-users.mjs",
+    "db:reset": "node scripts/db-clean.mjs && node scripts/seed.mjs && node scripts/seed-users.mjs",
     "setup:status": "node scripts/db-check.mjs",
     "smoke": "node scripts/smoke-flow.mjs"
   },

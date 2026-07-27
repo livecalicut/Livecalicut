@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
-import { RoleBadge } from '@/components/auth/role-badge';
-import { UserRole } from '@/src/store/useAuthStore';
-import { Users, Search, UserCheck, UserX, Shield, UserPlus, Filter, KeyRound, Trash2, X, Plus } from 'lucide-react';
+import { useAuthStore } from '@/src/store/useAuthStore';
+import { assignableRolesFor } from '@/lib/rbac/roles';
+import { Users, Search, Filter, Trash2, X, Plus } from 'lucide-react';
 
 export default function AdminUsersPage() {
+  const { roleName } = useAuthStore();
+  const creatableRoles = useMemo(() => assignableRolesFor(roleName), [roleName]);
+
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
 
@@ -15,7 +18,11 @@ export default function AdminUsersPage() {
 
   // Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newStaffData, setNewStaffData] = useState({ fullName: '', email: '', roleName: 'Moderator' });
+  const [newStaffData, setNewStaffData] = useState({
+    fullName: '',
+    email: '',
+    roleName: creatableRoles[0] || 'Moderator',
+  });
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -108,17 +115,36 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
             <Users className="w-7 h-7 text-[#2563EB]" />
-            <span>Ecosystem Users & Access Control</span>
+            <span>
+              {roleName === 'Super Admin' || roleName === 'City Admin'
+                ? 'Users & Access Control'
+                : 'My created users'}
+            </span>
           </h1>
-          <p className="text-sm text-[#6B7280]">Manage citizen accounts, assign staff roles, and monitor authentication status</p>
+          <p className="text-sm text-[#6B7280]">
+            {roleName === 'Super Admin'
+              ? 'Full platform users. Super Admin accounts stay hidden from lower roles.'
+              : roleName === 'City Admin'
+                ? 'City users and staff you manage (Super Admin accounts are hidden).'
+                : 'Only users you created appear here — other roles and Super Admin data stay private.'}
+          </p>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Add Staff Member
-        </button>
+        {creatableRoles.length > 0 && (
+          <button
+            onClick={() => {
+              setNewStaffData({
+                fullName: '',
+                email: '',
+                roleName: creatableRoles[0],
+              });
+              setShowCreateModal(true);
+            }}
+            className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Add Staff Member
+          </button>
+        )}
       </div>
 
       {/* Controls Bar: Search & Role Filter */}
@@ -143,8 +169,9 @@ export default function AdminUsersPage() {
             className="h-[38px] px-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-xs font-semibold text-[#111827] focus:outline-none"
           >
             <option value="All">All Roles</option>
-            <option value="Super Admin">Super Admin</option>
+            {roleName === 'Super Admin' && <option value="Super Admin">Super Admin</option>}
             <option value="City Admin">City Admin</option>
+            <option value="Marketing Executive">Marketing Executive</option>
             <option value="Moderator">Moderator</option>
             <option value="Merchant">Merchant</option>
             <option value="User">User</option>
@@ -276,12 +303,15 @@ export default function AdminUsersPage() {
                   onChange={(e) => setNewStaffData({ ...newStaffData, roleName: e.target.value })}
                   className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB]"
                 >
-                  <option value="Moderator">Moderator</option>
-                  <option value="Marketing Executive">Marketing Executive</option>
-                  <option value="City Admin">City Admin</option>
+                  {creatableRoles.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-[10px] text-[#6B7280]">
-                  Super Admin is reserved for the platform owner and cannot be created here.
+                  New staff are linked to your account (created_by). They only see their own data.
+                  Super Admin cannot be created here.
                 </p>
               </div>
 

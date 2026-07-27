@@ -39,39 +39,43 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const STAFF: UserRole[] = ['Super Admin', 'City Admin', 'Moderator', 'Marketing Executive'];
-const ADMINS: UserRole[] = ['Super Admin', 'City Admin'];
+/** Role matrix — must match route gates + data-scope rules */
 const SUPER: UserRole[] = ['Super Admin'];
+const ADMINS: UserRole[] = ['Super Admin', 'City Admin'];
+const EDITORS: UserRole[] = ['Super Admin', 'City Admin', 'Moderator'];
+const LISTINGS: UserRole[] = ['Super Admin', 'City Admin', 'Moderator', 'Marketing Executive'];
+const USER_MGR: UserRole[] = ['Super Admin', 'City Admin', 'Marketing Executive'];
+const FIELD: UserRole[] = ['Super Admin', 'City Admin', 'Marketing Executive'];
 
 const NAV: NavGroup[] = [
   {
     label: 'Overview',
-    roles: STAFF,
+    roles: LISTINGS,
     items: [
-      { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: STAFF },
+      { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: LISTINGS },
       { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, roles: ADMINS },
       { label: 'Audit logs', href: '/admin/audit-logs', icon: ShieldCheck, roles: SUPER },
     ],
   },
   {
-    label: 'Listings',
-    roles: STAFF,
+    label: 'Team & listings',
+    roles: LISTINGS,
     items: [
-      { label: 'Users', href: '/admin/users', icon: Users, roles: ADMINS },
-      { label: 'Businesses', href: '/admin/businesses', icon: Store, roles: STAFF },
-      { label: 'Jobs', href: '/admin/jobs', icon: Briefcase, roles: STAFF },
-      { label: 'Marketplace', href: '/admin/marketplace', icon: ShoppingBag, roles: STAFF },
-      { label: 'Properties', href: '/admin/properties', icon: Building, roles: STAFF },
+      { label: 'My users', href: '/admin/users', icon: Users, roles: USER_MGR },
+      { label: 'Businesses', href: '/admin/businesses', icon: Store, roles: LISTINGS },
+      { label: 'Jobs', href: '/admin/jobs', icon: Briefcase, roles: LISTINGS },
+      { label: 'Marketplace', href: '/admin/marketplace', icon: ShoppingBag, roles: LISTINGS },
+      { label: 'Properties', href: '/admin/properties', icon: Building, roles: LISTINGS },
+      { label: 'Tourism', href: '/admin/tourism', icon: Compass, roles: FIELD },
     ],
   },
   {
     label: 'Content',
-    roles: STAFF,
+    roles: EDITORS,
     items: [
       { label: 'CMS', href: '/admin/cms', icon: LayoutTemplate, roles: ADMINS },
-      { label: 'News', href: '/admin/news', icon: Newspaper, roles: ['Super Admin', 'City Admin', 'Moderator'] },
-      { label: 'Events', href: '/admin/events', icon: Calendar, roles: ['Super Admin', 'City Admin', 'Moderator'] },
-      { label: 'Tourism', href: '/admin/tourism', icon: Compass, roles: STAFF },
+      { label: 'News', href: '/admin/news', icon: Newspaper, roles: EDITORS },
+      { label: 'Events', href: '/admin/events', icon: Calendar, roles: EDITORS },
       { label: 'Categories', href: '/admin/categories', icon: FolderTree, roles: ADMINS },
       { label: 'Cities', href: '/admin/cities', icon: MapPin, roles: SUPER },
       { label: 'Areas', href: '/admin/locations', icon: MapPin, roles: SUPER },
@@ -79,9 +83,9 @@ const NAV: NavGroup[] = [
   },
   {
     label: 'System',
-    roles: ADMINS,
+    roles: EDITORS,
     items: [
-      { label: 'Moderation', href: '/admin/reports', icon: Flag, roles: ['Super Admin', 'City Admin', 'Moderator'] },
+      { label: 'Moderation', href: '/admin/reports', icon: Flag, roles: EDITORS },
       { label: 'Billing', href: '/admin/billing', icon: CreditCard, roles: SUPER },
       { label: 'Settings', href: '/admin/settings', icon: Settings, roles: SUPER },
     ],

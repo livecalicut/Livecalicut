@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getVisibleProfileIds } from '@/lib/rbac/data-scope';
+import { isCreatorScoped, isSuperAdmin } from '@/lib/rbac/roles';
 
 /**
  * AdminService
@@ -30,12 +32,31 @@ export class AdminService {
 
   static async getUsers(
     supabase: SupabaseClient,
-    filters: { search?: string; role?: string; page?: number; limit?: number } = {}
+    filters: {
+      search?: string;
+      role?: string;
+      page?: number;
+      limit?: number;
+      actorId?: string;
+      actorRole?: string;
+    } = {}
   ) {
+    const actorId = filters.actorId;
+    const actorRole = filters.actorRole || 'User';
+
     let query = supabase
       .from('profiles')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
+
+    if (actorId && actorRole) {
+      const visible = await getVisibleProfileIds(supabase, actorRole, actorId);
+      if (visible !== 'all') {
+        if (visible.length === 0) return [];
+        query = query.in('id', visible);
+      }
+    }
 
     if (filters.search) {
       query = query.or(
@@ -63,10 +84,15 @@ export class AdminService {
       });
     }
 
-    const merged = profiles.map(p => ({
+    let merged = profiles.map(p => ({
       ...p,
       role: rolesMap.get(p.id) || 'User'
     }));
+
+    // Never expose Super Admin accounts to non–Super Admin actors
+    if (!isSuperAdmin(actorRole)) {
+      merged = merged.filter((u) => u.role !== 'Super Admin');
+    }
 
     return merged;
   }
@@ -221,8 +247,16 @@ export class AdminService {
     return { success: true };
   }
 
-  static async getDashboardMetrics(supabase: SupabaseClient) {
+  static async getDashboardMetrics(
+    supabase: SupabaseClient,
+    scope?: { userId: string; role: string }
+  ) {
     const nowIso = new Date().toISOString();
+    const scoped = scope && isCreatorScoped(scope.role);
+    const uid = scope?.userId;
+
+    const scopeEq = <T extends { eq: (c: string, v: unknown) => T }>(q: T) =>
+      scoped && uid ? q.eq('created_by', uid) : q;
 
     // Every count is a `head: true` request, so Postgres returns the tally
     // without shipping any rows. All of them go out in one round trip.
@@ -239,17 +273,21 @@ export class AdminService {
       { count: pendingJobs },
       { count: pendingProperties },
     ] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).is('deleted_at', null),
-      supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null),
-      supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null),
-      supabase.from('marketplace_items').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null),
-      supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null),
-      supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null),
-      supabase.from('events').select('*', { count: 'exact', head: true }).gte('start_date', nowIso).is('deleted_at', null),
-      supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
-      supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
-      supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
+      scoped && uid
+        ? supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('created_by', uid).is('deleted_at', null)
+        : supabase.from('profiles').select('*', { count: 'exact', head: true }).is('deleted_at', null),
+      scopeEq(supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null)),
+      scopeEq(supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null)),
+      scopeEq(supabase.from('marketplace_items').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null)),
+      scopeEq(supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active').is('deleted_at', null)),
+      scopeEq(supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published').is('deleted_at', null)),
+      scopeEq(supabase.from('events').select('*', { count: 'exact', head: true }).gte('start_date', nowIso).is('deleted_at', null)),
+      scoped
+        ? Promise.resolve({ count: 0 })
+        : supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      scopeEq(supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null)),
+      scopeEq(supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null)),
+      scopeEq(supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null)),
     ]);
 
     return {

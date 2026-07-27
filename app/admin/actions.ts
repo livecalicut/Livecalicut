@@ -32,10 +32,13 @@ export async function fetchDashboardDataAction() {
 
   const supabase = await createClient();
 
+  const scope = { userId: auth.user.id, role: auth.user.role };
+  const isScoped = auth.user.role === 'Marketing Executive';
+
   const [metrics, staffPerformance, auditLogs] = await Promise.all([
-    AdminService.getDashboardMetrics(supabase),
-    AdminService.getStaffPerformance(supabase),
-    AdminService.getAuditLogs(supabase),
+    AdminService.getDashboardMetrics(supabase, scope),
+    isScoped ? Promise.resolve([]) : AdminService.getStaffPerformance(supabase),
+    isScoped ? Promise.resolve([]) : AdminService.getAuditLogs(supabase),
   ]);
 
   const recentActivities = auditLogs.slice(0, 5).map((log) => ({

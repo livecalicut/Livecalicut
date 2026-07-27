@@ -144,6 +144,7 @@ async function main() {
       { name: 'Guest', description: 'Unauthenticated public visitor' },
       { name: 'User', description: 'Authenticated resident user' },
       { name: 'Merchant', description: 'Kozhikode business owner' },
+      { name: 'Marketing Executive', description: 'Field staff — own listings and created users only' },
       { name: 'Moderator', description: 'Content moderator' },
       { name: 'City Admin', description: 'City administrator' },
       { name: 'Super Admin', description: 'Platform superuser' },

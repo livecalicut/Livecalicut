@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { newsSchema } from '@/lib/validations/feed';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -25,15 +24,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+    const { requireRole } = await import('@/lib/supabase/require-auth');
+    const auth = await requireRole(['Super Admin', 'City Admin', 'Moderator']);
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
-    const { title, summary, content, category, author } = body;
+    const { title, summary, content, category, author, featured_image } = body;
 
     if (!title || !content) {
       return NextResponse.json({ success: false, message: 'Title and content are required' }, { status: 400 });
@@ -45,16 +41,16 @@ export async function POST(request: Request) {
     let categoryId: string | null = null;
     if (category) {
       const categorySlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const { data: catData } = await supabase.from('news_categories').select('id').eq('slug', categorySlug).single();
+      const { data: catData } = await auth.supabase.from('news_categories').select('id').eq('slug', categorySlug).single();
       if (catData) {
         categoryId = catData.id;
       } else {
-        const { data: newCat } = await supabase.from('news_categories').insert({ name: category, slug: categorySlug }).select('id').single();
+        const { data: newCat } = await auth.supabase.from('news_categories').insert({ name: category, slug: categorySlug }).select('id').single();
         if (newCat) categoryId = newCat.id;
       }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from('news')
       .insert({
         title,
@@ -63,7 +59,9 @@ export async function POST(request: Request) {
         content,
         category_id: categoryId,
         author: author || null,
-        author_id: session.user.id,
+        author_id: auth.user.id,
+        created_by: auth.user.id,
+        featured_image: featured_image || null,
         status: 'published',
         published_at: new Date().toISOString(),
       })

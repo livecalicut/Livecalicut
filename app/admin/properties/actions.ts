@@ -1,22 +1,24 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { NextResponse } from 'next/server';
-
-const ADMIN_ROLES = ['Super Admin', 'City Admin', 'Moderator'];
+import { applyCreatorScope } from '@/lib/rbac/data-scope';
+import { LISTING_STAFF } from '@/lib/rbac/roles';
 
 export async function fetchAdminPropertiesAction() {
   try {
-    const auth = await requireRole(ADMIN_ROLES);
+    const auth = await requireRole([...LISTING_STAFF]);
     if (auth instanceof NextResponse) throw new Error('Unauthorized');
 
-    const { data, error } = await auth.supabase
+    let query = auth.supabase
       .from('properties')
       .select('*, profiles(full_name), property_categories(name), areas(name)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
+    query = applyCreatorScope(query, auth.user.role, auth.user.id);
+
+    const { data, error } = await query;
     if (error) throw error;
     return { success: true, data };
   } catch (err: any) {

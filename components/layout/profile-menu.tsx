@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { RoleBadge } from '@/components/auth/role-badge';
-import { User, LogOut, Settings, ShieldCheck, ChevronDown } from 'lucide-react';
+import { User, LogOut, ShieldCheck, ChevronDown, LayoutGrid } from 'lucide-react';
 
 export const ProfileMenu: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -50,14 +50,24 @@ export const ProfileMenu: React.FC = () => {
     );
   }
 
-  // Extract all role names from the user_roles array safely
-  const roleNames = profile?.user_roles?.map((ur: any) => ur?.roles?.name).filter(Boolean) || ['User'];
-  const highestRole = roleNames.includes('Super Admin') ? 'Super Admin' 
-    : roleNames.includes('City Admin') ? 'City Admin' 
-    : roleNames.includes('Moderator') ? 'Moderator' 
-    : roleNames.includes('Marketing Executive') ? 'Marketing Executive'
-    : roleNames.includes('Merchant') ? 'Merchant'
-    : 'User';
+  const roleNames =
+    profile?.user_roles?.map((ur: any) => ur?.roles?.name).filter(Boolean) || ['User'];
+  const highestRole = roleNames.includes('Super Admin')
+    ? 'Super Admin'
+    : roleNames.includes('City Admin')
+      ? 'City Admin'
+      : roleNames.includes('Moderator')
+        ? 'Moderator'
+        : roleNames.includes('Marketing Executive')
+          ? 'Marketing Executive'
+          : roleNames.includes('Merchant')
+            ? 'Merchant'
+            : 'User';
+
+  const isStaff = ['Super Admin', 'City Admin', 'Moderator', 'Marketing Executive'].some((r) =>
+    roleNames.includes(r)
+  );
+  const isMerchantOnly = roleNames.includes('Merchant') && !roleNames.includes('Super Admin');
 
   return (
     <div className="relative">
@@ -66,9 +76,13 @@ export const ProfileMenu: React.FC = () => {
         className="flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-cyan-500/40 transition-all cursor-pointer"
       >
         <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold text-xs overflow-hidden">
-          {profile?.avatar ? (
+          {profile?.avatar_url || profile?.avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+            <img
+              src={profile.avatar_url || profile.avatar}
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
           ) : (
             <User className="w-4 h-4" />
           )}
@@ -88,15 +102,24 @@ export const ProfileMenu: React.FC = () => {
           </div>
 
           <Link
+            href="/account"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <LayoutGrid className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+            My Account
+          </Link>
+
+          <Link
             href="/profile"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
             <User className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-            My Account Profile
+            Profile settings
           </Link>
 
-          {(roleNames.includes('Super Admin') || roleNames.includes('City Admin') || roleNames.includes('Moderator') || roleNames.includes('Marketing Executive')) && (
+          {isStaff && (
             <Link
               href="/admin"
               onClick={() => setIsOpen(false)}
@@ -107,7 +130,7 @@ export const ProfileMenu: React.FC = () => {
             </Link>
           )}
 
-          {(roleNames.includes('Merchant') && !roleNames.includes('Super Admin')) && (
+          {isMerchantOnly && (
             <Link
               href="/merchant"
               onClick={() => setIsOpen(false)}
