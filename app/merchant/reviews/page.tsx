@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { MessageSquare, Star, Reply } from 'lucide-react';
-import { getMerchantDashboardData, type MerchantReview } from '@/app/merchant/actions';
+import { fetchMerchantDashboardAction, type MerchantReview } from '@/app/merchant/actions';
 
 function formatReviewDate(iso: string) {
   try {
@@ -27,7 +27,7 @@ export default function MerchantReviewsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await getMerchantDashboardData();
+        const data = await fetchMerchantDashboardAction();
         if (!cancelled) setReviews(data.reviews.map((r) => ({ ...r, reply: '' })));
       } catch {
         if (!cancelled) setReviews([]);
