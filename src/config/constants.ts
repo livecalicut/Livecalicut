@@ -1,21 +1,11 @@
-export const CALICUT_LOCATIONS = [
-  'All Locations',
-  'Mavoor Road',
-  'Kozhikode Beach',
-  'Palayam',
-  'SM Street (Mittai Theruvu)',
-  'Calicut Cyberpark',
-  'Hilite City / Thondayad',
-  'Mananchira',
-  'Elathur',
-  'Feroke',
-  'Kallai',
-  'Medical College',
-  'Nadakkavu',
-  'Pantheerankavu',
-  'Vatakara',
-  'Ramanattukara'
-] as const;
+/** Sentinel option in location pickers — not a DB row. */
+export const ALL_LOCATIONS_LABEL = 'All Locations';
+
+/**
+ * @deprecated Use /api/v1/locations (areas table). Kept as empty for any
+ * leftover imports — never seed fake place names into the UI.
+ */
+export const CALICUT_LOCATIONS = [ALL_LOCATIONS_LABEL] as const;
 
 export const BUSINESS_CATEGORIES = [
   { id: 'all', name: 'All Categories', icon: 'LayoutGrid' },

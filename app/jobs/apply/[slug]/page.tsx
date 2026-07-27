@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card } from '@/components/ui/card';
@@ -8,13 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useJobApply } from '@/hooks/use-jobs';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { toast } from '@/lib/toast';
-import { Briefcase, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Briefcase, Send, CheckCircle, Loader2, LogIn, ShieldAlert } from 'lucide-react';
+import Link from 'next/link';
 
 export default function JobApplyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
   const applyMutation = useJobApply();
+  const { user, profile, isLoading, isAuthenticated, requireAuth } = useRequireAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,8 +26,29 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
   const [coverLetter, setCoverLetter] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      requireAuth({
+        next: `/jobs/apply/${slug}`,
+        pending: { type: 'apply-job', id: slug, href: `/jobs/apply/${slug}` },
+        message: 'Sign in to apply for this job.',
+      });
+      return;
+    }
+    if (profile?.full_name) setFullName((prev) => prev || profile.full_name);
+    if (user?.email || profile?.email) setEmail((prev) => prev || user?.email || profile?.email || '');
+    if (profile?.phone) setPhone((prev) => prev || profile.phone || '');
+  }, [isLoading, isAuthenticated, profile, requireAuth, slug, user]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const ok = requireAuth({
+      next: `/jobs/apply/${slug}`,
+      message: 'Sign in to submit your application.',
+    });
+    if (!ok) return;
 
     if (!fullName || !email || !phone || !resumeUrl) {
       toast.error('Validation Error', 'Please complete all required fields.');
@@ -35,6 +59,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
       await applyMutation.mutateAsync({
         slug,
         payload: {
+          slug,
           full_name: fullName,
           email,
           phone,
@@ -48,17 +73,55 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
       setTimeout(() => {
         router.push('/applications');
       }, 2000);
-    } catch (err: any) {
-      toast.error('Submission Failed', err.message || 'Could not send job application.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not send job application.';
+      if (message.toLowerCase().includes('auth') || message.includes('401')) {
+        toast.info('Login required', 'Sign in again to submit your application.');
+        router.push(`/login?next=${encodeURIComponent(`/jobs/apply/${slug}`)}`);
+        return;
+      }
+      toast.error('Submission Failed', message);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center gap-2 text-sm text-[#6B7280]">
+        <Loader2 className="h-5 w-5 animate-spin text-[#2563EB]" />
+        Checking your session…
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="mx-auto max-w-xl space-y-6 py-16 text-center">
+        <Card className="space-y-4 rounded-3xl border border-amber-200 bg-amber-50/50 p-8 shadow-xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300 bg-amber-100 text-amber-700">
+            <ShieldAlert className="h-7 w-7" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-sans text-2xl font-extrabold text-[#111827]">Login required to apply</h3>
+            <p className="text-sm text-[#4B5563]">
+              Sign in with your LiveCalicut account to submit a resume. Guests cannot apply.
+            </p>
+          </div>
+          <Link href={`/login?next=${encodeURIComponent(`/jobs/apply/${slug}`)}`}>
+            <Button className="mt-2 h-[44px] gap-2 rounded-xl bg-[#2563EB] px-6 font-bold text-white hover:bg-[#1D4ED8]">
+              <LogIn className="h-4 w-4" /> Sign In to Continue
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4">
+    <div className="mx-auto max-w-2xl space-y-8 py-4">
       <PageHeader
         title="Submit Candidate Application"
         description="Apply directly to employer hiring desk in Kozhikode."
-        icon={<Briefcase className="w-6 h-6" />}
+        icon={<Briefcase className="h-6 w-6" />}
         breadcrumbs={[
           { label: 'Jobs', href: '/jobs' },
           { label: 'Application Form' },
@@ -66,20 +129,18 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
       />
 
       {submitted ? (
-        <Card className="p-8 text-center space-y-4 border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20">
-          <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto animate-bounce" />
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Application Submitted!</h3>
-          <p className="text-xs text-slate-600 dark:text-slate-300">
-            Your resume has been forwarded directly to the hiring manager. Redirecting to My Applications tracker...
+        <Card className="space-y-4 border border-emerald-200 bg-emerald-50/50 p-8 text-center">
+          <CheckCircle className="mx-auto h-12 w-12 animate-bounce text-emerald-500" />
+          <h3 className="text-xl font-bold text-[#111827]">Application Submitted!</h3>
+          <p className="text-xs text-[#4B5563]">
+            Your resume has been forwarded to the hiring manager. Redirecting to My Applications…
           </p>
         </Card>
       ) : (
         <form onSubmit={handleSubmit}>
-          <Card className="p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
+          <Card className="space-y-4 border border-[#E5E7EB] bg-white p-6">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Full Name *
-              </label>
+              <label className="mb-1 block text-xs font-semibold text-[#374151]">Full Name *</label>
               <Input
                 required
                 value={fullName}
@@ -89,7 +150,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="mb-1 block text-xs font-semibold text-[#374151]">
                 Contact Phone Number *
               </label>
               <Input
@@ -101,9 +162,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Email Address *
-              </label>
+              <label className="mb-1 block text-xs font-semibold text-[#374151]">Email Address *</label>
               <Input
                 required
                 type="email"
@@ -114,7 +173,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="mb-1 block text-xs font-semibold text-[#374151]">
                 Resume / PDF Portfolio URL *
               </label>
               <Input
@@ -127,7 +186,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="mb-1 block text-xs font-semibold text-[#374151]">
                 Cover Letter / Intro Note
               </label>
               <Textarea
@@ -141,11 +200,11 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
             <Button type="submit" disabled={applyMutation.isPending} className="w-full gap-2">
               {applyMutation.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting Application...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Submitting Application...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" /> Confirm & Send Application
+                  <Send className="h-4 w-4" /> Confirm & Send Application
                 </>
               )}
             </Button>

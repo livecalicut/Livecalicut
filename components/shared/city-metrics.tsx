@@ -1,7 +1,7 @@
-import React from 'react';
-// Icons imported dynamically below
-import { StaggerContainer, StaggerItem } from '@/components/animated/scroll-reveal';
+'use client';
 
+import React from 'react';
+import { StaggerContainer, StaggerItem } from '@/components/animated/scroll-reveal';
 import * as Icons from 'lucide-react';
 
 export interface CityMetric {

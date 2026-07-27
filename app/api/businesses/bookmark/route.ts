@@ -1,40 +1,56 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/supabase/require-auth';
 
+/**
+ * POST /api/businesses/bookmark
+ * Toggle business bookmarks — auth required (getUser via requireAuth).
+ */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const body = await request.json().catch(() => ({}));
+    let businessId = typeof body.businessId === 'string' ? body.businessId : '';
+    const slug = typeof body.slug === 'string' ? body.slug.trim() : '';
+
+    if (!businessId && slug) {
+      const { data: biz } = await auth.supabase
+        .from('businesses')
+        .select('id')
+        .eq('slug', slug)
+        .is('deleted_at', null)
+        .maybeSingle();
+      businessId = biz?.id || '';
     }
 
-    const { businessId } = await request.json();
     if (!businessId) {
-      return NextResponse.json({ error: 'businessId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'businessId or slug is required' }, { status: 400 });
     }
 
-    const { data: existing } = await supabase
+    const { data: existing } = await auth.supabase
       .from('bookmarks')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', auth.user.id)
       .eq('entity_type', 'business')
       .eq('entity_id', businessId)
-      .single();
+      .maybeSingle();
 
     if (existing) {
-      await supabase.from('bookmarks').delete().eq('id', existing.id);
-      return NextResponse.json({ bookmarked: false });
-    } else {
-      await supabase.from('bookmarks').insert({
-        user_id: session.user.id,
-        entity_type: 'business',
-        entity_id: businessId,
-      });
-      return NextResponse.json({ bookmarked: true });
+      await auth.supabase.from('bookmarks').delete().eq('id', existing.id);
+      return NextResponse.json({ bookmarked: false, favorited: false });
     }
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+
+    const { error } = await auth.supabase.from('bookmarks').insert({
+      user_id: auth.user.id,
+      entity_type: 'business',
+      entity_id: businessId,
+    });
+    if (error) throw error;
+
+    return NextResponse.json({ bookmarked: true, favorited: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to update bookmark';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

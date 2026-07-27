@@ -16,12 +16,24 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { UserPlus, Mail, Lock, User, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  UserPlus,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 export const RegisterForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const supabase = createClient();
 
   const {
@@ -170,11 +182,20 @@ export const RegisterForm: React.FC = () => {
               <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#6B7280] pointer-events-none" />
               <Input
                 {...register('password')}
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Min. 8 characters"
                 autoComplete="new-password"
-                className="pl-10 h-[44px] rounded-xl border-[#E5E7EB] focus:border-[#2563EB] text-[#111827]"
+                className="pl-10 pr-11 h-[44px] rounded-xl border-[#E5E7EB] focus:border-[#2563EB] text-[#111827]"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#6B7280] transition hover:bg-[#F3F4F6] hover:text-[#111827]"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
             {errors.password && (
               <span className="text-xs text-rose-600">{errors.password.message}</span>
@@ -189,11 +210,20 @@ export const RegisterForm: React.FC = () => {
               <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#6B7280] pointer-events-none" />
               <Input
                 {...register('confirmPassword')}
-                type="password"
+                type={showConfirm ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="new-password"
-                className="pl-10 h-[44px] rounded-xl border-[#E5E7EB] focus:border-[#2563EB] text-[#111827]"
+                className="pl-10 pr-11 h-[44px] rounded-xl border-[#E5E7EB] focus:border-[#2563EB] text-[#111827]"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((prev) => !prev)}
+                aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#6B7280] transition hover:bg-[#F3F4F6] hover:text-[#111827]"
+              >
+                {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
             {errors.confirmPassword && (
               <span className="text-xs text-rose-600">{errors.confirmPassword.message}</span>

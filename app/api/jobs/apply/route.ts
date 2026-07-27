@@ -1,36 +1,67 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { applyJobSchema } from '@/lib/validations/job';
+import { requireAuth } from '@/lib/supabase/require-auth';
+import { z } from 'zod';
 
+const applyBodySchema = z.object({
+  jobId: z.string().uuid().optional(),
+  slug: z.string().min(1).optional(),
+  resume_url: z.string().url('Valid resume URL is required').optional(),
+  resumeUrl: z.string().url('Valid resume URL is required').optional(),
+  cover_letter: z.string().optional(),
+  coverLetter: z.string().optional(),
+  phone: z.string().min(10, 'Valid mobile number required'),
+  email: z.string().email('Valid email address required'),
+  full_name: z.string().optional(),
+});
+
+/**
+ * POST /api/jobs/apply
+ * Submit a job application — authenticated users only.
+ */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required to apply for jobs' }, { status: 401 });
+    const body = applyBodySchema.parse(await request.json());
+    const resumeUrl = body.resume_url || body.resumeUrl;
+    if (!resumeUrl) {
+      return NextResponse.json({ error: 'Resume URL is required' }, { status: 400 });
     }
 
-    const body = await request.json();
-    const validated = applyJobSchema.parse(body);
+    let jobId = body.jobId || '';
+    if (!jobId && body.slug) {
+      const { data: job } = await auth.supabase
+        .from('jobs')
+        .select('id')
+        .eq('slug', body.slug)
+        .is('deleted_at', null)
+        .maybeSingle();
+      jobId = job?.id || '';
+    }
 
-    const { data, error } = await supabase
+    if (!jobId) {
+      return NextResponse.json({ error: 'jobId or slug is required' }, { status: 400 });
+    }
+
+    const { data, error } = await auth.supabase
       .from('job_applications')
       .insert({
-        job_id: validated.jobId,
-        applicant_id: session.user.id,
-        resume_url: validated.resumeUrl,
-        cover_letter: validated.coverLetter,
-        phone: validated.phone,
-        email: validated.email,
+        job_id: jobId,
+        applicant_id: auth.user.id,
+        resume_url: resumeUrl,
+        cover_letter: body.cover_letter || body.coverLetter || null,
+        phone: body.phone,
+        email: body.email,
         status: 'pending',
       })
       .select()
       .single();
 
     if (error) throw error;
-    return NextResponse.json({ data }, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    return NextResponse.json({ success: true, data }, { status: 201 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to apply';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

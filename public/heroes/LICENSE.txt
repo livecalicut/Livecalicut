@@ -1,0 +1,9 @@
+Hero photography sourced from Unsplash (https://unsplash.com/license).
+Unsplash License allows free commercial and non-commercial use without
+permission. Attribution is not required.
+
+Files:
+- kerala-coast.jpg  — Kerala backwaters / Malabar atmosphere
+- city-market.jpg   — Local market / city commerce
+- workplace.jpg     — Modern workspace / Cyberpark jobs
+- coastal-life.jpg  — Coastal lifestyle / tourism

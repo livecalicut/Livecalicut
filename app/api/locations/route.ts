@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireRole(['Super Admin', 'City Admin']);
+    const auth = await requireRole(['Super Admin']);
     if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();

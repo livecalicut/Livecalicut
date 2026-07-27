@@ -1,11 +1,11 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Container } from './container';
-import { ScrollReveal } from '@/components/animated/scroll-reveal';
 
 interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   id?: string;
   bgVariant?: 'white' | 'secondary' | 'alt';
+  /** Skip the scroll-reveal animation for this section. */
   disableAnimation?: boolean;
 }
 
@@ -29,12 +29,11 @@ export const Section: React.FC<SectionProps> = ({
       className={cn('m-0 w-full overflow-x-clip py-14 lg:py-16', bgClasses[bgVariant], className)}
       {...props}
     >
-      <Container className="space-y-8">
-        {disableAnimation ? (
-          children
-        ) : (
-          <ScrollReveal>{children}</ScrollReveal>
-        )}
+      <Container
+        className={cn('space-y-8', !disableAnimation && 'gsap-reveal')}
+        {...(!disableAnimation ? { 'data-reveal': '' } : {})}
+      >
+        {children}
       </Container>
     </section>
   );

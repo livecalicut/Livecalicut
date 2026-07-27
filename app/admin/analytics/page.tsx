@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Users, Store, Briefcase, Building, ShoppingBag, Newspaper, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { fetchPlatformAnalyticsAction } from './actions';
 import { StatTile } from '@/components/dashboard/stat-tile';
 import { BarBreakdown } from '@/components/dashboard/bar-breakdown';
@@ -46,12 +46,12 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatTile title="Citizens" value={totals.users} icon={Users} tone="blue" />
-        <StatTile title="Outlets" value={totals.businesses} icon={Store} tone="cyan" />
-        <StatTile title="Jobs" value={totals.jobs} icon={Briefcase} tone="emerald" />
-        <StatTile title="Properties" value={totals.properties} icon={Building} tone="indigo" />
-        <StatTile title="Classifieds" value={totals.marketplace} icon={ShoppingBag} tone="purple" />
-        <StatTile title="News" value={totals.news} icon={Newspaper} tone="teal" />
+        <StatTile title="Citizens" value={totals.users} icon="users" tone="blue" />
+        <StatTile title="Outlets" value={totals.businesses} icon="store" tone="cyan" />
+        <StatTile title="Jobs" value={totals.jobs} icon="briefcase" tone="emerald" />
+        <StatTile title="Properties" value={totals.properties} icon="building" tone="indigo" />
+        <StatTile title="Classifieds" value={totals.marketplace} icon="shopping-bag" tone="purple" />
+        <StatTile title="News" value={totals.news} icon="newspaper" tone="teal" />
       </div>
 
       <TrendChart

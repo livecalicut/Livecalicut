@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { PageHeader } from '@/components/shared/page-header';
 import { UniversalSearch } from '@/components/shared/universal-search';
 import { MarketplaceCard } from '@/components/cards/marketplace-card';
@@ -11,22 +10,37 @@ import { ListSkeleton } from '@/components/shared/loading-skeleton';
 import { EmptyState } from '@/components/shared/empty-state';
 import { ErrorState } from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/Select';
 import { Container } from '@/components/layout/container';
 import { SectionTitle } from '@/components/shared/section-title';
+import { LocationSelect } from '@/components/shared/location-select';
+import { FilterSelect } from '@/components/shared/filter-select';
 import { useMarketplace } from '@/hooks/use-marketplace';
-import { ShoppingBag, PlusCircle, Bookmark, SlidersHorizontal } from 'lucide-react';
+import { ALL_LOCATIONS_LABEL } from '@/config/constants';
+import { AuthGateLink } from '@/components/auth/auth-gate-link';
+import { RoleCreateLink } from '@/components/auth/role-create-link';
+import { ShoppingBag, PlusCircle, Bookmark, Tag } from 'lucide-react';
 import type { MarketplaceListing } from '@/lib/types/api.types';
 
 const MARKETPLACE_CATEGORIES = [
-  'All Categories', 'Electronics', 'Mobiles & Tablets', 'Vehicles',
-  'Furniture', 'Home Appliances', 'Fashion', 'Sports & Hobbies',
+  'All Categories',
+  'Electronics',
+  'Mobiles & Tablets',
+  'Vehicles',
+  'Furniture',
+  'Home Appliances',
+  'Fashion',
+  'Sports & Hobbies',
+  'Books & Stationery',
+  'Pets & Accessories',
+  'Kids & Baby',
+  'Tools & Hardware',
 ];
 
 export default function MarketplaceHomePage() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
+  const [location, setLocation] = useState(ALL_LOCATIONS_LABEL);
   const LIMIT = 8;
 
   const { data, isLoading, isError, refetch } = useMarketplace({
@@ -36,8 +50,15 @@ export default function MarketplaceHomePage() {
     category: category || undefined,
   });
 
-  const listings = (data?.data as MarketplaceListing[] | undefined) ?? [];
-  const total = data?.meta?.total ?? 0;
+  const allListings = (data?.data as MarketplaceListing[] | undefined) ?? [];
+  const areaFilter = location !== ALL_LOCATIONS_LABEL ? location.toLowerCase() : '';
+  const listings = areaFilter
+    ? allListings.filter((item) =>
+        `${item.area || ''} ${item.location || ''}`.toLowerCase().includes(areaFilter)
+      )
+    : allListings;
+  const total = areaFilter ? listings.length : data?.meta?.total ?? allListings.length;
+  const hasFilters = Boolean(q || category || areaFilter);
 
   return (
     <Container className="py-8 sm:py-12 space-y-8">
@@ -48,16 +69,20 @@ export default function MarketplaceHomePage() {
         breadcrumbs={[{ label: 'Marketplace' }]}
         action={
           <div className="flex items-center gap-2">
-            <Link href="/marketplace/saved">
+            <AuthGateLink
+              href="/marketplace/saved"
+              loginMessage="Sign in to view your marketplace favourites."
+              pending={{ type: 'custom', href: '/marketplace/saved' }}
+            >
               <Button variant="outline" size="sm" className="gap-1.5 h-[40px] px-4 rounded-2xl">
                 <Bookmark className="w-4 h-4 text-[#2563EB]" /> Favorites
               </Button>
-            </Link>
-            <Link href="/marketplace/create">
+            </AuthGateLink>
+            <RoleCreateLink href="/marketplace/create">
               <Button size="sm" className="gap-1.5 h-[40px] px-5 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold">
                 <PlusCircle className="w-4 h-4" /> Post Item
               </Button>
-            </Link>
+            </RoleCreateLink>
           </div>
         }
       />
@@ -68,19 +93,26 @@ export default function MarketplaceHomePage() {
           onSearch={(val) => { setQ(val); setPage(1); }}
         />
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] text-xs text-[#111827]">
-            <SlidersHorizontal className="w-4 h-4 text-[#2563EB]" />
-            <span className="font-bold">Category:</span>
-            <Select
-              value={category}
-              onChange={(e) => { setCategory(e.target.value === 'All Categories' ? '' : e.target.value); setPage(1); }}
-              className="border-none bg-transparent h-7 py-0 text-xs font-semibold focus:ring-0 shadow-none"
-            >
-              {MARKETPLACE_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-            </Select>
-          </div>
-          {(q || category) && (
-            <Button variant="outline" size="sm" onClick={() => { setQ(''); setCategory(''); setPage(1); }} className="h-[36px] rounded-xl text-xs">
+          <FilterSelect
+            compact
+            label="Category"
+            icon={Tag}
+            placeholder="All Categories"
+            searchPlaceholder="Search category…"
+            value={category || 'All Categories'}
+            options={MARKETPLACE_CATEGORIES}
+            onChange={(val) => {
+              setCategory(val === 'All Categories' ? '' : val);
+              setPage(1);
+            }}
+          />
+          <LocationSelect
+            compact
+            value={location}
+            onChange={(val) => { setLocation(val); setPage(1); }}
+          />
+          {hasFilters && (
+            <Button variant="outline" size="sm" onClick={() => { setQ(''); setCategory(''); setLocation(ALL_LOCATIONS_LABEL); setPage(1); }} className="h-[36px] rounded-xl text-xs">
               Clear Filters
             </Button>
           )}

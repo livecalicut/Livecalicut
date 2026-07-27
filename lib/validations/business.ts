@@ -22,7 +22,8 @@ export const createBusinessSchema = z.object({
 export type CreateBusinessInput = z.infer<typeof createBusinessSchema>;
 
 export const reviewSchema = z.object({
-  businessId: z.string().uuid(),
+  businessId: z.string().uuid().optional(),
+  slug: z.string().min(1).optional(),
   rating: z.number().min(1).max(5),
   comment: z.string().min(5, 'Review must be at least 5 characters'),
 });

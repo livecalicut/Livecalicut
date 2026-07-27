@@ -8,22 +8,33 @@ export class JobService {
     keyword?: string;
     isUrgent?: boolean;
     isFeatured?: boolean;
-  } = {}) {
+    page?: number;
+    limit?: number;
+  } = {}): Promise<{ data: any[]; total: number }> {
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters.limit ?? 20));
+    const from = (page - 1) * limit;
+
     let query = this.supabase
       .from('jobs')
-      .select('*, companies(name, slug, logo), job_categories(name, slug)')
+      .select('*, companies(name, slug, logo), job_categories(name, slug)', { count: 'exact' })
       .eq('status', 'published')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+      .is('deleted_at', null);
 
     if (filters.employmentType) query = query.eq('employment_type', filters.employmentType);
     if (filters.isUrgent) query = query.eq('is_urgent', true);
     if (filters.isFeatured) query = query.eq('is_featured', true);
-    if (filters.keyword) query = query.ilike('title', `%${filters.keyword}%`);
+    if (filters.keyword) {
+      const term = filters.keyword.replace(/[%,()]/g, '');
+      query = query.ilike('title', `%${term}%`);
+    }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(from, from + limit - 1);
+
     if (error) throw error;
-    return data || [];
+    return { data: data || [], total: count ?? 0 };
   }
 
   static async getJobBySlug(slug: string) {

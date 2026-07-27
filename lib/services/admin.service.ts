@@ -201,6 +201,8 @@ export class AdminService {
       news: 'news',
       event: 'events',
       report: 'reports',
+      area: 'areas',
+      location: 'areas',
     };
 
     const tableName = tableMap[entityType];
@@ -266,7 +268,7 @@ export class AdminService {
   static async getAuditLogs(supabase: SupabaseClient) {
     const { data, error } = await supabase
       .from('audit_logs')
-      .select('*, profiles(full_name, email)')
+      .select('*, profiles!admin_id(full_name, email)')
       .order('created_at', { ascending: false })
       .limit(100);
 

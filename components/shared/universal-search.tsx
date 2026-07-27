@@ -1,85 +1,109 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, MapPin } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/Select';
-import { CALICUT_LOCATIONS } from '@/config/constants';
+import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search, X, Loader2 } from 'lucide-react';
+import { useDebouncedValue } from '@/hooks/use-locations';
 
 interface UniversalSearchProps {
-  onSearch?: (query: string, location: string) => void;
+  /** Fires after debounce while typing (and on clear → empty string). */
+  onSearch?: (query: string) => void;
   placeholder?: string;
   defaultValue?: string;
   autoFocus?: boolean;
+  compact?: boolean;
+  /** Debounce delay in ms (default 300). */
+  debounceMs?: number;
+  /**
+   * @deprecated Location lives in the page filter row (LocationSelect), not inside search.
+   */
+  defaultLocation?: string;
 }
 
+/**
+ * Clean search field — type to search.
+ * No submit button, no embedded location picker, no recent-search cache.
+ */
 export const UniversalSearch: React.FC<UniversalSearchProps> = ({
   onSearch,
-  placeholder = 'Search businesses, Cyberpark jobs, news, marketplace items in Kozhikode...',
+  placeholder = 'Search shops, jobs, news, classifieds…',
   defaultValue = '',
   autoFocus = false,
+  compact = false,
+  debounceMs = 300,
 }) => {
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(defaultValue);
-  const [location, setLocation] = useState('All Locations');
-  const [locationsList, setLocationsList] = useState<string[]>(['All Locations']);
+  const [focused, setFocused] = useState(false);
+  const debounced = useDebouncedValue(query, debounceMs);
+  const lastEmitted = useRef<string | null>(null);
+  const onSearchRef = useRef(onSearch);
+  onSearchRef.current = onSearch;
 
-  React.useEffect(() => {
-    fetch('/api/locations')
-      .then(res => res.json())
-      .then(json => {
-        if (json.data && json.data.length > 0) {
-          setLocationsList(['All Locations', ...json.data.map((a: any) => a.name)]);
-        } else {
-          setLocationsList([...CALICUT_LOCATIONS]);
-        }
-      })
-      .catch(() => setLocationsList([...CALICUT_LOCATIONS]));
-  }, []);
+  // Sync from outside only when the field isn't being typed in
+  useEffect(() => {
+    if (!focused) setQuery(defaultValue);
+  }, [defaultValue, focused]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch?.(query, location);
-  };
+  // Auto-search as the user types (debounced)
+  useEffect(() => {
+    const q = debounced.trim();
+    if (lastEmitted.current === q) return;
+    lastEmitted.current = q;
+
+    if (onSearchRef.current) {
+      onSearchRef.current(q);
+      return;
+    }
+
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    const qs = params.toString();
+    router.replace(qs ? `/search?${qs}` : '/search', { scroll: false });
+  }, [debounced, router]);
+
+  const isPending = query.trim() !== debounced.trim();
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mx-auto flex h-[56px] w-full max-w-3xl items-center gap-1.5 rounded-2xl border border-[#E5E7EB] bg-white p-1.5 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] transition-all duration-200 focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/20"
+    <div
+      className={`relative mx-auto flex w-full max-w-3xl items-center rounded-2xl border border-[#E5E7EB] bg-white transition focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/15 ${
+        compact ? 'h-11' : 'h-12'
+      }`}
     >
-      <div className="hidden h-[44px] shrink-0 items-center gap-1.5 rounded-xl bg-[#F8FAFC] px-3 text-[13px] text-[#111827] sm:flex">
-        <MapPin className="h-3.5 w-3.5 shrink-0 text-[#2563EB]" />
-        <Select
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="h-full border-none bg-transparent px-0 py-0 text-[13px] font-semibold shadow-none focus:outline-none focus:ring-0"
+      <span className="pointer-events-none absolute left-3.5 text-[#9CA3AF]" aria-hidden>
+        {isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
+        ) : (
+          <Search className="h-4 w-4" />
+        )}
+      </span>
+
+      <input
+        ref={inputRef}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        aria-label="Search Kozhikode"
+        autoComplete="off"
+        spellCheck={false}
+        className="h-full w-full border-none bg-transparent py-0 pl-10 pr-10 text-[14px] font-medium text-[#111827] outline-none placeholder:text-[#9CA3AF] sm:text-[15px]"
+      />
+
+      {query ? (
+        <button
+          type="button"
+          aria-label="Clear search"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setQuery('')}
+          className="absolute right-2.5 rounded-lg p-1.5 text-[#9CA3AF] transition hover:bg-[#F3F4F6] hover:text-[#111827]"
         >
-          {locationsList.map((loc) => (
-            <option key={loc} value={loc} className="bg-white text-[#111827]">
-              {loc}
-            </option>
-          ))}
-        </Select>
-      </div>
-
-      <div className="relative flex h-full flex-1 items-center">
-        <Search className="pointer-events-none absolute left-3 h-4 w-4 text-[#9CA3AF]" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          autoFocus={autoFocus}
-          className="h-full border-none bg-transparent pl-9 pr-3 text-[14px] font-medium text-[#111827] shadow-none placeholder:text-[#9CA3AF] focus-visible:border-none focus-visible:ring-0 sm:text-[15px]"
-        />
-      </div>
-
-      <Button
-        type="submit"
-        className="h-[42px] shrink-0 gap-1.5 rounded-xl bg-[#2563EB] px-4 font-semibold text-white hover:bg-[#1D4ED8] sm:px-5"
-      >
-        <Search className="h-4 w-4" />
-        <span className="hidden sm:inline">Search</span>
-      </Button>
-    </form>
+          <X className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
+    </div>
   );
 };

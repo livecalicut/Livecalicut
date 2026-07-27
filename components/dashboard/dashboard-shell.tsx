@@ -76,14 +76,24 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ variant, childre
   // Fade route content in on each navigation.
   useGSAP(
     () => {
+      if (!contentRef.current) return;
       if (prefersReducedMotion()) {
-        gsap.set(contentRef.current, { opacity: 1, y: 0 });
+        gsap.set(contentRef.current, { clearProps: 'opacity,transform' });
         return;
       }
       gsap.fromTo(
         contentRef.current,
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: DURATION.base, ease: EASE.out }
+        { opacity: 0.35, y: 8 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: DURATION.fast,
+          ease: EASE.out,
+          overwrite: true,
+          onComplete: () => {
+            gsap.set(contentRef.current, { clearProps: 'opacity,transform' });
+          },
+        }
       );
     },
     { dependencies: [pathname] }
@@ -109,7 +119,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ variant, childre
         ref={drawerRef}
         id="dashboard-mobile-nav"
         className="fixed inset-y-0 left-0 z-50 -translate-x-full overflow-y-auto shadow-2xl lg:hidden"
-        {...(!drawerOpen && { inert: '' as unknown as boolean })}
+        inert={!drawerOpen}
       >
         <Sidebar />
       </div>

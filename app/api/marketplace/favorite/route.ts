@@ -1,38 +1,54 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/supabase/require-auth';
 
+/**
+ * POST /api/marketplace/favorite
+ * Toggle marketplace_favorites — auth required (getUser via requireAuth).
+ */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const body = await request.json().catch(() => ({}));
+    let itemId = typeof body.itemId === 'string' ? body.itemId : '';
+    const slug = typeof body.slug === 'string' ? body.slug.trim() : '';
+
+    if (!itemId && slug) {
+      const { data: item } = await auth.supabase
+        .from('marketplace_items')
+        .select('id')
+        .eq('slug', slug)
+        .is('deleted_at', null)
+        .maybeSingle();
+      itemId = item?.id || '';
     }
 
-    const { itemId } = await request.json();
     if (!itemId) {
-      return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'itemId or slug is required' }, { status: 400 });
     }
 
-    const { data: existing } = await supabase
+    const { data: existing } = await auth.supabase
       .from('marketplace_favorites')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', auth.user.id)
       .eq('item_id', itemId)
-      .single();
+      .maybeSingle();
 
     if (existing) {
-      await supabase.from('marketplace_favorites').delete().eq('id', existing.id);
+      await auth.supabase.from('marketplace_favorites').delete().eq('id', existing.id);
       return NextResponse.json({ favorited: false });
-    } else {
-      await supabase.from('marketplace_favorites').insert({
-        user_id: session.user.id,
-        item_id: itemId,
-      });
-      return NextResponse.json({ favorited: true });
     }
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+
+    const { error } = await auth.supabase.from('marketplace_favorites').insert({
+      user_id: auth.user.id,
+      item_id: itemId,
+    });
+    if (error) throw error;
+
+    return NextResponse.json({ favorited: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to update favourite';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Phone, MessageSquare, Mail, Globe, Clock } from 'lucide-react';
 
 interface ContactCardProps {
-  phone: string;
+  phone?: string;
   whatsapp?: string;
   email?: string;
   website?: string;
@@ -22,6 +22,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({
       </h4>
 
       <div className="space-y-3 text-xs">
+        {phone ? (
         <a
           href={`tel:${phone}`}
           className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-cyan-50 dark:hover:bg-cyan-950/30 text-slate-800 dark:text-slate-200 transition-colors"
@@ -32,6 +33,9 @@ export const ContactCard: React.FC<ContactCardProps> = ({
             <p className="font-bold">{phone}</p>
           </div>
         </a>
+        ) : (
+          <p className="text-slate-400">No phone listed yet.</p>
+        )}
 
         {whatsapp && (
           <a

@@ -9,7 +9,8 @@ export function useSearch(params: Record<string, unknown>, enabled = true) {
     queryKey: ['search', params],
     queryFn: () => searchApi.search(params),
     enabled: enabled && !!params.q,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
+    gcTime: 0,
   });
 }
 
@@ -18,7 +19,8 @@ export function useSearchSuggestions(q: string, city = 'calicut') {
     queryKey: ['search-suggestions', q, city],
     queryFn: () => searchApi.suggestions(q, city),
     enabled: q.length >= 1,
-    staleTime: 1000 * 30,
+    staleTime: 0,
+    gcTime: 30_000,
   });
 }
 

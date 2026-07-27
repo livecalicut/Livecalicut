@@ -387,6 +387,34 @@ CREATE POLICY "public_read_news_categories" ON public.news_categories FOR SELECT
 DROP POLICY IF EXISTS "public_read_news" ON public.news;
 CREATE POLICY "public_read_news" ON public.news FOR SELECT USING (deleted_at IS NULL);
 
+----------------------------------------------------
+-- Audit logs (admin activity trail)
+----------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    admin_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    action TEXT NOT NULL,
+    target_entity TEXT NOT NULL,
+    target_id UUID,
+    metadata JSONB DEFAULT '{}'::jsonb NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_admin_id ON public.audit_logs(admin_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);
+
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "admin_read_audit_logs" ON public.audit_logs;
+CREATE POLICY "admin_read_audit_logs" ON public.audit_logs
+  FOR SELECT TO authenticated
+  USING (true);
+
+DROP POLICY IF EXISTS "admin_insert_audit_logs" ON public.audit_logs;
+CREATE POLICY "admin_insert_audit_logs" ON public.audit_logs
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = admin_id);
+
 -- Seed baseline roles + city so auth trigger works before npm seed
 INSERT INTO public.cities (id, name, slug, state, status, is_active) VALUES
 ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Kozhikode (Calicut)', 'kozhikode', 'Kerala', 'active', true)

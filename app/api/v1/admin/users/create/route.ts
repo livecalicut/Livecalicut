@@ -16,6 +16,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Super Admin is bootstrap-only — never creatable from the staff UI.
+    const ALLOWED_STAFF_ROLES = ['Moderator', 'Marketing Executive', 'City Admin'];
+    if (!ALLOWED_STAFF_ROLES.includes(roleName)) {
+      return NextResponse.json(
+        { error: 'That role cannot be assigned from staff creation. Super Admin is reserved.' },
+        { status: 403 }
+      );
+    }
+
     // Since we need to create a user in Supabase Auth bypassing standard signup flow, 
     // we use the Supabase Admin API.
     const supabaseAdmin = createClient(

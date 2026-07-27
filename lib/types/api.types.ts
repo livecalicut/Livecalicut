@@ -6,7 +6,8 @@ export interface ApiResponse<T = unknown> {
   message: string;
   data: T;
   meta?: ApiMeta;
-  error?: string;
+  /** Routes using ApiResponse.error() send an object; legacy routes send a string. */
+  error?: string | { code?: string; message?: string; details?: unknown[] };
   errors?: ApiError[];
 }
 
@@ -155,6 +156,8 @@ export interface SearchDocument {
   ranking_score: number;
   is_featured: boolean;
   is_verified: boolean;
+  published_at?: string;
+  slug?: string;
 }
 
 export interface SearchGroupedResults {

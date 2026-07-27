@@ -15,10 +15,10 @@ export async function GET(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: 'Business listing not found' }, { status: 404 });
+    return NextResponse.json({ success: false, error: { message: 'Business listing not found' } }, { status: 404 });
   }
 
-  return NextResponse.json({ data });
+  return NextResponse.json({ success: true, data });
 }
 
 export async function PUT(

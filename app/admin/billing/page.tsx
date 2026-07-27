@@ -1,5 +1,4 @@
 import React from 'react';
-import { CreditCard, IndianRupee, Clock, FileText, Users } from 'lucide-react';
 import { fetchBillingOverviewAction } from './actions';
 import { StatTile } from '@/components/dashboard/stat-tile';
 import { BarBreakdown } from '@/components/dashboard/bar-breakdown';
@@ -52,19 +51,19 @@ export default async function AdminBillingPage() {
         <StatTile
           title="Captured revenue"
           value={data.revenueCaptured}
-          icon={IndianRupee}
+          icon="indian-rupee"
           tone="emerald"
           hint="All successfully captured payments"
         />
-        <StatTile title="Pending" value={data.revenuePending} icon={Clock} tone="amber" />
+        <StatTile title="Pending" value={data.revenuePending} icon="clock" tone="amber" />
         <StatTile
           title="Active subscriptions"
           value={data.activeSubscriptions}
-          icon={Users}
+          icon="users"
           tone="blue"
         />
-        <StatTile title="Transactions" value={data.paymentsCount} icon={CreditCard} tone="purple" />
-        <StatTile title="Invoices" value={data.invoicesCount} icon={FileText} tone="cyan" />
+        <StatTile title="Transactions" value={data.paymentsCount} icon="credit-card" tone="purple" />
+        <StatTile title="Invoices" value={data.invoicesCount} icon="file-text" tone="cyan" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

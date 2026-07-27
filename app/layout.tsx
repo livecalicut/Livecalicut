@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 import { FloatingAiButton } from '@/components/ai/floating-ai-button';
 import { AnnouncementBanner } from '@/components/notifications/announcement-banner';
+import { RevealOnScrollInit } from '@/components/animated/reveal-on-scroll-init';
 
 export default function RootLayout({
   children,
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className="m-0 min-h-screen overflow-y-auto bg-white p-0 text-slate-900 antialiased" suppressHydrationWarning>
         <AppProviders>
+          <RevealOnScrollInit />
           <AnnouncementBanner />
           <PageContainer>{children}</PageContainer>
           <FloatingAiButton />

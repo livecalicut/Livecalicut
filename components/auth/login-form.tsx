@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/lib/validations/auth';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,7 +18,7 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { LogIn, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 const ROLE_LANDING: Record<string, string> = {
   'Super Admin': '/admin',
@@ -43,6 +44,7 @@ export const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -86,19 +88,11 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setError(null);
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (oauthError) throw oauthError;
-    } catch (err: any) {
-      setError(err?.message || 'Failed to initialize Google login');
-    }
+  const handleGoogleLogin = () => {
+    toast.info(
+      'Coming soon',
+      'Google sign-in is not available yet. Please use your email and password.'
+    );
   };
 
   return (
@@ -161,11 +155,20 @@ export const LoginForm: React.FC = () => {
               <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#6B7280] pointer-events-none" />
               <Input
                 {...register('password')}
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="pl-10 h-[44px] rounded-xl border-[#E5E7EB] focus:border-[#2563EB] text-[#111827]"
+                className="pl-10 pr-11 h-[44px] rounded-xl border-[#E5E7EB] focus:border-[#2563EB] text-[#111827]"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#6B7280] transition hover:bg-[#F3F4F6] hover:text-[#111827]"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
             {errors.password && (
               <span className="text-xs text-rose-600">{errors.password.message}</span>

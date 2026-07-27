@@ -51,11 +51,12 @@ async function apiFetch<T>(
   const json = (await response.json()) as ApiResponse<T>;
 
   if (!response.ok || !json.success) {
-    throw new ApiError(
-      json.message || `API error ${response.status}`,
-      response.status,
-      json.errors
-    );
+    const errorMessage =
+      (typeof json.error === 'object' && json.error?.message) ||
+      (typeof json.error === 'string' ? json.error : undefined) ||
+      json.message ||
+      `API error ${response.status}`;
+    throw new ApiError(errorMessage, response.status, json.errors);
   }
 
   return { data: json.data, meta: json.meta };
@@ -78,8 +79,11 @@ export const businessApi = {
     apiFetch(`/api/businesses/${slug}`),
   categories: () =>
     apiFetch('/api/businesses/categories'),
-  addReview: (slug: string, payload: { rating: number; comment: string }) =>
-    apiFetch('/api/businesses/review', { method: 'POST', body: JSON.stringify({ slug, ...payload }) }),
+  addReview: (slug: string, payload: { rating: number; comment: string; businessId?: string }) =>
+    apiFetch('/api/businesses/review', {
+      method: 'POST',
+      body: JSON.stringify({ slug, ...payload }),
+    }),
   create: (payload: Record<string, unknown>) =>
     apiFetch('/api/businesses', { method: 'POST', body: JSON.stringify(payload) }),
 };

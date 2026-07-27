@@ -19,10 +19,6 @@ export const CityTimeline: React.FC = () => {
 
   useEffect(() => {
     fetchLatestNews();
-
-    // Auto-refresh every 60 seconds for live feel
-    const interval = setInterval(fetchLatestNews, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   const fetchLatestNews = async () => {
@@ -60,15 +56,37 @@ export const CityTimeline: React.FC = () => {
 
   if (news.length === 0) {
     return (
-      <div className="text-center py-16 space-y-3">
-        <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto">
-          <Newspaper className="w-8 h-8 text-[#2563EB]" />
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white px-6 py-12 text-center shadow-xs">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50">
+          <Newspaper className="h-7 w-7 text-[#2563EB]" />
         </div>
-        <p className="text-[#6B7280] text-sm font-medium">No news published yet.</p>
-        <p className="text-[#9CA3AF] text-xs">The editorial team will post city updates here.</p>
-        <Link href="/news" className="inline-flex items-center gap-1 text-xs font-bold text-[#2563EB] hover:underline mt-2">
-          Visit News Page <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        <h3 className="mt-4 text-lg font-bold text-[#111827]">No city updates yet</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-[#6B7280]">
+          Editorial posts will appear here as soon as news is published. Meanwhile, explore what’s on today.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Link
+            href="/events"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-1.5 text-xs font-bold text-[#111827] hover:border-[#2563EB]"
+          >
+            <Calendar className="h-3.5 w-3.5 text-[#2563EB]" />
+            Events today
+          </Link>
+          <Link
+            href="/news"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-1.5 text-xs font-bold text-[#111827] hover:border-[#2563EB]"
+          >
+            <Newspaper className="h-3.5 w-3.5 text-[#2563EB]" />
+            News page
+          </Link>
+          <Link
+            href="/business"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-1.5 text-xs font-bold text-[#111827] hover:border-[#2563EB]"
+          >
+            <MapPin className="h-3.5 w-3.5 text-[#2563EB]" />
+            Local businesses
+          </Link>
+        </div>
       </div>
     );
   }

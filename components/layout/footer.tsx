@@ -1,25 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { MapPin, Heart } from 'lucide-react';
 import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
-
-type Area = { id: string; name: string };
+import { useAllLocations } from '@/hooks/use-locations';
 
 export const Footer: React.FC = () => {
-  const [areas, setAreas] = useState<Area[]>([]);
-
-  useEffect(() => {
-    fetch('/api/v1/locations')
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data)) {
-          setAreas(json.data.slice(0, 12));
-        }
-      })
-      .catch(() => {});
-  }, []);
+  // Shared locations cache — refreshes when admin adds/removes an area
+  const { data } = useAllLocations();
+  const areas = (data?.rows || []).slice(0, 12);
 
   return (
     <footer className="w-full border-t border-[#E5E7EB] bg-white pb-24 pt-16 text-[#6B7280] lg:pb-12">

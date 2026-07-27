@@ -195,7 +195,6 @@ export default function AdminUsersPage() {
                       <option value="Moderator">Moderator</option>
                       <option value="Marketing Executive">Marketing Executive</option>
                       <option value="City Admin">City Admin</option>
-                      <option value="Super Admin">Super Admin</option>
                     </select>
                   </td>
                   <td className="py-4 px-4">
@@ -280,9 +279,10 @@ export default function AdminUsersPage() {
                   <option value="Moderator">Moderator</option>
                   <option value="Marketing Executive">Marketing Executive</option>
                   <option value="City Admin">City Admin</option>
-                  <option value="Super Admin">Super Admin</option>
                 </select>
-                <p className="text-[10px] text-[#6B7280]">Staff will receive an email to set their password.</p>
+                <p className="text-[10px] text-[#6B7280]">
+                  Super Admin is reserved for the platform owner and cannot be created here.
+                </p>
               </div>
 
               <div className="pt-4 flex justify-end gap-3">

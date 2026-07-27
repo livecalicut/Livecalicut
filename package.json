@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev --turbopack",
+    "dev:webpack": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "oxlint",
@@ -12,7 +13,8 @@
     "db:check": "node scripts/db-check.mjs",
     "db:seed": "node scripts/seed.mjs",
     "db:seed:users": "node scripts/seed-users.mjs",
-    "setup:status": "node scripts/db-check.mjs"
+    "setup:status": "node scripts/db-check.mjs",
+    "smoke": "node scripts/smoke-flow.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

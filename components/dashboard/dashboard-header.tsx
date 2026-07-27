@@ -117,6 +117,22 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const unreadCount = notifications.filter((n) => !n.is_read).length;
   const BrandIcon = isAdmin ? Shield : Store;
 
+  // Avoid showing the role twice when profile.full_name was seeded as "Super Admin".
+  const ROLE_LABELS = new Set([
+    'Super Admin',
+    'City Admin',
+    'Moderator',
+    'Marketing Executive',
+    'Merchant',
+    'User',
+    'Guest',
+  ]);
+  const rawName = profile?.full_name?.trim() || '';
+  const displayName =
+    rawName && !ROLE_LABELS.has(rawName)
+      ? rawName
+      : profile?.email?.split('@')[0] || (isAdmin ? 'Admin' : 'Merchant');
+
   return (
     <header className="sticky top-0 z-30 flex w-full items-center justify-between gap-3 border-b border-[#E5E7EB] bg-white/95 px-4 py-3 shadow-xs backdrop-blur-md sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
@@ -260,11 +276,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         <div className="flex items-center gap-2 border-l border-[#E5E7EB] pl-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2563EB] text-xs font-bold text-white shadow-xs">
-            {profile?.full_name?.charAt(0)?.toUpperCase() || (isAdmin ? 'A' : 'M')}
+            {displayName.charAt(0).toUpperCase()}
           </div>
           <div className="hidden text-left lg:block">
             <p className="font-sans text-xs leading-none font-bold text-[#111827]">
-              {profile?.full_name || (isAdmin ? 'Admin Console' : 'Merchant Console')}
+              {displayName}
             </p>
             <div className="mt-0.5">
               <RoleBadge roleName={roleName} />

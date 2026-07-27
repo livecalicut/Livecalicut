@@ -8,11 +8,12 @@ import { loadEnv } from './load-env.mjs';
 loadEnv();
 
 const CITY_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-const AREA_CYBER = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01';
-const AREA_BEACH = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02';
-const AREA_PALAYAM = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a03';
-const AREA_MAVOOR = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a04';
-const AREA_MEDICAL = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a05';
+const AREA_PREFIX = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a';
+const AREA_CYBER = `${AREA_PREFIX}01`;
+const AREA_BEACH = `${AREA_PREFIX}02`;
+const AREA_PALAYAM = `${AREA_PREFIX}03`;
+const AREA_MAVOOR = `${AREA_PREFIX}04`;
+const AREA_MEDICAL = `${AREA_PREFIX}05`;
 const CAT_DINING = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001';
 const CAT_SHOP = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380002';
 const CAT_HEALTH = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380003';
@@ -100,69 +101,41 @@ async function main() {
   );
   console.log('✓ cities');
 
+  const areaSeed = [
+    { id: AREA_CYBER, name: 'Cyberpark', slug: 'cyberpark', pincode: '673016', latitude: 11.2712, longitude: 75.8378 },
+    { id: AREA_BEACH, name: 'Kozhikode Beach', slug: 'kozhikode-beach', pincode: '673032', latitude: 11.2588, longitude: 75.7704 },
+    { id: AREA_PALAYAM, name: 'Palayam', slug: 'palayam', pincode: '673002', latitude: 11.2551, longitude: 75.7804 },
+    { id: AREA_MAVOOR, name: 'Mavoor Road', slug: 'mavoor-road', pincode: '673004', latitude: 11.2645, longitude: 75.7952 },
+    { id: AREA_MEDICAL, name: 'Medical College', slug: 'medical-college', pincode: '673008', latitude: 11.2728, longitude: 75.8371 },
+    { id: `${AREA_PREFIX}06`, name: 'SM Street', slug: 'sm-street', pincode: '673001', latitude: 11.2497, longitude: 75.7803 },
+    { id: `${AREA_PREFIX}07`, name: 'Nadakkavu', slug: 'nadakkavu', pincode: '673011', latitude: 11.2755, longitude: 75.7815 },
+    { id: `${AREA_PREFIX}08`, name: 'Kallai', slug: 'kallai', pincode: '673003', latitude: 11.2372, longitude: 75.7846 },
+    { id: `${AREA_PREFIX}09`, name: 'Vellayil', slug: 'vellayil', pincode: '673032', latitude: 11.2657, longitude: 75.7742 },
+    { id: `${AREA_PREFIX}10`, name: 'Chevayur', slug: 'chevayur', pincode: '673017', latitude: 11.2822, longitude: 75.8069 },
+    { id: `${AREA_PREFIX}11`, name: 'Thondayad', slug: 'thondayad', pincode: '673017', latitude: 11.2717, longitude: 75.8175 },
+    { id: `${AREA_PREFIX}12`, name: 'Malaparamba', slug: 'malaparamba', pincode: '673009', latitude: 11.2861, longitude: 75.7995 },
+    { id: `${AREA_PREFIX}13`, name: 'Pantheerankavu', slug: 'pantheerankavu', pincode: '673019', latitude: 11.2245, longitude: 75.8288 },
+    { id: `${AREA_PREFIX}14`, name: 'Beypore', slug: 'beypore', pincode: '673015', latitude: 11.1745, longitude: 75.8081 },
+    { id: `${AREA_PREFIX}15`, name: 'West Hill', slug: 'west-hill', pincode: '673005', latitude: 11.2831, longitude: 75.7742 },
+    { id: `${AREA_PREFIX}16`, name: 'Karaparamba', slug: 'karaparamba', pincode: '673010', latitude: 11.2688, longitude: 75.7995 },
+    { id: `${AREA_PREFIX}17`, name: 'Puthiyara', slug: 'puthiyara', pincode: '673004', latitude: 11.2561, longitude: 75.7902 },
+    { id: `${AREA_PREFIX}18`, name: 'Eranhipalam', slug: 'eranhipalam', pincode: '673006', latitude: 11.2884, longitude: 75.7876 },
+    { id: `${AREA_PREFIX}19`, name: 'Kottooli', slug: 'kottooli', pincode: '673016', latitude: 11.2769, longitude: 75.8103 },
+    { id: `${AREA_PREFIX}20`, name: 'Vengeri', slug: 'vengeri', pincode: '673010', latitude: 11.2646, longitude: 75.8085 },
+  ];
+
   await upsert(
     sb,
     'areas',
-    [
-      {
-        id: AREA_CYBER,
-        city_id: CITY_ID,
-        name: 'Cyberpark',
-        slug: 'cyberpark',
-        pincode: '673016',
-        latitude: 11.2712,
-        longitude: 75.8378,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: AREA_BEACH,
-        city_id: CITY_ID,
-        name: 'Kozhikode Beach',
-        slug: 'kozhikode-beach',
-        pincode: '673032',
-        latitude: 11.2588,
-        longitude: 75.7704,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: AREA_PALAYAM,
-        city_id: CITY_ID,
-        name: 'Palayam',
-        slug: 'palayam',
-        pincode: '673002',
-        latitude: 11.2551,
-        longitude: 75.7804,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: AREA_MAVOOR,
-        city_id: CITY_ID,
-        name: 'Mavoor Road',
-        slug: 'mavoor-road',
-        pincode: '673004',
-        latitude: 11.2645,
-        longitude: 75.7952,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: AREA_MEDICAL,
-        city_id: CITY_ID,
-        name: 'Medical College',
-        slug: 'medical-college',
-        pincode: '673008',
-        latitude: 11.2728,
-        longitude: 75.8371,
-        status: 'active',
-        is_active: true,
-      },
-    ],
+    areaSeed.map((area) => ({
+      ...area,
+      city_id: CITY_ID,
+      status: 'active',
+      is_active: true,
+    })),
     'slug'
   );
-  console.log('✓ areas');
+  console.log(`✓ areas (${areaSeed.length})`);
 
   await upsert(
     sb,

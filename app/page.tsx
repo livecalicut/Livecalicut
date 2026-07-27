@@ -132,12 +132,15 @@ export default async function HomePage() {
 
   return (
     <div className="divide-y divide-[#E5E7EB] m-0 w-full p-0">
-      {/* SECTION 1: HERO OS LAUNCHER - FULL WIDTH EDGE-TO-EDGE VIDEO CANVAS */}
-      <section id="hero-section" className="relative m-0 w-full overflow-hidden bg-white p-0">
+      {/* SECTION 1: Full-bleed city hero */}
+      <section id="hero-section" className="relative m-0 w-full overflow-hidden bg-[#080F1E] p-0">
         <HeroBanner
-          title={cmsData.hero?.title}
-          subtitle={cmsData.hero?.subtitle}
-          badgeText={cmsData.hero?.badgeText}
+          title={cmsData.hero?.title || 'LiveCalicut.com'}
+          subtitle={
+            cmsData.hero?.subtitle ||
+            'Find verified businesses, Cyberpark jobs, homes, and local stories — one platform built for Kozhikode.'
+          }
+          badgeText={cmsData.hero?.badgeText || 'Digital operating system for the city'}
           videoUrl={cmsData.hero?.videoUrl}
         />
       </section>
@@ -145,8 +148,8 @@ export default async function HomePage() {
       {/* SECTION 2: REALTIME CITY METRICS */}
       <Section id="city-metrics" bgVariant="secondary">
         <SectionTitle
-          title="Kozhikode City Operating Metrics"
-          subtitle="Real-time data engine powering 21 spatial wards across Calicut"
+          title="City metrics"
+          subtitle="Live counts across Kozhikode’s wards"
         />
         <CityMetrics metrics={realMetrics} />
       </Section>

@@ -18,14 +18,16 @@ export class LoggingService {
     const { data, error } = await this.supabase
       .from('audit_logs')
       .insert({
-        user_id: params.userId,
+        admin_id: params.userId,
         action: params.action,
-        entity_name: params.entityName,
-        entity_id: params.entityId,
-        old_values: params.oldValues,
-        new_values: params.newValues,
-        ip_address: params.ipAddress,
-        user_agent: params.userAgent,
+        target_entity: params.entityName,
+        target_id: params.entityId,
+        metadata: {
+          old_values: params.oldValues,
+          new_values: params.newValues,
+          ip_address: params.ipAddress,
+          user_agent: params.userAgent,
+        },
       })
       .select()
       .single();

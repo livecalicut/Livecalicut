@@ -1,10 +1,9 @@
 import React from 'react';
-import Link from 'next/link';
 import { PageHeader } from '@/components/shared/page-header';
 import { SalaryBadge, UrgentBadge, FeaturedBadge } from '@/components/jobs/salary-badge';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Building, MapPin, Briefcase, Calendar, CheckCircle2, Bookmark, Send, Sparkles } from 'lucide-react';
+import { MapPin, Briefcase, Calendar } from 'lucide-react';
+import { JobDetailActions, JobApplyCta } from '@/components/jobs/job-detail-actions';
 
 export default async function JobDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -73,18 +72,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ slu
           { label: 'Jobs & Careers', href: '/jobs' },
           { label: 'Job Opening' },
         ]}
-        action={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5 h-[40px] rounded-xl font-bold">
-              <Bookmark className="w-4 h-4 text-[#2563EB]" /> Save Job
-            </Button>
-            <Link href={`/jobs/apply/${slug}`}>
-              <Button size="sm" className="gap-1.5 h-[40px] px-5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold shadow-md">
-                <Send className="w-4 h-4" /> Apply Now
-              </Button>
-            </Link>
-          </div>
-        }
+        action={<JobDetailActions slug={slug} />}
       />
 
       {/* Hero Salary & Status Card */}
@@ -140,11 +128,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ slu
         </div>
 
         <div className="pt-4 border-t border-[#E5E7EB]">
-          <Link href={`/jobs/apply/${slug}`}>
-            <Button className="h-[44px] px-6 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs gap-2 shadow-md">
-              <Send className="w-4 h-4" /> Submit Resume Application
-            </Button>
-          </Link>
+          <JobApplyCta slug={slug} />
         </div>
       </Card>
     </div>

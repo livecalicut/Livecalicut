@@ -13,9 +13,16 @@ function slugify(value: string) {
     .replace(/^-|-$/g, '');
 }
 
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 200;
+
 /**
  * GET /api/v1/locations
- * Public list of areas (optionally filter by ?city_id=)
+ * Public list of areas.
+ *
+ * Query: ?city_id= &q= &page=1 &limit=20 &all=1
+ * `all=1` skips pagination for pickers that filter in-place.
+ * Response meta: { total, page, limit, totalPages, hasMore }
  */
 export async function GET(request: Request) {
   try {
@@ -23,21 +30,45 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const cityId = searchParams.get('city_id') || searchParams.get('city');
     const q = searchParams.get('q')?.trim();
+    const all = searchParams.get('all') === '1' || searchParams.get('all') === 'true';
+
+    const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1);
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(1, Number.parseInt(searchParams.get('limit') || `${DEFAULT_LIMIT}`, 10) || DEFAULT_LIMIT)
+    );
 
     let query = supabase
       .from('areas')
-      .select('id, name, slug, pincode, latitude, longitude, city_id, is_active, cities(id, name, slug)')
+      .select(
+        'id, name, slug, pincode, latitude, longitude, city_id, is_active, cities(id, name, slug)',
+        { count: 'exact' }
+      )
       .is('deleted_at', null)
       .eq('is_active', true)
       .order('name', { ascending: true });
 
     if (cityId) query = query.eq('city_id', cityId);
-    if (q) query = query.ilike('name', `%${q}%`);
+    if (q) query = query.or(`name.ilike.%${q}%,pincode.ilike.%${q}%`);
 
-    const { data, error } = await query;
+    if (!all) {
+      const from = (page - 1) * limit;
+      query = query.range(from, from + limit - 1);
+    }
+
+    const { data, error, count } = await query;
     if (error) return ApiResponse.error('FETCH_ERROR', error.message, [], 500);
 
-    return ApiResponse.success(data || [], 'Locations retrieved');
+    const rows = data || [];
+    const total = count ?? rows.length;
+
+    return ApiResponse.success(rows, 'Locations retrieved', {
+      total,
+      page: all ? 1 : page,
+      limit: all ? total : limit,
+      totalPages: all ? 1 : Math.max(1, Math.ceil(total / limit)),
+      hasMore: all ? false : page * limit < total,
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to fetch locations';
     return ApiResponse.error('FETCH_ERROR', message, [], 500);
@@ -46,12 +77,12 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/v1/locations
- * Super Admin / City Admin create area
+ * Super Admin only — create area from Admin → Areas
  * Body: { name, city_id?, pincode?, latitude?, longitude? }
  */
 export async function POST(request: Request) {
   try {
-    const auth = await requireRole(['Super Admin', 'City Admin']);
+    const auth = await requireRole(['Super Admin']);
     if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();

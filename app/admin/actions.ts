@@ -40,8 +40,10 @@ export async function fetchDashboardDataAction() {
 
   const recentActivities = auditLogs.slice(0, 5).map((log) => ({
     time: new Date(log.created_at).toLocaleString(),
-    action: log.action.replace('_', ' ').toUpperCase(),
-    detail: `${log.profiles?.full_name || 'System'} modified ${log.entity_type} ${log.entity_id}`,
+    action: String(log.action || '').replace('_', ' ').toUpperCase(),
+    detail: `${log.profiles?.full_name || 'System'} modified ${log.target_entity}${
+      log.target_id ? ` ${log.target_id}` : ''
+    }`,
   }));
 
   return { metrics, staffPerformance, recentActivities, authorized: true };

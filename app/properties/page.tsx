@@ -16,6 +16,8 @@ import { Select } from '@/components/ui/Select';
 import { Container } from '@/components/layout/container';
 import { SectionTitle } from '@/components/shared/section-title';
 import { useProperties } from '@/hooks/use-properties';
+import { AuthGateLink } from '@/components/auth/auth-gate-link';
+import { RoleCreateLink } from '@/components/auth/role-create-link';
 import { Building, PlusCircle, Bookmark, Bed, Bath, Maximize, SlidersHorizontal } from 'lucide-react';
 import type { Property } from '@/lib/types/api.types';
 
@@ -46,16 +48,20 @@ export default function PropertiesHomePage() {
         breadcrumbs={[{ label: 'Properties & Real Estate' }]}
         action={
           <div className="flex items-center gap-2">
-            <Link href="/properties/saved">
+            <AuthGateLink
+              href="/properties/saved"
+              loginMessage="Sign in to view your saved properties."
+              pending={{ type: 'custom', href: '/properties/saved' }}
+            >
               <Button variant="outline" size="sm" className="gap-1.5 h-[40px] px-4 rounded-2xl">
                 <Bookmark className="w-4 h-4 text-[#2563EB]" /> Favorites
               </Button>
-            </Link>
-            <Link href="/properties/create">
+            </AuthGateLink>
+            <RoleCreateLink href="/properties/create">
               <Button size="sm" className="gap-1.5 h-[40px] px-5 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold">
                 <PlusCircle className="w-4 h-4" /> Post Property
               </Button>
-            </Link>
+            </RoleCreateLink>
           </div>
         }
       />

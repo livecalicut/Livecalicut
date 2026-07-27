@@ -1,6 +1,5 @@
 import React from 'react';
-import { Users, Store, Newspaper, Calendar, Briefcase, ShoppingBag, Building, Flag } from 'lucide-react';
-import { StatTile, type StatTone } from '@/components/dashboard/stat-tile';
+import { StatTile, type StatIconName, type StatTone } from '@/components/dashboard/stat-tile';
 
 interface StatsCardsProps {
   metrics: {
@@ -16,15 +15,25 @@ interface StatsCardsProps {
 }
 
 export const StatsCards: React.FC<StatsCardsProps> = ({ metrics }) => {
-  const cards: { title: string; value: number; icon: typeof Users; tone: StatTone }[] = [
-    { title: 'Total Citizens', value: metrics.totalUsers, icon: Users, tone: 'blue' },
-    { title: 'Commercial Outlets', value: metrics.activeBusinesses, icon: Store, tone: 'cyan' },
-    { title: 'Cyberpark IT Jobs', value: metrics.activeJobs, icon: Briefcase, tone: 'emerald' },
-    { title: 'Pre-Owned Classifieds', value: metrics.marketplaceItems, icon: ShoppingBag, tone: 'purple' },
-    { title: 'Real Estate Listings', value: metrics.activeProperties, icon: Building, tone: 'indigo' },
-    { title: 'Published News', value: metrics.publishedNews, icon: Newspaper, tone: 'teal' },
-    { title: 'Upcoming Events', value: metrics.upcomingEvents, icon: Calendar, tone: 'amber' },
-    { title: 'Pending Flags', value: metrics.reportedContent, icon: Flag, tone: 'rose' },
+  const cards: { title: string; value: number; icon: StatIconName; tone: StatTone }[] = [
+    { title: 'Total Citizens', value: metrics.totalUsers, icon: 'users', tone: 'blue' },
+    { title: 'Commercial Outlets', value: metrics.activeBusinesses, icon: 'store', tone: 'cyan' },
+    { title: 'Cyberpark IT Jobs', value: metrics.activeJobs, icon: 'briefcase', tone: 'emerald' },
+    {
+      title: 'Pre-Owned Classifieds',
+      value: metrics.marketplaceItems,
+      icon: 'shopping-bag',
+      tone: 'purple',
+    },
+    {
+      title: 'Real Estate Listings',
+      value: metrics.activeProperties,
+      icon: 'building',
+      tone: 'indigo',
+    },
+    { title: 'Published News', value: metrics.publishedNews, icon: 'newspaper', tone: 'teal' },
+    { title: 'Upcoming Events', value: metrics.upcomingEvents, icon: 'calendar', tone: 'amber' },
+    { title: 'Pending Flags', value: metrics.reportedContent, icon: 'flag', tone: 'rose' },
   ];
 
   return (

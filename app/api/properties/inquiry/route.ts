@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/supabase/require-auth';
 import { propertyInquirySchema } from '@/lib/validations/property';
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const validated = propertyInquirySchema.parse(body);
 
-    const { data, error } = await supabase
+    const { data, error } = await auth.supabase
       .from('property_inquiries')
       .insert({
         property_id: validated.propertyId,
-        user_id: session?.user?.id || null,
+        user_id: auth.user.id,
         name: validated.name,
         phone: validated.phone,
         email: validated.email,
@@ -26,7 +26,8 @@ export async function POST(request: Request) {
 
     if (error) throw error;
     return NextResponse.json({ success: true, data }, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to send inquiry';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

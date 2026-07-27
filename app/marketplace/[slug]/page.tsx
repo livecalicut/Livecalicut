@@ -1,14 +1,11 @@
-import React from 'react';
-import Link from 'next/link';
 import { PageHeader } from '@/components/shared/page-header';
-import { ShareButtons } from '@/components/shared/share-buttons';
 import { PriceBadge, ConditionBadge } from '@/components/marketplace/price-badge';
 import { SellerCard } from '@/components/marketplace/seller-card';
 import { GalleryComponent } from '@/components/business/gallery-component';
 import { MapComponent } from '@/components/business/map-component';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MapPin, Bookmark, ShieldCheck, Tag, ShoppingBag } from 'lucide-react';
+import { MapPin, ShieldCheck, Tag, ShoppingBag } from 'lucide-react';
+import { DetailSaveActions } from '@/components/auth/detail-save-actions';
 
 export default async function MarketplaceDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -69,12 +66,13 @@ export default async function MarketplaceDetailsPage({ params }: { params: Promi
           { label: item.title },
         ]}
         action={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5 h-[40px] rounded-xl font-bold">
-              <Bookmark className="w-4 h-4 text-[#2563EB]" /> Save Favorite
-            </Button>
-            <ShareButtons title={item.title} />
-          </div>
+          <DetailSaveActions
+            kind="marketplace"
+            entityId={slug}
+            slug={slug}
+            title={item.title}
+            label="Save Favorite"
+          />
         }
       />
 

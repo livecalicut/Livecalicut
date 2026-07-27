@@ -1,11 +1,66 @@
 'use client';
 
 import React from 'react';
-import type { LucideIcon } from 'lucide-react';
+import {
+  Users,
+  Store,
+  Newspaper,
+  Calendar,
+  Briefcase,
+  ShoppingBag,
+  Building,
+  Flag,
+  Eye,
+  Star,
+  MessageCircle,
+  MessageSquare,
+  Clock,
+  CreditCard,
+  FileText,
+  IndianRupee,
+  type LucideIcon,
+} from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { CountUp } from '@/components/animated/count-up';
 
 export type StatTone = 'blue' | 'emerald' | 'purple' | 'indigo' | 'teal' | 'amber' | 'rose' | 'cyan';
+
+export type StatIconName =
+  | 'users'
+  | 'store'
+  | 'newspaper'
+  | 'calendar'
+  | 'briefcase'
+  | 'shopping-bag'
+  | 'building'
+  | 'flag'
+  | 'eye'
+  | 'star'
+  | 'message-circle'
+  | 'message-square'
+  | 'clock'
+  | 'credit-card'
+  | 'file-text'
+  | 'indian-rupee';
+
+const ICONS: Record<StatIconName, LucideIcon> = {
+  users: Users,
+  store: Store,
+  newspaper: Newspaper,
+  calendar: Calendar,
+  briefcase: Briefcase,
+  'shopping-bag': ShoppingBag,
+  building: Building,
+  flag: Flag,
+  eye: Eye,
+  star: Star,
+  'message-circle': MessageCircle,
+  'message-square': MessageSquare,
+  clock: Clock,
+  'credit-card': CreditCard,
+  'file-text': FileText,
+  'indian-rupee': IndianRupee,
+};
 
 const TONES: Record<StatTone, string> = {
   blue: 'bg-blue-50 border-blue-200 text-[#2563EB]',
@@ -21,7 +76,8 @@ const TONES: Record<StatTone, string> = {
 interface StatTileProps {
   title: string;
   value: number;
-  icon: LucideIcon;
+  /** Serializable icon key — Lucide components cannot cross the RSC boundary. */
+  icon: StatIconName;
   tone?: StatTone;
   hint?: string;
   suffix?: string;
@@ -30,11 +86,13 @@ interface StatTileProps {
 export const StatTile: React.FC<StatTileProps> = ({
   title,
   value,
-  icon: Icon,
+  icon,
   tone = 'blue',
   hint,
   suffix,
 }) => {
+  const Icon = ICONS[icon];
+
   return (
     <Card className="space-y-3 rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
       <div className="flex items-center justify-between gap-2">

@@ -3,31 +3,31 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MapPin, Building2, Newspaper, Calendar, Briefcase, Tag, Home, Menu, Search, X } from 'lucide-react';
+import { MapPin, Building2, Newspaper, Calendar, Briefcase, Tag, Home, Menu, X } from 'lucide-react';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/button';
 import { ProfileMenu } from './profile-menu';
 import { NotificationIcon } from './notification-icon';
 import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
-import { CALICUT_LOCATIONS } from '@/config/constants'; // Fallback if API fails
+import { ALL_LOCATIONS_LABEL } from '@/config/constants';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
-  const [selectedLocation, setSelectedLocation] = React.useState('All Locations');
+  const [selectedLocation, setSelectedLocation] = React.useState(ALL_LOCATIONS_LABEL);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const [locations, setLocations] = React.useState<string[]>(['All Locations']);
+  const [locations, setLocations] = React.useState<string[]>([ALL_LOCATIONS_LABEL]);
 
   React.useEffect(() => {
-    fetch('/api/locations')
-      .then(res => res.json())
-      .then(json => {
-        if (json.data && json.data.length > 0) {
-          setLocations(['All Locations', ...json.data.map((a: any) => a.name)]);
-        } else {
-          setLocations([...CALICUT_LOCATIONS]);
-        }
+    fetch('/api/v1/locations?all=1')
+      .then((res) => res.json())
+      .then((json) => {
+        const areas = Array.isArray(json.data) ? json.data : [];
+        setLocations([
+          ALL_LOCATIONS_LABEL,
+          ...areas.map((a: { name: string }) => a.name).filter(Boolean),
+        ]);
       })
-      .catch(() => setLocations([...CALICUT_LOCATIONS]));
+      .catch(() => setLocations([ALL_LOCATIONS_LABEL]));
   }, []);
 
   const navLinks = [
@@ -87,16 +87,6 @@ export const Header: React.FC = () => {
 
         {/* Global Actions */}
         <div className="flex items-center gap-2.5">
-          {/* Quick Search — icon only to avoid competing with hero search */}
-          <Link
-            href="/search"
-            aria-label="Search Kozhikode"
-            title="Search (⌘K)"
-            className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:border-[#2563EB] hover:text-[#2563EB]"
-          >
-            <Search className="h-4 w-4" />
-          </Link>
-
           <NotificationIcon />
 
           <ProfileMenu />

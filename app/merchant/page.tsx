@@ -4,7 +4,6 @@ import { Card } from '@/components/ui/card';
 import {
   ShieldCheck,
   ShieldAlert,
-  Eye,
   MessageCircle,
   Star,
   Users,
@@ -113,19 +112,19 @@ export default async function MerchantDashboardPage() {
 
       {/* Performance KPIs */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile title="Storefront views" value={metrics.totalViews} icon={Eye} tone="blue" />
+        <StatTile title="Storefront views" value={metrics.totalViews} icon="eye" tone="blue" />
         <StatTile
           title="New leads"
           value={metrics.newLeadsCount}
-          icon={Users}
+          icon="users"
           tone="emerald"
           hint="Awaiting your reply"
         />
-        <StatTile title="Reviews" value={metrics.totalReviews} icon={MessageCircle} tone="teal" />
+        <StatTile title="Reviews" value={metrics.totalReviews} icon="message-circle" tone="teal" />
         <StatTile
           title="Average rating"
           value={metrics.ratingAvg}
-          icon={Star}
+          icon="star"
           tone="amber"
           hint={metrics.totalReviews > 0 ? 'Across all listings' : 'No ratings yet'}
         />

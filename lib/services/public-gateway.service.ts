@@ -9,7 +9,7 @@ export class PublicGatewayService {
   static async getHomepagePayload(citySlug: string = 'calicut') {
     const [featuredBusinesses, activeJobs, explorePlaces] = await Promise.all([
       BusinessService.getFeaturedBusinesses(),
-      JobService.getJobs({ isFeatured: true }),
+      JobService.getJobs({ isFeatured: true, limit: 4 }),
       ExploreService.getPlaces(),
     ]);
 
@@ -17,7 +17,7 @@ export class PublicGatewayService {
       cityName: citySlug === 'calicut' ? 'Kozhikode' : citySlug.toUpperCase(),
       citySlug,
       featuredBusinesses: featuredBusinesses.slice(0, 6),
-      cyberparkJobs: activeJobs.slice(0, 4),
+      cyberparkJobs: (activeJobs.data || []).slice(0, 4),
       exploreSpots: explorePlaces.slice(0, 3),
       bannerAlerts: [
         'Malabar Literature Festival passes live in Kozhikode!',

@@ -1,21 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { MessageSquare, Star, Reply, Flag, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Star, Reply } from 'lucide-react';
+import { getMerchantDashboardData, type MerchantReview } from '@/app/merchant/actions';
+
+function formatReviewDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return iso;
+  }
+}
 
 export default function MerchantReviewsPage() {
-  const [reviews, setReviews] = useState([
-    { id: '1', reviewer: 'Dr. Faisal Rahman', rating: 5, comment: 'Exceptional Malabar cuisine and prompt customer response. Ward physical verification gives complete peace of mind!', date: 'Today, 01:10 PM', reply: 'Thank you Dr. Faisal! We are honored to serve authentic Malabar flavors.' },
-    { id: '2', reviewer: 'Anjali Nambiar', rating: 5, comment: 'Great ambiance and smooth booking process via LiveCalicut.', date: 'Yesterday', reply: '' },
-    { id: '3', reviewer: 'K. V. Moideenkutty', rating: 4, comment: 'Authentic taste. Highly recommended for family dining in Calicut.', date: '3 days ago', reply: '' },
-  ]);
-
+  const [reviews, setReviews] = useState<(MerchantReview & { reply?: string })[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getMerchantDashboardData();
+        if (!cancelled) setReviews(data.reviews.map((r) => ({ ...r, reply: '' })));
+      } catch {
+        if (!cancelled) setReviews([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const submitReply = (id: string) => {
-    setReviews(reviews.map((r) => (r.id === id ? { ...r, reply: replyText } : r)));
+    // Local-only reply draft until a reply API exists.
+    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, reply: replyText } : r)));
     setActiveReplyId(null);
     setReplyText('');
   };
@@ -23,36 +50,51 @@ export default function MerchantReviewsPage() {
   return (
     <>
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-          <MessageSquare className="w-7 h-7 text-[#2563EB]" />
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#111827] font-sans flex items-center gap-2">
+          <MessageSquare className="h-7 w-7 text-[#2563EB]" />
           <span>Customer Reviews & Feedback Stream</span>
         </h1>
-        <p className="text-sm text-[#6B7280]">Respond directly to customer feedback, maintain high trust ratings, and report abusive reviews</p>
+        <p className="text-sm text-[#6B7280]">
+          Reviews synced from your live business listings in Kozhikode.
+        </p>
       </div>
 
       <div className="space-y-4">
+        {loading && (
+          <p className="py-8 text-center text-sm text-[#6B7280]">Loading reviews…</p>
+        )}
+        {!loading && reviews.length === 0 && (
+          <Card className="rounded-3xl border border-dashed border-[#E5E7EB] bg-white p-8 text-center text-sm text-[#6B7280]">
+            No customer reviews yet. They will appear here as people rate your listings.
+          </Card>
+        )}
         {reviews.map((rev) => (
-          <Card key={rev.id} className="p-6 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs space-y-4">
+          <Card
+            key={rev.id}
+            className="space-y-4 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-xs"
+          >
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <h4 className="text-base font-bold text-[#111827] font-sans">{rev.reviewer}</h4>
-                <p className="text-[11px] text-[#6B7280]">{rev.date}</p>
+                <p className="text-[11px] text-[#6B7280]">{formatReviewDate(rev.created_at)}</p>
               </div>
               <div className="flex items-center text-amber-500">
                 {[...Array(rev.rating)].map((_, r) => (
-                  <Star key={r} className="w-4 h-4 fill-amber-400" />
+                  <Star key={r} className="h-4 w-4 fill-amber-400" />
                 ))}
               </div>
             </div>
 
-            <p className="text-sm text-[#4B5563] leading-relaxed italic font-normal">"{rev.comment}"</p>
+            <p className="text-sm italic font-normal leading-relaxed text-[#4B5563]">
+              &ldquo;{rev.comment}&rdquo;
+            </p>
 
-            {rev.reply && (
-              <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 space-y-1 text-xs">
+            {rev.reply ? (
+              <div className="space-y-1 rounded-2xl border border-blue-200 bg-blue-50 p-3.5 text-xs">
                 <p className="font-bold text-[#2563EB]">Your Storefront Reply:</p>
                 <p className="text-[#111827]">{rev.reply}</p>
               </div>
-            )}
+            ) : null}
 
             {activeReplyId === rev.id ? (
               <div className="space-y-3 pt-2">
@@ -61,27 +103,36 @@ export default function MerchantReviewsPage() {
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Write professional store reply..."
-                  className="w-full p-3 text-xs rounded-xl border border-[#E5E7EB] text-[#111827] focus:border-[#2563EB] focus:outline-none"
+                  className="w-full rounded-xl border border-[#E5E7EB] p-3 text-xs text-[#111827] focus:border-[#2563EB] focus:outline-none"
                 />
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => setActiveReplyId(null)} className="px-3.5 py-1.5 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#6B7280]">
+                  <button
+                    type="button"
+                    onClick={() => setActiveReplyId(null)}
+                    className="rounded-xl border border-[#E5E7EB] px-3.5 py-1.5 text-xs font-bold text-[#6B7280]"
+                  >
                     Cancel
                   </button>
-                  <button onClick={() => submitReply(rev.id)} className="px-3.5 py-1.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => submitReply(rev.id)}
+                    className="rounded-xl bg-[#2563EB] px-3.5 py-1.5 text-xs font-bold text-white"
+                  >
                     Publish Reply
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="pt-2 flex justify-end gap-2 text-xs">
+              <div className="flex justify-end gap-2 pt-2 text-xs">
                 <button
+                  type="button"
                   onClick={() => {
                     setActiveReplyId(rev.id);
                     setReplyText(rev.reply || '');
                   }}
-                  className="px-3.5 py-1.5 rounded-xl border border-[#E5E7EB] hover:border-[#2563EB] text-[#2563EB] font-bold inline-flex items-center gap-1"
+                  className="inline-flex items-center gap-1 rounded-xl border border-[#E5E7EB] px-3 py-1.5 font-bold text-[#2563EB]"
                 >
-                  <Reply className="w-3.5 h-3.5" /> {rev.reply ? 'Edit Reply' : 'Reply to Customer'}
+                  <Reply className="h-3.5 w-3.5" /> Reply
                 </button>
               </div>
             )}

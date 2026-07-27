@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Eye, Star, Users, Store, MessageSquare, Gauge } from 'lucide-react';
+import { Gauge } from 'lucide-react';
 import { fetchMerchantAnalyticsAction } from './actions';
 import { StatTile } from '@/components/dashboard/stat-tile';
 import { BarBreakdown } from '@/components/dashboard/bar-breakdown';
@@ -49,23 +49,23 @@ export default async function MerchantAnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatTile title="Storefront views" value={data.totalViews} icon={Eye} tone="blue" />
-        <StatTile title="Reviews" value={data.totalReviews} icon={Star} tone="amber" />
+        <StatTile title="Storefront views" value={data.totalViews} icon="eye" tone="blue" />
+        <StatTile title="Reviews" value={data.totalReviews} icon="star" tone="amber" />
         <StatTile
           title="Average rating"
           value={data.ratingAvg}
-          icon={Star}
+          icon="star"
           tone="emerald"
           hint="Weighted across all listings"
         />
-        <StatTile title="Total leads" value={data.leadsTotal} icon={Users} tone="purple" />
+        <StatTile title="Total leads" value={data.leadsTotal} icon="users" tone="purple" />
         <StatTile
           title="Awaiting reply"
           value={data.leadsPending}
-          icon={MessageSquare}
+          icon="message-square"
           tone="rose"
         />
-        <StatTile title="Listings" value={data.listingsCount} icon={Store} tone="cyan" />
+        <StatTile title="Listings" value={data.listingsCount} icon="store" tone="cyan" />
       </div>
 
       <Card className="space-y-3 rounded-3xl p-6">

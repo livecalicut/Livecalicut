@@ -2,9 +2,21 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Routes that require any authenticated user
-const AUTH_REQUIRED_ROUTES = ['/dashboard', '/profile', '/settings', '/bookmarks', '/notifications'];
-// Routes that require Merchant, City Admin, or Super Admin
-const MERCHANT_ROUTES = ['/merchant'];
+const AUTH_REQUIRED_ROUTES = [
+  '/dashboard',
+  '/profile',
+  '/settings',
+  '/bookmarks',
+  '/notifications',
+  '/applications',
+  '/jobs/saved',
+  '/jobs/apply',
+  '/marketplace/saved',
+  '/properties/saved',
+  '/explore/saved',
+];
+// Create / post flows — merchant or admin only (UI also hides Post CTAs for guests)
+const MERCHANT_ROUTES = ['/merchant', '/marketplace/create', '/properties/create', '/business/create'];
 // Routes that require Moderator, City Admin, or Super Admin
 const ADMIN_ROUTES = ['/admin'];
 // Routes that should redirect authenticated users away (login/register pages)
@@ -93,9 +105,11 @@ export async function proxy(request: NextRequest) {
       ? userRoles.map(ur => (ur.roles as any)?.name).filter(Boolean)
       : ['User'];
 
-    // Merchant routes: Merchant, City Admin, Super Admin
+    // Merchant routes: Merchant, City Admin, Super Admin (+ marketing for create flows)
     if (MERCHANT_ROUTES.some((r) => pathname.startsWith(r))) {
-      const allowed = ['Merchant', 'City Admin', 'Super Admin'].some(r => roleNames.includes(r));
+      const allowed = ['Merchant', 'City Admin', 'Super Admin', 'Marketing Executive'].some((r) =>
+        roleNames.includes(r)
+      );
       if (!allowed) {
         return NextResponse.redirect(new URL('/unauthorized', request.url));
       }

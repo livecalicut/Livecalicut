@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { requireRole } from '@/lib/supabase/require-auth';
 import { createBusinessSchema } from '@/lib/validations/business';
 
 export async function GET(request: Request) {
@@ -37,20 +38,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireRole(['Merchant', 'City Admin', 'Super Admin', 'Marketing Executive']);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized authentication required' }, { status: 401 });
-    }
-
-    // Get user roles from user_roles matrix
-    const { data: userRoles } = await supabase
-      .from('user_roles')
-      .select('roles(name)')
-      .eq('user_id', session.user.id);
-    const roleNames = userRoles?.map((ur: any) => ur.roles?.name).filter(Boolean) || [];
-    const isStaffOrAdmin = ['Super Admin', 'City Admin', 'Marketing Executive', 'Moderator'].some(r => roleNames.includes(r));
+    const supabase = auth.supabase;
+    const isStaffOrAdmin = ['Super Admin', 'City Admin', 'Marketing Executive', 'Moderator'].includes(
+      auth.user.role
+    );
 
     const body = await request.json();
     const { name, category, phone, location, description, cover_image, ownerEmail } = body;
@@ -146,7 +140,7 @@ export async function POST(request: Request) {
         }
       }
     } else {
-      ownerId = session.user.id;
+      ownerId = auth.user.id;
     }
 
     // Insert Business
@@ -154,7 +148,7 @@ export async function POST(request: Request) {
       .from('businesses')
       .insert({
         owner_id: ownerId,
-        created_by: session.user.id, // For tracking who created it (e.g. marketing staff)
+        created_by: auth.user.id, // For tracking who created it (e.g. marketing staff)
         category_id: categoryId,
         city_id: cityId,
         name: name,
@@ -174,7 +168,7 @@ export async function POST(request: Request) {
       await supabase.from('business_images').insert({
         business_id: data.id,
         url: cover_image,
-        created_by: session.user.id
+        created_by: auth.user.id
       });
     }
 
