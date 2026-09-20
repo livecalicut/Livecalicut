@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { ThemeProvider } from './theme-provider';
 import { QueryProvider } from './query-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -15,14 +14,12 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     initializeAuth();
   }, [initializeAuth]);
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
-      <QueryProvider>
-        <AuthPromptProvider>
-          {children}
-          <PendingAuthActionRunner />
-          <Toaster />
-        </AuthPromptProvider>
-      </QueryProvider>
-    </ThemeProvider>
+    <QueryProvider>
+      <AuthPromptProvider>
+        {children}
+        <PendingAuthActionRunner />
+        <Toaster />
+      </AuthPromptProvider>
+    </QueryProvider>
   );
 }

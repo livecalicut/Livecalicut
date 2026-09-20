@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, ArrowRight } from 'lucide-react';
 import { ALL_LOCATIONS_LABEL } from '@/config/constants';
@@ -29,28 +29,13 @@ export const HeroRedesign: React.FC<HeroRedesignProps> = ({
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
-  const [locationsList, setLocationsList] = useState<string[]>(() => {
+  const [locationsList] = useState<string[]>(() => {
     const list = [ALL_LOCATIONS_LABEL];
     if (initialLocations && initialLocations.length > 0) {
       initialLocations.forEach((l) => list.push(l.name));
     }
     return list;
   });
-
-  useEffect(() => {
-    if (locationsList.length <= 1) {
-      fetch('/api/v1/locations?all=1')
-        .then((res) => res.json())
-        .then((json) => {
-          const areas = Array.isArray(json.data) ? json.data : [];
-          setLocationsList([
-            ALL_LOCATIONS_LABEL,
-            ...areas.map((a: { name: string }) => a.name).filter(Boolean),
-          ]);
-        })
-        .catch(() => {});
-    }
-  }, [locationsList.length]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
