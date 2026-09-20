@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   ChevronDown,
   Search,
-  Plus,
   Compass,
   Utensils,
   Camera,
@@ -25,7 +24,6 @@ import { RoleBadge } from '@/components/auth/role-badge';
 import { ProfileMenu } from './profile-menu';
 import { NotificationIcon } from './notification-icon';
 import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
-import { PostModal } from './post-modal';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
@@ -34,7 +32,6 @@ export const Header: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isExploreOpen, setIsExploreOpen] = useState(false);
-  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -93,7 +90,7 @@ export const Header: React.FC = () => {
 
   const navLinks = [
     { href: '/business', label: 'Businesses' },
-    { href: '/marketplace', label: 'Buy & Sell' },
+    { href: '/marketplace', label: 'Classified' },
     { href: '/jobs', label: 'Jobs' },
     { href: '/properties', label: 'Properties' },
     { href: '/restaurants', label: 'Restaurants' },
@@ -130,8 +127,7 @@ export const Header: React.FC = () => {
   const isMerchantOnly = roleNames.includes('Merchant') && !roleNames.includes('Super Admin');
 
   return (
-    <>
-      <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200 shadow-xs transition-all">
+    <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200 shadow-xs transition-all">
         {/* Top Header Bar */}
         <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           {/* Brand Logo */}
@@ -168,18 +164,6 @@ export const Header: React.FC = () => {
             <div className="hidden sm:block">
               <ProfileMenu />
             </div>
-
-            {/* Standout + Post Button (Desktop only) */}
-            <button
-              type="button"
-              onClick={() => setIsPostModalOpen(true)}
-              className="hidden sm:inline-flex items-center justify-center gap-1.5 px-4 h-9 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white text-[13px] font-bold shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer"
-              aria-label="Post new listing"
-              title="Post new listing"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span>Post</span>
-            </button>
 
             {/* Mobile Menu Toggle (Only element visible on mobile right side) */}
             <Button
@@ -380,21 +364,6 @@ export const Header: React.FC = () => {
                 )}
               </div>
 
-              {/* Post Action Button */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setIsPostModalOpen(true);
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white font-bold text-sm shadow-md cursor-pointer transition-all active:scale-[0.98]"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>Post New Listing / Add Business</span>
-                </button>
-              </div>
-
               {/* Explore Kozhikode Sublinks */}
               <div className="space-y-1.5">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1">
@@ -451,14 +420,7 @@ export const Header: React.FC = () => {
             </div>
           </div>
         )}
-      </header>
-
-      {/* Universal Post Modal */}
-      <PostModal
-        isOpen={isPostModalOpen}
-        onClose={() => setIsPostModalOpen(false)}
-      />
-    </>
+    </header>
   );
 };
 

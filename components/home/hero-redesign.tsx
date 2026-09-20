@@ -70,6 +70,8 @@ export const HeroRedesign: React.FC<HeroRedesignProps> = ({
           src="/heroes/calicut-hero.jpg"
           alt="Kozhikode Heritage Gate, Beach Lighthouse and City Skyline"
           className="w-full h-full object-cover object-center scale-100 filter brightness-[0.88] contrast-[1.02]"
+          fetchPriority="high"
+          decoding="async"
         />
         {/* Subtle Light Scrim for Image Clarity & Perfect Readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/30 to-slate-900/20" />

@@ -1,4 +1,4 @@
-import { createPublicClient } from '@/lib/supabase/server';
+import { Suspense } from 'react';
 import { HeroRedesign } from '@/components/home/hero-redesign';
 import { ExploreCategories } from '@/components/home/explore-categories';
 import { FeaturedBusinessesSection, FeaturedBusinessItem } from '@/components/home/featured-businesses-section';
@@ -7,8 +7,9 @@ import { LatestListingsSection, UnifiedListingItem } from '@/components/home/lat
 import { ExploreKozhikodeSection } from '@/components/home/explore-kozhikode-section';
 import { AdvertiseSection } from '@/components/home/advertise-section';
 import { StayUpdatedSection } from '@/components/home/stay-updated-section';
+import { createPublicClient } from '@/lib/supabase/server';
 
-export const revalidate = 60; // ISR cache for 60 seconds
+export const revalidate = 60;
 
 function extractBusinessImage(biz: any): string | null {
   if (!biz) return null;
@@ -23,79 +24,78 @@ function extractBusinessImage(biz: any): string | null {
   return null;
 }
 
-export default async function HomePage() {
+function withTimeout<T>(promise: PromiseLike<{ data: T | null; error: unknown }>, ms = 4000) {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<{ data: null; error: { message: string } }>((resolve) => {
+      setTimeout(() => resolve({ data: null, error: { message: 'timeout' } }), ms);
+    }),
+  ]);
+}
+
+function HomeFeedSkeleton() {
+  return (
+    <div className="w-full space-y-8 py-12">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-8 w-48 rounded-lg bg-slate-100 animate-pulse mb-6" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-48 rounded-2xl bg-slate-100 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function HomeFeed() {
   let featuredBusinesses: FeaturedBusinessItem[] = [];
   let popularBusinesses: PopularBusinessItem[] = [];
   const latestListings: UnifiedListingItem[] = [];
-  let locations: Array<{ id: string; name: string }> = [];
 
   try {
     const supabase = createPublicClient();
 
-    // Concurrent server-side data fetching from Supabase
-    const [
-      featuredRes,
-      allBizRes,
-      jobsRes,
-      propertiesRes,
-      marketplaceRes,
-      areasRes,
-    ] = await Promise.all([
-      // 1. Explicitly Featured / Premium / Sponsored Businesses
-      supabase
-        .from('businesses')
-        .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, social_media, business_images(url), business_categories(name), areas(name)')
-        .or('is_featured.eq.true,is_premium.eq.true')
-        .is('deleted_at', null)
-        .order('rating_avg', { ascending: false })
-        .limit(8),
-
-      // 2. All Active Businesses in Calicut
-      supabase
-        .from('businesses')
-        .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, social_media, business_images(url), business_categories(name), areas(name)')
-        .is('deleted_at', null)
-        .order('rating_avg', { ascending: false })
-        .limit(16),
-
-      // 3. Published Jobs
-      supabase
-        .from('jobs')
-        .select('id, slug, title, salary, employment_type, created_at, companies(name, logo), areas(name)')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .limit(6),
-
-      // 4. Published Real Estate Properties
-      supabase
-        .from('properties')
-        .select('id, slug, title, price, listing_type, location, created_at, property_categories(name)')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .limit(6),
-
-      // 5. Active Marketplace / Classifieds
-      supabase
-        .from('marketplace_items')
-        .select('id, slug, title, price, condition, location, created_at, marketplace_categories(name)')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .limit(6),
-
-      // 6. Areas / Localities for search
-      supabase
-        .from('areas')
-        .select('id, name')
-        .order('name', { ascending: true })
-        .limit(30),
+    const [allBizRes, jobsRes, propertiesRes, marketplaceRes] = await Promise.all([
+      withTimeout(
+        supabase
+          .from('businesses')
+          .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, social_media, business_images(url), business_categories(name), areas(name)')
+          .is('deleted_at', null)
+          .order('rating_avg', { ascending: false })
+          .limit(16)
+      ),
+      withTimeout(
+        supabase
+          .from('jobs')
+          .select('id, slug, title, salary, employment_type, created_at, companies(name, logo), areas(name)')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(6)
+      ),
+      withTimeout(
+        supabase
+          .from('properties')
+          .select('id, slug, title, price, listing_type, location, created_at, property_categories(name)')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(6)
+      ),
+      withTimeout(
+        supabase
+          .from('marketplace_items')
+          .select('id, slug, title, price, condition, location, created_at, marketplace_categories(name)')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(6)
+      ),
     ]);
 
-    // Map Featured Businesses
-    const rawFeatured = featuredRes?.data || [];
     const rawAll = allBizRes?.data || [];
+    const rawFeatured = rawAll.filter((biz: any) => biz.is_featured || biz.is_premium);
 
     if (rawFeatured.length > 0) {
-      featuredBusinesses = rawFeatured.map((biz: any) => ({
+      featuredBusinesses = rawFeatured.slice(0, 8).map((biz: any) => ({
         id: biz.id,
         slug: biz.slug,
         name: biz.name,
@@ -109,7 +109,6 @@ export default async function HomePage() {
       }));
     }
 
-    // Map Popular / Verified Businesses
     if (rawAll.length > 0) {
       popularBusinesses = rawAll.map((biz: any) => ({
         id: biz.id,
@@ -122,7 +121,6 @@ export default async function HomePage() {
         image: extractBusinessImage(biz),
       }));
 
-      // If no businesses were marked is_featured=true, use top items from all active businesses
       if (featuredBusinesses.length === 0) {
         featuredBusinesses = rawAll.slice(0, 4).map((biz: any) => ({
           id: biz.id,
@@ -139,7 +137,6 @@ export default async function HomePage() {
       }
     }
 
-    // Add Jobs
     (jobsRes?.data || []).forEach((j: any) => {
       latestListings.push({
         id: `job-${j.id}`,
@@ -156,7 +153,6 @@ export default async function HomePage() {
       });
     });
 
-    // Add Properties
     (propertiesRes?.data || []).forEach((p: any) => {
       latestListings.push({
         id: `prop-${p.id}`,
@@ -173,7 +169,6 @@ export default async function HomePage() {
       });
     });
 
-    // Add Marketplace Items
     (marketplaceRes?.data || []).forEach((m: any) => {
       latestListings.push({
         id: `mkt-${m.id}`,
@@ -189,42 +184,29 @@ export default async function HomePage() {
         badgeVariant: 'purple',
       });
     });
-
-    // Areas list for hero location dropdown
-    if (areasRes?.data) {
-      locations = areasRes.data.map((a: any) => ({
-        id: a.id,
-        name: a.name,
-      }));
-    }
   } catch (err) {
     console.error('[HomePage] Supabase fetch error handled safely:', err);
   }
 
   return (
-    <div className="w-full flex flex-col bg-white">
-      {/* 1. HERO SECTION */}
-      <HeroRedesign locations={locations} />
-
-      {/* 2. EXPLORE CATEGORIES */}
-      <ExploreCategories />
-
-      {/* 3. FEATURED BUSINESSES (SPONSORED) */}
+    <>
       <FeaturedBusinessesSection businesses={featuredBusinesses} />
-
-      {/* 4. POPULAR BUSINESSES */}
       <PopularBusinessesSection businesses={popularBusinesses} />
-
-      {/* 5. LATEST LISTINGS WITH TABS */}
       <LatestListingsSection initialItems={latestListings} />
+    </>
+  );
+}
 
-      {/* 6. EXPLORE KOZHIKODE */}
+export default function HomePage() {
+  return (
+    <div className="w-full flex flex-col bg-white">
+      <HeroRedesign />
+      <ExploreCategories />
+      <Suspense fallback={<HomeFeedSkeleton />}>
+        <HomeFeed />
+      </Suspense>
       <ExploreKozhikodeSection />
-
-      {/* 7. ADVERTISE WITH LIVECALICUT */}
       <AdvertiseSection />
-
-      {/* 8. STAY UPDATED NEWSLETTER */}
       <StayUpdatedSection />
     </div>
   );

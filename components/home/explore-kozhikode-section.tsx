@@ -92,6 +92,8 @@ export const ExploreKozhikodeSection: React.FC = () => {
                 src={item.image}
                 alt={item.title}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                loading="lazy"
+                decoding="async"
               />
 
               {/* Scrim */}

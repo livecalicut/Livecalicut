@@ -31,6 +31,8 @@ export const StayUpdatedSection: React.FC = () => {
               src="/heroes/coastal-life.jpg"
               alt="Calicut City"
               className="w-full h-auto object-cover filter grayscale"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 

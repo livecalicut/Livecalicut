@@ -51,7 +51,7 @@ const CATEGORIES: CategoryItem[] = [
     borderColor: 'border-cyan-200/80',
   },
   {
-    name: 'Buy & Sell',
+    name: 'Classified',
     href: '/marketplace',
     icon: Tag,
     bgColor: 'bg-rose-50 hover:bg-rose-100/80',
@@ -91,8 +91,8 @@ const CATEGORIES: CategoryItem[] = [
     borderColor: 'border-red-200/80',
   },
   {
-    name: 'Healthcare',
-    href: '/business?category=Healthcare',
+    name: 'Wellness',
+    href: `/business?category=${encodeURIComponent('Beauty & Wellness')}`,
     icon: Heart,
     bgColor: 'bg-pink-50 hover:bg-pink-100/80',
     iconColor: 'text-pink-600',

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Mail, MapPin, Phone, MessageCircle, ArrowRight } from 'lucide-react';
 import { Container } from '@/components/layout/container';
+import { ContactForm } from '@/components/contact/contact-form';
 
 export const metadata = {
   title: 'Contact — LiveCalicut',
@@ -22,6 +23,58 @@ export default function ContactPage() {
             Questions about listings, merchant onboarding, jobs, or city partnerships? Reach the
             Kozhikode team directly — we respond on business days.
           </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ContactForm />
+
+          <div className="space-y-6">
+            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-xs sm:p-8">
+              <h2 className="text-xl font-bold text-[#111827]">Office</h2>
+              <div className="mt-4 flex gap-3 text-sm leading-relaxed text-[#6B7280]">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" aria-hidden />
+                <p>
+                  LiveCalicut City Desk
+                  <br />
+                  Kozhikode, Kerala — India
+                  <br />
+                  Serving 21 spatial wards across Calicut
+                </p>
+              </div>
+              <p className="mt-6 text-sm text-[#6B7280]">
+                Hours: Mon–Sat, 9:30 AM – 6:30 PM IST
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-xs sm:p-8">
+              <h2 className="text-xl font-bold text-[#111827]">What can we help with?</h2>
+              <ul className="mt-4 space-y-3 text-sm text-[#4B5563]">
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
+                  Merchant listing & verification
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
+                  Cyberpark jobs & hiring desks
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
+                  News, events & city partnerships
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
+                  Technical support for the platform
+                </li>
+              </ul>
+              <Link
+                href="/team"
+                className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-[#2563EB] hover:underline"
+              >
+                Meet our team
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -62,54 +115,6 @@ export default function ContactPage() {
             <p className="mt-1 text-sm text-[#6B7280]">Quick citizen & merchant support</p>
             <p className="mt-3 text-xs font-semibold text-[#2563EB]">Chat now →</p>
           </a>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-xs">
-            <h2 className="text-xl font-bold text-[#111827]">Office</h2>
-            <div className="mt-4 flex gap-3 text-sm leading-relaxed text-[#6B7280]">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" aria-hidden />
-              <p>
-                LiveCalicut City Desk
-                <br />
-                Kozhikode, Kerala — India
-                <br />
-                Serving 21 spatial wards across Calicut
-              </p>
-            </div>
-            <p className="mt-6 text-sm text-[#6B7280]">
-              Hours: Mon–Sat, 9:30 AM – 6:30 PM IST
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-xs">
-            <h2 className="text-xl font-bold text-[#111827]">What can we help with?</h2>
-            <ul className="mt-4 space-y-3 text-sm text-[#4B5563]">
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
-                Merchant listing & verification
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
-                Cyberpark jobs & hiring desks
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
-                News, events & city partnerships
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
-                Technical support for the platform
-              </li>
-            </ul>
-            <Link
-              href="/team"
-              className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-[#2563EB] hover:underline"
-            >
-              Meet our team
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
         </div>
       </Container>
     </div>

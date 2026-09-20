@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Header } from '@/../components/layout/header';
+import { KozhikodeMapSection } from '@/../components/layout/kozhikode-map-section';
 import { Footer } from '@/../components/layout/footer';
 import { MobileBottomNav } from '@/../components/layout/mobile-bottom-nav';
 
@@ -38,6 +39,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
         {children}
       </main>
 
+      {pathname !== '/login' && pathname !== '/register' ? <KozhikodeMapSection /> : null}
       <Footer />
       <MobileBottomNav />
     </div>
