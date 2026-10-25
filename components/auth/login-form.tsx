@@ -28,6 +28,13 @@ const ROLE_LANDING: Record<string, string> = {
   Merchant: '/merchant',
 };
 
+function describeAuthError(message: string) {
+  if (/failed to fetch|network|load failed|enotfound/i.test(message)) {
+    return 'Sign-in server is offline. The Supabase project in .env does not exist, so this login request cannot connect. Create or restore the project, paste its URL and API keys into .env, then restart the app.';
+  }
+  return message;
+}
+
 /** Asks the server which role the new session has, and maps it to a home route. */
 async function resolveLandingRoute(): Promise<string> {
   try {
@@ -68,8 +75,7 @@ export const LoginForm: React.FC = () => {
       });
 
       if (authError) {
-        // Show the real error from Supabase — never silently bypass
-        setError(authError.message);
+        setError(describeAuthError(authError.message));
         return;
       }
 
@@ -82,7 +88,7 @@ export const LoginForm: React.FC = () => {
       router.push(next || (await resolveLandingRoute()));
       router.refresh(); // Refresh to update server-side session state
     } catch (err: any) {
-      setError(err?.message || 'An unexpected error occurred. Please try again.');
+      setError(describeAuthError(err?.message || 'An unexpected error occurred. Please try again.'));
     } finally {
       setLoading(false);
     }

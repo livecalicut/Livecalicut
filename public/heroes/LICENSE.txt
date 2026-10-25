@@ -7,3 +7,6 @@ Files:
 - city-market.jpg   — Local market / city commerce
 - workplace.jpg     — Modern workspace / Cyberpark jobs
 - coastal-life.jpg  — Coastal lifestyle / tourism
+- calicut-hero.jpg   — Same frame as kerala-coast.jpg, kept for older references
+- lighthouse-coast.jpg — Coastal lighthouse at sunset (Unsplash)
+- malabar-food.jpg — Malabar-style biryani (Unsplash)

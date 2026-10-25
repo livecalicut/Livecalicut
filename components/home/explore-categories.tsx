@@ -1,155 +1,104 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Building2,
   Briefcase,
   Home,
-  Tag,
   Wrench,
   Utensils,
-  MapPin,
   Calendar,
+  Plane,
+  ChevronRight,
+  ArrowRight,
+  Store,
+  Megaphone,
+  Tag,
+  MapPin,
   Heart,
   GraduationCap,
-  ArrowRight,
 } from 'lucide-react';
 
 interface CategoryItem {
   name: string;
   href: string;
   icon: React.ElementType;
-  bgColor: string;
-  iconColor: string;
-  borderColor: string;
+  iconClass: string;
 }
 
-const CATEGORIES: CategoryItem[] = [
-  {
-    name: 'Businesses',
-    href: '/business',
-    icon: Building2,
-    bgColor: 'bg-emerald-50 hover:bg-emerald-100/80',
-    iconColor: 'text-emerald-600',
-    borderColor: 'border-emerald-200/80',
-  },
-  {
-    name: 'Jobs',
-    href: '/jobs',
-    icon: Briefcase,
-    bgColor: 'bg-blue-50 hover:bg-blue-100/80',
-    iconColor: 'text-blue-600',
-    borderColor: 'border-blue-200/80',
-  },
-  {
-    name: 'Properties',
-    href: '/properties',
-    icon: Home,
-    bgColor: 'bg-cyan-50 hover:bg-cyan-100/80',
-    iconColor: 'text-cyan-600',
-    borderColor: 'border-cyan-200/80',
-  },
-  {
-    name: 'Classified',
-    href: '/marketplace',
-    icon: Tag,
-    bgColor: 'bg-rose-50 hover:bg-rose-100/80',
-    iconColor: 'text-rose-600',
-    borderColor: 'border-rose-200/80',
-  },
-  {
-    name: 'Services',
-    href: '/business?category=Services',
-    icon: Wrench,
-    bgColor: 'bg-purple-50 hover:bg-purple-100/80',
-    iconColor: 'text-purple-600',
-    borderColor: 'border-purple-200/80',
-  },
-  {
-    name: 'Food',
-    href: '/restaurants',
-    icon: Utensils,
-    bgColor: 'bg-amber-50 hover:bg-amber-100/80',
-    iconColor: 'text-amber-600',
-    borderColor: 'border-amber-200/80',
-  },
-  {
-    name: 'Places',
-    href: '/explore',
-    icon: MapPin,
-    bgColor: 'bg-sky-50 hover:bg-sky-100/80',
-    iconColor: 'text-sky-600',
-    borderColor: 'border-sky-200/80',
-  },
-  {
-    name: 'Events',
-    href: '/events',
-    icon: Calendar,
-    bgColor: 'bg-red-50 hover:bg-red-100/80',
-    iconColor: 'text-red-600',
-    borderColor: 'border-red-200/80',
-  },
-  {
-    name: 'Wellness',
-    href: `/business?category=${encodeURIComponent('Beauty & Wellness')}`,
-    icon: Heart,
-    bgColor: 'bg-pink-50 hover:bg-pink-100/80',
-    iconColor: 'text-pink-600',
-    borderColor: 'border-pink-200/80',
-  },
-  {
-    name: 'Education',
-    href: '/business?category=Education',
-    icon: GraduationCap,
-    bgColor: 'bg-indigo-50 hover:bg-indigo-100/80',
-    iconColor: 'text-indigo-600',
-    borderColor: 'border-indigo-200/80',
-  },
+const PAGES: CategoryItem[][] = [
+  [
+    { name: 'Restaurants', href: '/restaurants', icon: Utensils, iconClass: 'bg-orange-500' },
+    { name: 'Shops', href: '/business', icon: Store, iconClass: 'bg-[#2563EB]' },
+    { name: 'Jobs', href: '/jobs', icon: Briefcase, iconClass: 'bg-emerald-500' },
+    { name: 'Properties', href: '/properties', icon: Home, iconClass: 'bg-violet-500' },
+    { name: 'Events', href: '/events', icon: Calendar, iconClass: 'bg-pink-500' },
+    { name: 'Services', href: '/business?category=Services', icon: Wrench, iconClass: 'bg-teal-500' },
+    { name: 'Tourism', href: '/tourism', icon: Plane, iconClass: 'bg-[#2563EB]' },
+    { name: 'Advertise', href: '/merchant', icon: Megaphone, iconClass: 'bg-violet-600' },
+  ],
+  [
+    { name: 'Classified', href: '/marketplace', icon: Tag, iconClass: 'bg-rose-500' },
+    { name: 'Places', href: '/explore', icon: MapPin, iconClass: 'bg-sky-500' },
+    { name: 'Wellness', href: `/business?category=${encodeURIComponent('Beauty & Wellness')}`, icon: Heart, iconClass: 'bg-fuchsia-500' },
+    { name: 'Education', href: '/business?category=Education', icon: GraduationCap, iconClass: 'bg-amber-500' },
+    { name: 'Businesses', href: '/business', icon: Building2, iconClass: 'bg-[#2563EB]' },
+  ],
 ];
 
 export const ExploreCategories: React.FC = () => {
+  const [page, setPage] = useState(0);
+
   return (
-    <section className="w-full bg-white py-12 sm:py-14 border-b border-slate-100">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-6 sm:pb-8">
+    <section className="w-full bg-white px-4 pt-2 pb-6 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1440px]">
+        <div className="flex flex-col gap-3 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-sans">
-              Explore Categories
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+              <span className="border-b-[3px] border-[#2563EB] pb-1">Popular Categories</span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
-              Find exactly what you need in Kozhikode
-            </p>
+            <p className="mt-2 text-sm text-slate-500">Explore what you need, right here.</p>
           </div>
           <Link
             href="/business"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors group"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[#2563EB] transition hover:text-[#1D4ED8]"
           >
-            <span>View All Categories</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            View All Categories
+            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        {/* 10-Item Responsive Category Grid */}
-        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-10 gap-3 sm:gap-4">
-          {CATEGORIES.map((cat) => {
+        <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap [&::-webkit-scrollbar]:hidden">
+          {PAGES[page].map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
                 key={cat.name}
                 href={cat.href}
-                className={`group flex flex-col items-center justify-center p-3.5 sm:p-4 rounded-2xl border ${cat.borderColor} ${cat.bgColor} transition-all duration-200 hover:-translate-y-1 hover:shadow-sm text-center`}
+                className="group flex shrink-0 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
               >
-                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/90 shadow-xs flex items-center justify-center ${cat.iconColor} mb-2.5 transition-transform group-hover:scale-110`}>
-                  <Icon className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
-                </div>
-                <span className="text-[12px] sm:text-[13px] font-semibold text-slate-800 group-hover:text-slate-950 truncate max-w-full">
-                  {cat.name}
+                <span className={`flex h-9 w-9 items-center justify-center rounded-full text-white ${cat.iconClass}`}>
+                  <Icon className="h-4 w-4" />
                 </span>
+                <span className="text-sm font-semibold text-slate-900">{cat.name}</span>
+                <ChevronRight className="h-4 w-4 text-slate-300 transition group-hover:text-[#2563EB]" />
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-1.5">
+          {PAGES.map((_, dot) => (
+            <button
+              key={dot}
+              type="button"
+              aria-label={`Show category page ${dot + 1}`}
+              aria-current={dot === page ? 'true' : undefined}
+              onClick={() => setPage(dot)}
+              className={`h-1.5 rounded-full transition-all ${dot === page ? 'w-4 bg-[#2563EB]' : 'w-1.5 bg-slate-300 hover:bg-slate-400'}`}
+            />
+          ))}
         </div>
       </div>
     </section>

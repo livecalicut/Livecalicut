@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ApiResponse } from '@/lib/api/response';
 import { createPublicClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
+import { KOZHIKODE_AREAS } from '@/config/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,39 +52,27 @@ export async function GET(request: Request) {
     }
 
     const timeout = new Promise<{ data: null; error: { message: string }; count: null }>((resolve) => {
-      setTimeout(() => resolve({ data: null, error: { message: 'timeout' }, count: null }), 4000);
+      setTimeout(() => resolve({ data: null, error: { message: 'timeout' }, count: null }), 1500);
     });
 
     const { data, error, count } = await Promise.race([query, timeout]);
+    const liveRows = !error && data && data.length > 0 ? data : null;
 
-    if (error) {
-      if (error.message === 'timeout') {
-        return ApiResponse.success([], 'Locations retrieved', {
-          total: 0,
-          page: 1,
-          limit,
-          totalPages: 1,
-          hasMore: false,
-        });
-      }
-
-      const { data: fallbackData } = await supabase
-        .from('areas')
-        .select('id, name')
-        .order('name', { ascending: true })
-        .limit(all ? 200 : limit);
-
-      const rows = fallbackData || [];
+    if (!liveRows) {
+      const qLower = q?.toLowerCase();
+      const rows = KOZHIKODE_AREAS.filter((area) =>
+        !qLower ? true : `${area.name} ${area.pincode}`.toLowerCase().includes(qLower)
+      );
       return ApiResponse.success(rows, 'Locations retrieved', {
         total: rows.length,
         page: 1,
-        limit: rows.length,
+        limit: rows.length || limit,
         totalPages: 1,
         hasMore: false,
       });
     }
 
-    const rows = data || [];
+    const rows = liveRows;
     const total = count ?? rows.length;
 
     return ApiResponse.success(rows, 'Locations retrieved', {
@@ -95,10 +84,10 @@ export async function GET(request: Request) {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to fetch locations';
-    return ApiResponse.success([], message, {
-      total: 0,
+    return ApiResponse.success(KOZHIKODE_AREAS, message, {
+      total: KOZHIKODE_AREAS.length,
       page: 1,
-      limit: DEFAULT_LIMIT,
+      limit: KOZHIKODE_AREAS.length,
       totalPages: 1,
       hasMore: false,
     });

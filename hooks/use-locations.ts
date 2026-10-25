@@ -2,6 +2,7 @@
 // hooks/use-locations.ts
 import { useEffect, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { KOZHIKODE_AREAS } from '@/config/constants';
 
 export type AreaRow = {
   id: string;
@@ -74,11 +75,31 @@ export function useLocationsFeed({
   });
 }
 
+const LOCAL_AREAS = {
+  rows: KOZHIKODE_AREAS,
+  meta: {
+    total: KOZHIKODE_AREAS.length,
+    page: 1,
+    limit: KOZHIKODE_AREAS.length,
+    totalPages: 1,
+    hasMore: false,
+  } satisfies LocationsMeta,
+};
+
 /** Full area list — for dropdowns that filter in place. */
 export function useAllLocations(cityId?: string) {
   return useQuery({
     queryKey: ['locations-all', cityId],
-    queryFn: () => fetchLocations({ all: 1, city_id: cityId }),
+    queryFn: async () => {
+      try {
+        const result = await fetchLocations({ all: 1, city_id: cityId });
+        if (result.rows.length > 0) return result;
+      } catch {
+        // Database unreachable — keep the local Kozhikode list.
+      }
+      return LOCAL_AREAS;
+    },
+    placeholderData: LOCAL_AREAS,
     staleTime: 1000 * 60 * 10,
   });
 }

@@ -1,20 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import Link from 'next/link';
 import { Bell } from 'lucide-react';
 
-export const NotificationIcon: React.FC = () => {
-  const [unreadCount] = useState(0); // Real notifications coming soon
-
+export const NotificationIcon: React.FC<{ tone?: 'default' | 'light' }> = ({ tone = 'default' }) => {
   return (
-    <button
-      className="relative p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-cyan-600 hover:border-cyan-500/30 transition-all cursor-pointer"
+    <Link
+      href="/notifications"
+      className={`relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition ${
+        tone === 'light' ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 hover:text-[#2563EB]'
+      }`}
       aria-label="View notifications"
     >
-      <Bell className="w-4 h-4" />
-      {unreadCount > 0 && (
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-950" />
-      )}
-    </button>
+      <Bell className="h-4 w-4" />
+    </Link>
   );
 };

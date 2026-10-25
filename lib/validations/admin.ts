@@ -4,6 +4,7 @@ export const adminUserActionSchema = z.object({
   userId: z.string().uuid(),
   action: z.enum(['ban', 'suspend', 'activate', 'assign_role', 'soft_delete']),
   roleId: z.string().uuid().optional(),
+  roleName: z.string().min(1).max(80).optional(),
   reason: z.string().optional(),
 });
 

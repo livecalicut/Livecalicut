@@ -105,6 +105,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     event.preventDefault();
     const query = searchQuery.trim();
     if (!query) return;
+    if (isAdmin) {
+      router.push(`/admin/users?q=${encodeURIComponent(query)}`);
+      return;
+    }
     router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 

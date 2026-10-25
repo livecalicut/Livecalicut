@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { HeroRedesign } from '@/components/home/hero-redesign';
 import { ExploreCategories } from '@/components/home/explore-categories';
+import { CitySpotlights } from '@/components/home/city-spotlights';
 import { FeaturedBusinessesSection, FeaturedBusinessItem } from '@/components/home/featured-businesses-section';
 import { PopularBusinessesSection, PopularBusinessItem } from '@/components/home/popular-businesses-section';
 import { LatestListingsSection, UnifiedListingItem } from '@/components/home/latest-listings-section';
@@ -199,9 +200,10 @@ async function HomeFeed() {
 
 export default function HomePage() {
   return (
-    <div className="w-full flex flex-col bg-white">
+    <div className="flex w-full flex-col bg-white">
       <HeroRedesign />
       <ExploreCategories />
+      <CitySpotlights />
       <Suspense fallback={<HomeFeedSkeleton />}>
         <HomeFeed />
       </Suspense>

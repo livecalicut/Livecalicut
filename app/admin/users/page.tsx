@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { assignableRolesFor } from '@/lib/rbac/roles';
 import { Users, Search, Filter, Trash2, X, Plus } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 export default function AdminUsersPage() {
   const { roleName } = useAuthStore();
@@ -26,6 +27,8 @@ export default function AdminUsersPage() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setSearch(q);
     fetchUsers();
   }, []);
 
@@ -95,9 +98,26 @@ export default function AdminUsersPage() {
     setCreating(false);
   };
 
-  const updateRole = async (id: string, newRole: string) => {
-    setUsersList(usersList.map((u) => u.id === id ? { ...u, role: newRole } : u));
-    alert('Role assignment requires roleId mapping in backend (Feature coming soon).');
+  const updateRole = async (id: string, newRole: string, previousRole: string) => {
+    setUsersList((current) => current.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
+    try {
+      const res = await fetch('/api/v1/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id, action: 'assign_role', roleName: newRole }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.success === false) {
+        throw new Error(json.error?.message || json.error || 'Role was not saved');
+      }
+      toast.success('Role updated', `${newRole} is now assigned.`);
+      fetchUsers();
+    } catch (err) {
+      setUsersList((current) =>
+        current.map((u) => (u.id === id ? { ...u, role: previousRole } : u))
+      );
+      toast.error('Role not saved', err instanceof Error ? err.message : 'Try again.');
+    }
   };
 
   const filteredUsers = usersList.filter((u) => {
@@ -212,17 +232,25 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="py-4 px-4 text-[#4B5563] font-medium">{u.city_ward || 'Not specified'}</td>
                   <td className="py-4 px-4">
-                    <select
-                      value={u.role || 'User'}
-                      onChange={(e) => updateRole(u.id, e.target.value)}
-                      className="h-[32px] px-2.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-bold text-[#111827] focus:border-[#2563EB]"
-                    >
-                      <option value="User">User</option>
-                      <option value="Merchant">Merchant</option>
-                      <option value="Moderator">Moderator</option>
-                      <option value="Marketing Executive">Marketing Executive</option>
-                      <option value="City Admin">City Admin</option>
-                    </select>
+                    {u.role === 'Super Admin' ? (
+                      <span className="inline-flex rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800">
+                        Super Admin
+                      </span>
+                    ) : (
+                      <select
+                        value={u.role || 'User'}
+                        onChange={(e) => updateRole(u.id, e.target.value, u.role || 'User')}
+                        className="h-[32px] rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-xs font-bold text-[#111827] focus:border-[#2563EB]"
+                      >
+                        {Array.from(
+                          new Set([u.role || 'User', 'User', 'Merchant', ...creatableRoles].filter(Boolean))
+                        ).map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   <td className="py-4 px-4">
                     <span

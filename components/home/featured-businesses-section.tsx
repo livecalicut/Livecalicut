@@ -15,6 +15,7 @@ import {
   Building2,
   TrendingUp,
 } from 'lucide-react';
+import { siteWhatsAppHref } from '@/config/constants';
 
 export interface FeaturedBusinessItem {
   id: string;
@@ -292,7 +293,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
               Merchant Plans
             </Link>
             <a
-              href="https://wa.me/919048000000?text=Hi%20LiveCalicut,%20I%20would%20like%20to%20advertise%20my%20business%20on%20your%20portal"
+              href={siteWhatsAppHref('Hi LiveCalicut, I would like to advertise my business on your portal')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition-all active:scale-95"

@@ -25,7 +25,7 @@ export function LogoLoader({
         <span className="absolute inset-0 rounded-2xl border-2 border-[#2563EB]/20" />
         <span className="absolute inset-0 animate-logo-spin rounded-2xl border-2 border-transparent border-t-[#2563EB]" />
         <img
-          src="/images/logo.png"
+          src="/images/logo.svg"
           alt="LiveCalicut"
           className="relative z-10 h-6 w-auto animate-logo-pulse object-contain"
         />

@@ -271,6 +271,24 @@ body {
   animation: heroScrollLine 1.8s ease-in-out infinite;
 }
 
+@keyframes lc-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.lc-marquee {
+  animation: lc-marquee 36s linear infinite;
+}
+
+.lc-marquee-wrap:hover .lc-marquee,
+.lc-marquee-wrap:focus-within .lc-marquee {
+  animation-play-state: paused;
+}
+
 .hero-banner {
   isolation: isolate;
 }

@@ -43,7 +43,7 @@ export const ProfileMenu: React.FC = () => {
   if (!user) {
     return (
       <Link href="/login">
-        <Button variant="default" size="sm">
+        <Button variant="default" size="sm" className="rounded-full px-4">
           Sign In
         </Button>
       </Link>

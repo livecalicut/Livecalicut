@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Mail, MapPin, Phone, MessageCircle, ArrowRight } from 'lucide-react';
 import { Container } from '@/components/layout/container';
 import { ContactForm } from '@/components/contact/contact-form';
+import { SITE_WHATSAPP_DISPLAY, SITE_WHATSAPP_E164, siteWhatsAppHref } from '@/config/constants';
 
 export const metadata = {
   title: 'Contact — LiveCalicut',
@@ -91,19 +92,19 @@ export default function ContactPage() {
           </a>
 
           <a
-            href="tel:+914950000000"
+            href={`tel:+${SITE_WHATSAPP_E164}`}
             className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-xs transition hover:border-[#2563EB]"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-[#2563EB]">
               <Phone className="h-5 w-5" aria-hidden />
             </div>
             <h2 className="mt-4 text-lg font-bold text-[#111827]">Phone</h2>
-            <p className="mt-1 text-sm text-[#6B7280]">+91 495 000 0000</p>
+            <p className="mt-1 text-sm text-[#6B7280]">{SITE_WHATSAPP_DISPLAY}</p>
             <p className="mt-3 text-xs font-semibold text-[#2563EB]">Call desk →</p>
           </a>
 
           <a
-            href="https://wa.me/919495000000"
+            href={siteWhatsAppHref('Hi LiveCalicut, I need help')}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-xs transition hover:border-[#2563EB]"
@@ -112,7 +113,7 @@ export default function ContactPage() {
               <MessageCircle className="h-5 w-5" aria-hidden />
             </div>
             <h2 className="mt-4 text-lg font-bold text-[#111827]">WhatsApp</h2>
-            <p className="mt-1 text-sm text-[#6B7280]">Quick citizen & merchant support</p>
+            <p className="mt-1 text-sm text-[#6B7280]">{SITE_WHATSAPP_DISPLAY}</p>
             <p className="mt-3 text-xs font-semibold text-[#2563EB]">Chat now →</p>
           </a>
         </div>

@@ -1,41 +1,207 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, ArrowRight } from 'lucide-react';
+import { Briefcase, Building2, Calendar, ChevronLeft, ChevronRight, Home, Search, Utensils } from 'lucide-react';
 import { ALL_LOCATIONS_LABEL } from '@/config/constants';
+import { LocationSelect } from '@/components/shared/location-select';
+import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
 
 interface HeroRedesignProps {
-  locations?: Array<{ id: string; name: string }>;
   initialQuery?: string;
   initialLocation?: string;
 }
 
-const POPULAR_TAGS = [
-  { label: 'Restaurants', href: '/restaurants' },
-  { label: 'Flats for Rent', href: '/properties?type=rent' },
-  { label: 'Jobs', href: '/jobs' },
-  { label: 'Mobiles', href: '/marketplace?q=mobile' },
-  { label: 'Tours', href: '/explore' },
-  { label: 'Hospitals', href: '/business?category=Healthcare' },
-  { label: 'Events', href: '/events' },
-];
+const SLIDES = [
+  {
+    image: '/heroes/lighthouse-coast.jpg',
+    alt: 'Lighthouse on the coast at sunset',
+    position: 'object-[70%_center]',
+  },
+  {
+    image: '/heroes/kerala-coast.jpg',
+    alt: 'Palm-lined Kerala backwaters',
+    position: 'object-center',
+  },
+  {
+    image: '/heroes/coastal-life.jpg',
+    alt: 'Sunset over the Malabar coast',
+    position: 'object-center',
+  },
+] as const;
+
+const QUICK_LINKS = [
+  {
+    label: 'Local Businesses',
+    blurb: 'Shops, services & more',
+    href: '/business',
+    icon: Building2,
+    iconClass: 'bg-[#2563EB]',
+  },
+  {
+    label: 'Jobs',
+    blurb: 'Find your next opportunity',
+    href: '/jobs',
+    icon: Briefcase,
+    iconClass: 'bg-emerald-500',
+  },
+  {
+    label: 'Properties',
+    blurb: 'Rent, buy, sell',
+    href: '/properties',
+    icon: Home,
+    iconClass: 'bg-violet-500',
+  },
+  {
+    label: 'Restaurants',
+    blurb: 'Great food, great places',
+    href: '/restaurants',
+    icon: Utensils,
+    iconClass: 'bg-orange-500',
+  },
+  {
+    label: 'Events',
+    blurb: 'Happenings in Kozhikode',
+    href: '/events',
+    icon: Calendar,
+    iconClass: 'bg-pink-500',
+  },
+] as const;
+
+const INTERVAL_MS = 5000;
 
 export const HeroRedesign: React.FC<HeroRedesignProps> = ({
-  locations: initialLocations = [],
   initialQuery = '',
   initialLocation = ALL_LOCATIONS_LABEL,
 }) => {
   const router = useRouter();
+  const sectionRef = useRef<HTMLElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLSpanElement>(null);
+  const previousIndex = useRef(0);
   const [query, setQuery] = useState(initialQuery);
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
-  const [locationsList] = useState<string[]>(() => {
-    const list = [ALL_LOCATIONS_LABEL];
-    if (initialLocations && initialLocations.length > 0) {
-      initialLocations.forEach((l) => list.push(l.name));
-    }
-    return list;
-  });
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    SLIDES.forEach((slide) => {
+      const img = new Image();
+      img.src = slide.image;
+    });
+  }, []);
+
+  useEffect(() => {
+    const onChange = () => setPaused(document.hidden);
+    document.addEventListener('visibilitychange', onChange);
+    return () => document.removeEventListener('visibilitychange', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = window.setInterval(() => {
+      setIndex((current) => (current + 1) % SLIDES.length);
+    }, INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [paused, index]);
+
+  useGSAP(
+    () => {
+      if (!mediaRef.current || !sectionRef.current || prefersReducedMotion()) return;
+      gsap.from(contentRef.current, { y: 28, opacity: 0, duration: 0.85, ease: 'power2.out' });
+      gsap.from('[data-hero-chip]', {
+        y: 16,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.06,
+        delay: 0.25,
+        ease: 'power2.out',
+      });
+      gsap.to(mediaRef.current, {
+        yPercent: 8,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+    },
+    { scope: sectionRef }
+  );
+
+  useGSAP(
+    () => {
+      const slides = gsap.utils.toArray<HTMLElement>('[data-hero-slide]');
+      const reduced = prefersReducedMotion();
+      const from = previousIndex.current;
+      const changed = from !== index;
+      const forward = (index - from + SLIDES.length) % SLIDES.length;
+      const direction = forward === 0 || forward <= SLIDES.length / 2 ? 1 : -1;
+
+      slides.forEach((slide, slideIndex) => {
+        const active = slideIndex === index;
+        const image = slide.querySelector('img');
+        gsap.killTweensOf(slide);
+        if (image) gsap.killTweensOf(image);
+
+        if (reduced || !changed) {
+          gsap.set(slide, { xPercent: active ? 0 : direction * 100, opacity: active ? 1 : 0 });
+          if (image && active && !reduced && !paused) {
+            gsap.fromTo(
+              image,
+              { scale: 1.06 },
+              { scale: 1.14, duration: INTERVAL_MS / 1000, ease: 'none' }
+            );
+          } else if (image) {
+            gsap.set(image, { scale: 1.06 });
+          }
+          return;
+        }
+
+        if (active) {
+          gsap.fromTo(
+            slide,
+            { xPercent: direction * 100, opacity: 1 },
+            { xPercent: 0, duration: 0.9, ease: 'power2.inOut' }
+          );
+          if (image) {
+            gsap.fromTo(
+              image,
+              { scale: 1.06 },
+              { scale: 1.14, duration: INTERVAL_MS / 1000, ease: 'none' }
+            );
+          }
+        } else if (slideIndex === from) {
+          gsap.fromTo(
+            slide,
+            { xPercent: 0, opacity: 1 },
+            { xPercent: direction * -100, duration: 0.9, ease: 'power2.inOut' }
+          );
+        } else {
+          gsap.set(slide, { xPercent: direction * 100, opacity: 0 });
+        }
+      });
+
+      previousIndex.current = index;
+
+      if (progressRef.current) {
+        gsap.killTweensOf(progressRef.current);
+        if (paused) {
+          gsap.set(progressRef.current, { scaleX: 0 });
+        } else {
+          gsap.fromTo(
+            progressRef.current,
+            { scaleX: 0 },
+            { scaleX: 1, duration: INTERVAL_MS / 1000, ease: 'none' }
+          );
+        }
+      }
+    },
+    { scope: sectionRef, dependencies: [index, paused] }
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,117 +209,161 @@ export const HeroRedesign: React.FC<HeroRedesignProps> = ({
     if (query.trim()) params.set('q', query.trim());
     if (selectedLocation && selectedLocation !== ALL_LOCATIONS_LABEL) {
       params.set('location', selectedLocation);
+      params.set('area', selectedLocation);
     }
     router.push(`/search?${params.toString()}`);
   };
 
+  const go = (next: number) => {
+    setIndex((next + SLIDES.length) % SLIDES.length);
+  };
+
   return (
-    <section className="relative w-full min-h-[500px] lg:min-h-[540px] bg-slate-900 text-white overflow-hidden flex flex-col justify-center py-14 px-4 sm:px-6 lg:px-8">
-      {/* Visual Background Layers */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="/heroes/calicut-hero.jpg"
-          alt="Kozhikode Heritage Gate, Beach Lighthouse and City Skyline"
-          className="w-full h-full object-cover object-center scale-100 filter brightness-[0.88] contrast-[1.02]"
-          fetchPriority="high"
-          decoding="async"
-        />
-        {/* Subtle Light Scrim for Image Clarity & Perfect Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/30 to-slate-900/20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/45 via-slate-900/20 to-slate-950/40" />
-      </div>
-
-      {/* Hero Content Box */}
-      <div className="relative z-10 max-w-5xl mx-auto w-full text-center space-y-7">
-        {/* Top Right / Brand Script */}
-        <div className="flex justify-end items-center pr-2">
-          <span className="font-serif italic text-blue-200/90 text-sm sm:text-base tracking-wide select-none drop-shadow-md">
-            Our City &bull; Our People &bull; Our Stories
-          </span>
-        </div>
-
-        {/* Main Headings */}
-        <div className="space-y-3.5">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] font-sans">
-            Everything Kozhikode. <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-200 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-              Connected in One Place.
-            </span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-sm sm:text-base lg:text-lg text-slate-100 font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-            Discover local businesses, buy &amp; sell, find jobs, properties, services, explore places, events and more &mdash; all in one place.
-          </p>
-        </div>
-
-        {/* Universal Search Container */}
-        <form
-          onSubmit={handleSearch}
-          className="max-w-3xl mx-auto bg-white rounded-2xl p-2 sm:p-2.5 shadow-2xl border border-white/20 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 backdrop-blur-md"
-        >
-          {/* Query Input */}
-          <div className="flex items-center gap-2.5 px-3 py-2 flex-1 w-full text-slate-800">
-            <Search className="w-5 h-5 text-blue-600 shrink-0" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="What are you looking for in Kozhikode?"
-              className="w-full bg-transparent text-sm sm:text-[15px] font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
+    <section
+      ref={sectionRef}
+      className="relative min-h-[720px] w-full overflow-hidden text-white sm:min-h-[660px] lg:h-[min(740px,76vh)] lg:min-h-[600px]"
+      aria-roledescription="carousel"
+      aria-label="LiveCalicut highlights"
+    >
+      <div ref={mediaRef} className="absolute inset-0 will-change-transform">
+        {SLIDES.map((slide, slideIndex) => (
+          <div
+            key={slide.image}
+            data-hero-slide
+            className="absolute inset-0"
+            style={{ opacity: slideIndex === 0 ? 1 : 0 }}
+          >
+            <img
+              src={slide.image}
+              alt={slideIndex === index ? slide.alt : ''}
+              aria-hidden={slideIndex !== index}
+              className={`h-[115%] w-full object-cover ${slide.position}`}
+              fetchPriority={slideIndex === 0 ? 'high' : 'low'}
+              decoding="async"
             />
           </div>
+        ))}
+      </div>
+      <div className="absolute inset-0 bg-slate-950/30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-950/10 to-slate-950/25" />
 
-          {/* Location Dropdown */}
-          <div className="flex items-center gap-2 px-3 py-2 border-t sm:border-t-0 sm:border-l border-slate-200 w-full sm:w-auto text-slate-700">
-            <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none cursor-pointer py-1 max-w-[150px] truncate"
-            >
-              {locationsList.map((loc) => (
-                <option key={loc} value={loc} className="bg-white text-slate-900">
-                  {loc}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="absolute top-5 left-4 z-10 flex items-center gap-3 text-sm font-semibold sm:left-8">
+        <span>
+          {index + 1} / {SLIDES.length}
+        </span>
+        <span className="block h-0.5 w-16 overflow-hidden rounded-full bg-white/35">
+          <span ref={progressRef} className="block h-full origin-left scale-x-0 bg-white" />
+        </span>
+      </div>
 
-          {/* Search Button */}
+      <button
+        type="button"
+        onClick={() => go(index - 1)}
+        aria-label="Previous slide"
+        className="absolute top-[42%] left-3 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/45 sm:flex lg:left-6"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => go(index + 1)}
+        aria-label="Next slide"
+        className="absolute top-[42%] right-3 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/45 sm:flex lg:right-6"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+
+      <div
+        ref={contentRef}
+        className="relative z-10 mx-auto flex min-h-[720px] w-full max-w-5xl flex-col items-center justify-center px-4 pt-16 pb-24 text-center sm:min-h-[660px] sm:px-8 lg:h-full lg:min-h-0 lg:pb-20"
+      >
+        <p className="text-[11px] font-bold tracking-[0.22em] text-white/90 uppercase">Discover Kozhikode</p>
+        <h1 className="mt-3 text-[2rem] leading-[1.08] font-extrabold tracking-tight sm:text-5xl lg:text-[3.35rem]">
+          Everything Kozhikode.
+          <br />
+          Connected in <span className="text-[#3B82F6]">One Place.</span>
+        </h1>
+        <p className="mt-3 max-w-xl text-sm text-white/90 sm:text-base [@media(max-height:700px)]:hidden">
+          Discover local businesses, jobs, homes, and events across Kozhikode — all in one place.
+        </p>
+
+        <form
+          onSubmit={handleSearch}
+          className="mt-6 flex w-full max-w-3xl items-center gap-1 rounded-full bg-white p-1.5 pl-4 text-slate-900 shadow-[0_16px_40px_rgba(0,0,0,0.28)] focus-within:ring-4 focus-within:ring-white/70"
+        >
+          <Search className="h-5 w-5 shrink-0 text-[#2563EB]" aria-hidden />
+          <label htmlFor="hero-search" className="sr-only">
+            What are you looking for in Kozhikode?
+          </label>
+          <input
+            id="hero-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="What are you looking for in Kozhikode?"
+            className="h-11 min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:outline-none"
+          />
+          <div className="mx-1 hidden h-6 w-px shrink-0 bg-slate-200 sm:block" />
+          <LocationSelect
+            value={selectedLocation}
+            onChange={setSelectedLocation}
+            tone="plain"
+            className="hidden w-40 shrink-0 sm:block"
+          />
           <button
             type="submit"
-            className="w-full sm:w-auto px-7 py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm sm:text-[15px] rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 active:scale-95 shrink-0 cursor-pointer"
+            className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#2563EB] px-5 text-sm font-bold text-white transition hover:bg-[#1D4ED8]"
           >
-            <span>Search</span>
-            <ArrowRight className="w-4 h-4" />
+            <Search className="h-4 w-4" aria-hidden />
+            Search
           </button>
         </form>
 
-        {/* Popular Search Tags & Kozhikode Tagline */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 text-xs sm:text-[13px]">
-          {/* Tags */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-slate-300">
-            <span className="font-bold text-slate-400">Popular:</span>
-            {POPULAR_TAGS.map((tag, idx) => (
-              <React.Fragment key={tag.label}>
-                <a
-                  href={tag.href}
-                  className="hover:text-blue-300 transition-colors underline-offset-4 hover:underline"
-                >
-                  {tag.label}
-                </a>
-                {idx < POPULAR_TAGS.length - 1 && (
-                  <span className="text-slate-600 select-none">&bull;</span>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
+        <div className="mt-2 w-full max-w-3xl rounded-full bg-white px-2 sm:hidden">
+          <LocationSelect value={selectedLocation} onChange={setSelectedLocation} tone="plain" className="w-full" />
+        </div>
 
-          {/* Tagline Watermark */}
-          <div className="text-slate-400 text-xs font-serif italic select-none">
-            Kozhikode &mdash; A City That Inspires
-          </div>
+        <div className="mx-auto mt-4 flex w-max max-w-full gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {QUICK_LINKS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <a
+                key={item.label}
+                data-hero-chip
+                href={item.href}
+                className="flex shrink-0 items-center gap-2 rounded-full border border-white/20 bg-slate-950/40 py-1.5 pr-3.5 pl-1.5 backdrop-blur-md transition hover:bg-slate-950/60"
+              >
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full text-white ${item.iconClass}`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="text-sm font-semibold whitespace-nowrap">{item.label}</span>
+              </a>
+            );
+          })}
         </div>
       </div>
+
+      <div className="absolute right-5 bottom-16 z-10 flex items-center gap-1.5 sm:right-8 sm:bottom-20">
+        {SLIDES.map((slide, slideIndex) => (
+          <button
+            key={slide.image}
+            type="button"
+            aria-label={`Show slide ${slideIndex + 1}`}
+            aria-current={slideIndex === index ? 'true' : undefined}
+            onClick={() => go(slideIndex)}
+            className={`h-2 rounded-full transition-all ${slideIndex === index ? 'w-6 bg-[#2563EB]' : 'w-2 bg-white/70'}`}
+          />
+        ))}
+      </div>
+
+      <svg
+        className="pointer-events-none absolute bottom-0 left-0 z-10 h-14 w-full text-white sm:h-16"
+        viewBox="0 0 1440 80"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path d="M0,48 C240,80 480,8 720,32 C980,58 1200,8 1440,40 L1440,80 L0,80 Z" fill="currentColor" />
+      </svg>
     </section>
   );
 };

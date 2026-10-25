@@ -14,15 +14,13 @@ import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full bg-[#0B132B] text-slate-400 font-sans pt-14 pb-12">
+    <footer className="w-full bg-[#0B132B] pb-24 pt-14 font-sans text-slate-400 lg:pb-12">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main 4-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-12 border-b border-slate-800/80">
           {/* Col 1: Brand & Social (4 cols) */}
           <div className="lg:col-span-4 space-y-5">
-            <div className="brightness-0 invert opacity-95">
-              <LiveCalicutLogo showSubtitle={false} />
-            </div>
+            <LiveCalicutLogo showSubtitle={false} tone="light" />
             <p className="text-xs sm:text-[13px] text-slate-400 font-normal leading-relaxed max-w-sm">
               Your trusted local platform for businesses, opportunities, services and everything Kozhikode.
             </p>
@@ -192,19 +190,11 @@ export const Footer: React.FC = () => {
           {/* Col 5: App Download (2 cols) */}
           <div className="lg:col-span-2 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              Download Our App
+              Mobile app
             </h4>
-            <span className="inline-block text-[11px] font-semibold text-blue-400 bg-blue-950/60 border border-blue-800 px-2 py-0.5 rounded-md">
-              Coming Soon
-            </span>
-            <div className="space-y-2 pt-1">
-              <div className="w-36 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300">
-                Google Play
-              </div>
-              <div className="w-36 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300">
-                App Store
-              </div>
-            </div>
+            <p className="text-xs leading-relaxed text-slate-400">
+              iOS and Android apps are on the way. Use the website until then.
+            </p>
           </div>
         </div>
 

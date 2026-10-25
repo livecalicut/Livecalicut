@@ -4,7 +4,7 @@ import { AdminService } from '@/lib/services/admin.service';
 import { adminUserActionSchema } from '@/lib/validations/admin';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { createAdminClient } from '@/lib/supabase/server';
-import { USER_MANAGERS, isCreatorScoped } from '@/lib/rbac/roles';
+import { USER_MANAGERS, assignableRolesFor, isCreatorScoped, isSuperAdmin } from '@/lib/rbac/roles';
 
 export async function GET(request: Request) {
   try {
@@ -34,10 +34,10 @@ export async function PATCH(request: Request) {
 
     const body = await request.json();
     const validated = adminUserActionSchema.parse(body);
+    const supabaseAdmin = await createAdminClient();
 
     // Creator-scoped staff may only act on users they created
     if (isCreatorScoped(auth.user.role)) {
-      const supabaseAdmin = await createAdminClient();
       const { data: target } = await supabaseAdmin
         .from('profiles')
         .select('id, created_by')
@@ -54,12 +54,70 @@ export async function PATCH(request: Request) {
       }
     }
 
+    let roleId = validated.roleId;
+
+    if (validated.action === 'assign_role') {
+      const roleName = validated.roleName?.trim();
+      if (!roleName && !roleId) {
+        return ApiResponse.error('VALIDATION', 'Choose a role to assign', [], 400);
+      }
+
+      if (roleName) {
+        if (roleName === 'Super Admin') {
+          return ApiResponse.error('FORBIDDEN', 'Super Admin cannot be assigned here', [], 403);
+        }
+
+        const allowed = new Set([
+          ...assignableRolesFor(auth.user.role),
+          ...(isSuperAdmin(auth.user.role) || auth.user.role === 'City Admin'
+            ? ['User', 'Merchant']
+            : []),
+        ]);
+
+        if (!allowed.has(roleName)) {
+          return ApiResponse.error(
+            'FORBIDDEN',
+            `You can assign: ${[...allowed].join(', ') || 'none'}`,
+            [],
+            403
+          );
+        }
+
+        const { data: roleRow, error: roleLookupError } = await supabaseAdmin
+          .from('roles')
+          .select('id, name')
+          .eq('name', roleName)
+          .maybeSingle();
+
+        if (roleLookupError || !roleRow) {
+          return ApiResponse.error('VALIDATION', 'That role is not set up in the database', [], 400);
+        }
+        roleId = roleRow.id;
+      }
+
+      const { data: currentRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('roles(name)')
+        .eq('user_id', validated.userId);
+
+      const currentName = (currentRoles || [])
+        .map((row) => {
+          const raw = row.roles as { name?: string } | { name?: string }[] | null;
+          return Array.isArray(raw) ? raw[0]?.name : raw?.name;
+        })
+        .find(Boolean);
+
+      if (currentName === 'Super Admin' && !isSuperAdmin(auth.user.role)) {
+        return ApiResponse.error('FORBIDDEN', 'Super Admin accounts cannot be changed', [], 403);
+      }
+    }
+
     const updatedUser = await AdminService.updateUserStatus(
-      auth.supabase,
+      supabaseAdmin,
       auth.user.id,
       validated.userId,
       validated.action,
-      validated.roleId,
+      roleId,
       validated.reason
     );
 

@@ -14,6 +14,7 @@ import {
   MessageCircle,
   PlusCircle,
 } from 'lucide-react';
+import { siteWhatsAppHref } from '@/config/constants';
 
 const PACKAGES = [
   {
@@ -71,7 +72,7 @@ export const AdvertiseSection: React.FC = () => {
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <a
-                href="https://wa.me/919048000000?text=Hi%20LiveCalicut,%20I%20want%20to%20know%20about%20advertising%20packages%20for%20my%20business"
+                href={siteWhatsAppHref('Hi LiveCalicut, I want to know about advertising packages for my business')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95"
