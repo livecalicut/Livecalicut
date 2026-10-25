@@ -97,7 +97,9 @@ export const AnnouncementBanner: React.FC = () => {
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--lc-announce', visible ? '2.5rem' : '0px');
-    return () => root.style.removeProperty('--lc-announce');
+    return () => {
+      root.style.removeProperty('--lc-announce');
+    };
   }, [visible]);
 
   const dismiss = () => {
