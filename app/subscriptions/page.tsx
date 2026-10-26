@@ -34,7 +34,7 @@ export default function SubscriptionsPricingPage() {
         '50 Gallery Photos & Video Tours',
         'Unlimited WhatsApp Lead Forwarding',
         '10 Featured Promotion Credits / mo',
-        'Dedicated Kozhikode Account Executive',
+        'Dedicated Calicut Account Executive',
       ],
       isPopular: false,
     },
@@ -44,7 +44,7 @@ export default function SubscriptionsPricingPage() {
     <div className="space-y-8 py-4">
       <PageHeader
         title="LiveCalicut Merchant Subscription Plans"
-        description="Grow your Kozhikode business with verified badges, customer leads & featured search placements."
+        description="Grow your Calicut business with verified badges, customer leads & featured search placements."
         icon={<CreditCard className="w-6 h-6" />}
         breadcrumbs={[{ label: 'Subscriptions & Pricing' }]}
       />

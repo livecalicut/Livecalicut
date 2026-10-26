@@ -14,13 +14,13 @@ export class PublicGatewayService {
     ]);
 
     return {
-      cityName: citySlug === 'calicut' ? 'Kozhikode' : citySlug.toUpperCase(),
+      cityName: citySlug === 'calicut' ? 'Calicut' : citySlug.toUpperCase(),
       citySlug,
       featuredBusinesses: featuredBusinesses.slice(0, 6),
       cyberparkJobs: (activeJobs.data || []).slice(0, 4),
       exploreSpots: explorePlaces.slice(0, 3),
       bannerAlerts: [
-        'Malabar Literature Festival passes live in Kozhikode!',
+        'Malabar Literature Festival passes live in Calicut!',
         'Cyberpark mega job fair registration open.',
       ],
     };

@@ -239,7 +239,7 @@ CREATE POLICY "Reviews viewable by public" ON public.business_reviews FOR SELECT
 CREATE POLICY "Users insert reviews" ON public.business_reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 ----------------------------------------------------
--- Seed Default Categories for Kozhikode
+-- Seed Default Categories for Calicut
 ----------------------------------------------------
 INSERT INTO public.business_categories (id, name, slug, icon_name, display_order) VALUES
 ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Dining & Cafes', 'dining-cafes', 'Utensils', 1),

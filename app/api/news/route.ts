@@ -25,8 +25,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { requireRole } = await import('@/lib/supabase/require-auth');
+    const { createAdminClient } = await import('@/lib/supabase/server');
     const auth = await requireRole(['Super Admin', 'City Admin', 'Moderator']);
     if (auth instanceof NextResponse) return auth;
+    const supabase = await createAdminClient();
 
     const body = await request.json();
     const { title, summary, content, category, author, featured_image } = body;
@@ -41,25 +43,44 @@ export async function POST(request: Request) {
     let categoryId: string | null = null;
     if (category) {
       const categorySlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const { data: catData } = await auth.supabase.from('news_categories').select('id').eq('slug', categorySlug).single();
+      const { data: catData } = await supabase.from('news_categories').select('id').eq('slug', categorySlug).maybeSingle();
       if (catData) {
         categoryId = catData.id;
       } else {
-        const { data: newCat } = await auth.supabase.from('news_categories').insert({ name: category, slug: categorySlug }).select('id').single();
+        const { data: newCat, error: catError } = await supabase
+          .from('news_categories')
+          .insert({ name: category, slug: categorySlug, status: 'active', is_active: true })
+          .select('id')
+          .single();
+        if (catError) throw catError;
         if (newCat) categoryId = newCat.id;
       }
     }
 
-    const { data, error } = await auth.supabase
+    const { data: city } = await supabase
+      .from('cities')
+      .select('id')
+      .eq('slug', 'kozhikode')
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (!categoryId) {
+      return NextResponse.json({ success: false, message: 'A news category is required' }, { status: 400 });
+    }
+    if (!city?.id) {
+      return NextResponse.json({ success: false, message: 'Calicut city is not set up' }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
       .from('news')
       .insert({
         title,
         slug,
-        summary: summary || '',
+        summary: summary || title,
         content,
         category_id: categoryId,
-        author: author || null,
-        author_id: auth.user.id,
+        city_id: city.id,
+        author: author || 'LiveCalicut Editorial',
         created_by: auth.user.id,
         featured_image: featured_image || null,
         status: 'published',

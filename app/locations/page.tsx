@@ -108,7 +108,7 @@ export default function LocationsPage() {
             actionHref={debouncedSearch ? undefined : '/business'}
             onAction={debouncedSearch ? () => setSearch('') : undefined}
             hooks={[
-              { href: '/business', label: 'Businesses', description: 'Shops across Kozhikode', icon: Building2 },
+              { href: '/business', label: 'Businesses', description: 'Shops across Calicut', icon: Building2 },
               { href: '/jobs', label: 'Jobs', description: 'Hiring citywide', icon: Briefcase },
               { href: '/search', label: 'Universal search', description: 'Search without area', icon: Search },
             ]}

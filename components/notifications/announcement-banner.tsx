@@ -22,7 +22,7 @@ const NOTICES = [
   },
   {
     title: 'List your business',
-    detail: 'Free storefront in Kozhikode',
+    detail: 'Free storefront in Calicut',
     href: '/merchant',
     cta: 'Get started',
   },
@@ -121,7 +121,7 @@ export const AnnouncementBanner: React.FC = () => {
     >
       <div className="hidden h-full shrink-0 items-center gap-2 border-r border-[#E5E7EB] pr-3 pl-4 sm:flex sm:pl-6">
         <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" aria-hidden />
-        <span className="text-[11px] font-bold tracking-[0.14em] text-[#111827] uppercase">Kozhikode</span>
+        <span className="text-[11px] font-bold tracking-[0.14em] text-[#111827] uppercase">Calicut</span>
       </div>
 
       <div className="lc-marquee-wrap relative h-full min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_16px,#000_calc(100%-20px),transparent)]">

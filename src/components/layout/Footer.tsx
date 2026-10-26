@@ -18,7 +18,7 @@ export const Footer: React.FC = () => {
           <div className="md:col-span-1 space-y-4">
             <LiveCalicutLogo />
             <p className="text-[13px] text-[#6B7280] leading-relaxed font-normal">
-              Kozhikode’s digital operating system connecting local shops, job seekers, and vibrant marketplace sellers across the Malabar region.
+              Calicut’s digital operating system connecting local shops, job seekers, and vibrant marketplace sellers across the Malabar region.
             </p>
           </div>
 
@@ -32,7 +32,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/jobs" className="hover:text-[#2563EB] transition-colors">
-                  Kozhikode Jobs & Careers
+                  Calicut Jobs & Careers
                 </Link>
               </li>
               <li>
@@ -72,7 +72,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 text-[12px]">
-          <p>© {new Date().getFullYear()} LiveCalicut. Built for Kozhikode.</p>
+          <p>© {new Date().getFullYear()} LiveCalicut. Built for Calicut.</p>
           <p className="inline-flex items-center gap-1">
             Made with <Heart className="w-3 h-3 text-rose-500" /> in Malabar
           </p>

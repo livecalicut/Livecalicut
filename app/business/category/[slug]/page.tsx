@@ -40,7 +40,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   return (
     <div className="space-y-8 py-4">
       <PageHeader
-        title={`${category.name} in Kozhikode`}
+        title={`${category.name} in Calicut`}
         description={`Explore ${rows.length} verified ${category.name.toLowerCase()} listings across the city`}
         icon={<Building2 className="h-6 w-6" />}
         breadcrumbs={[
@@ -62,7 +62,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
               slug={business.slug}
               name={business.name}
               category={nameOf(business.business_categories) ?? category.name}
-              location={nameOf(business.areas) ?? 'Kozhikode'}
+              location={nameOf(business.areas) ?? 'Calicut'}
               rating={Number(business.rating_avg ?? 0)}
               reviewCount={business.review_count ?? 0}
               phone={business.phone ?? undefined}

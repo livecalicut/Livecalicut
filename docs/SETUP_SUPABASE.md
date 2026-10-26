@@ -49,5 +49,5 @@ npm run db:seed
 | Command | Purpose |
 |---------|---------|
 | `npm run db:check` | Probe connection + core tables |
-| `npm run db:seed` | Upsert Kozhikode demo data |
+| `npm run db:seed` | Upsert Calicut demo data |
 | `npm run setup:status` | Alias of db:check |

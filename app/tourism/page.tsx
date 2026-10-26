@@ -34,10 +34,10 @@ const TOURISM_CATEGORIES = [
 
 const TOURIST_DESTINATIONS = [
   {
-    title: 'Kozhikode Beach & Freedom Square',
+    title: 'Calicut Beach & Freedom Square',
     slug: 'kozhikode-beach-freedom-square',
     category: 'Beaches & Waterfronts',
-    location: 'Beach Road, Kozhikode',
+    location: 'Beach Road, Calicut',
     rating: 4.8,
     reviews: 2450,
     entryFee: 'Free Entry',
@@ -115,14 +115,14 @@ const TOURIST_DESTINATIONS = [
     title: 'S.M. Street (Sweetmeat Street) Heritage Walk',
     slug: 'sm-street-bazaar',
     category: 'Shopping & Culture',
-    location: 'Palayam, Kozhikode Town',
+    location: 'Palayam, Calicut Town',
     rating: 4.9,
     reviews: 3100,
     entryFee: 'Free Access',
     timings: '10:00 AM – 10:00 PM',
     image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&auto=format&fit=crop&q=60',
     description: '600-year-old pedestrian heritage shopping promenade celebrated for legendary Kozhikodan Black Halwa shops, freshly fried banana chips, handloom textiles, and aromatic bakeries.',
-    highlights: ['Kozhikode Halwa Tasting', 'Banana Chips Stalls', 'S.K. Pottekkatt Statue', 'Vehicle-Free Pedestrian Zone'],
+    highlights: ['Calicut Halwa Tasting', 'Banana Chips Stalls', 'S.K. Pottekkatt Statue', 'Vehicle-Free Pedestrian Zone'],
   },
   {
     title: 'Kadalundi Bird Sanctuary & Mangrove Delta',
@@ -156,8 +156,8 @@ export default function TourismPage() {
   return (
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
-        title="Kozhikode Tourism & Sightseeing Guide"
-        description="Discover historical Zamorin landmarks, blue-flag beaches, Beypore shipyards, Thusharagiri waterfalls, and heritage food trails across Kozhikode."
+        title="Calicut Tourism & Sightseeing Guide"
+        description="Discover historical Zamorin landmarks, blue-flag beaches, Beypore shipyards, Thusharagiri waterfalls, and heritage food trails across Calicut."
         icon={<Compass className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Explore', href: '/explore' },

@@ -8,7 +8,7 @@ interface BreakingNewsBannerProps {
 }
 
 export const BreakingNewsBanner: React.FC<BreakingNewsBannerProps> = ({
-  title = 'Kozhikode District Admin Issues Coastal High Tide & Rain Warning for Next 24 Hours',
+  title = 'Calicut District Admin Issues Coastal High Tide & Rain Warning for Next 24 Hours',
   linkHref = '/news',
 }) => {
   return (

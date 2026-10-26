@@ -20,7 +20,6 @@ const CAT_HEALTH = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380003';
 const CAT_IT = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380004';
 const CAT_HOTEL = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380006';
 const JOB_CAT = 'e0eebc99-9c0b-4ef8-bb6d-6bb9bd380001';
-const COMPANY_ID = 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380001';
 const NEWS_CAT = 'a1eebc99-9c0b-4ef8-bb6d-6bb9bd380001';
 
 function client(preferService = true) {
@@ -56,7 +55,7 @@ async function main() {
   const serviceSb = client(true);
   const anonSb = client(false);
 
-  console.log('\nLiveCalicut — seeding demo data…\n');
+  console.log('\nLiveCalicut — seeding reference data…\n');
 
   const [serviceProbe, anonProbe] = await Promise.all([
     probe('service_role', serviceSb),
@@ -90,7 +89,7 @@ async function main() {
     [
       {
         id: CITY_ID,
-        name: 'Kozhikode (Calicut)',
+        name: 'Calicut',
         slug: 'kozhikode',
         state: 'Kerala',
         status: 'active',
@@ -103,7 +102,7 @@ async function main() {
 
   const areaSeed = [
     { id: AREA_CYBER, name: 'Cyberpark', slug: 'cyberpark', pincode: '673016', latitude: 11.2712, longitude: 75.8378 },
-    { id: AREA_BEACH, name: 'Kozhikode Beach', slug: 'kozhikode-beach', pincode: '673032', latitude: 11.2588, longitude: 75.7704 },
+    { id: AREA_BEACH, name: 'Calicut Beach', slug: 'kozhikode-beach', pincode: '673032', latitude: 11.2588, longitude: 75.7704 },
     { id: AREA_PALAYAM, name: 'Palayam', slug: 'palayam', pincode: '673002', latitude: 11.2551, longitude: 75.7804 },
     { id: AREA_MAVOOR, name: 'Mavoor Road', slug: 'mavoor-road', pincode: '673004', latitude: 11.2645, longitude: 75.7952 },
     { id: AREA_MEDICAL, name: 'Medical College', slug: 'medical-college', pincode: '673008', latitude: 11.2728, longitude: 75.8371 },
@@ -143,7 +142,7 @@ async function main() {
     [
       { name: 'Guest', description: 'Unauthenticated public visitor' },
       { name: 'User', description: 'Authenticated resident user' },
-      { name: 'Merchant', description: 'Kozhikode business owner' },
+      { name: 'Merchant', description: 'Calicut business owner' },
       { name: 'Marketing Executive', description: 'Field staff — own listings and created users only' },
       { name: 'Moderator', description: 'Content moderator' },
       { name: 'City Admin', description: 'City administrator' },
@@ -225,26 +224,6 @@ async function main() {
   );
   console.log('✓ job_categories');
 
-  await upsert(
-    sb,
-    'companies',
-    [
-      {
-        id: COMPANY_ID,
-        name: 'Malabar Soft Labs',
-        slug: 'malabar-soft-labs',
-        description: 'Product engineering studio inside Kozhikode Cyberpark.',
-        industry: 'IT & Cyberpark',
-        phone: '+91 495 000 1001',
-        city_id: CITY_ID,
-        logo: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-        status: 'active',
-        is_active: true,
-      },
-    ],
-    'slug'
-  );
-  console.log('✓ companies');
 
   await upsert(
     sb,
@@ -266,294 +245,6 @@ async function main() {
 
   await upsert(
     sb,
-    'businesses',
-    [
-      {
-        id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380001',
-        city_id: CITY_ID,
-        area_id: AREA_BEACH,
-        category_id: CAT_DINING,
-        name: 'Beachside Paragon',
-        slug: 'beachside-paragon',
-        description:
-          'Iconic Malabar seafood and biryani near Kozhikode Beach — verified LiveCalicut listing.',
-        short_description: 'Malabar seafood · Beach Road',
-        phone: '+91 495 000 2001',
-        latitude: 11.2588,
-        longitude: 75.7704,
-        social_media: {
-          cover_image:
-            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-        },
-        verification_status: 'approved',
-        is_verified: true,
-        is_featured: true,
-        rating_avg: 4.7,
-        review_count: 128,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380002',
-        city_id: CITY_ID,
-        area_id: AREA_CYBER,
-        category_id: CAT_IT,
-        name: 'Cyberpark Hub Cafe',
-        slug: 'cyberpark-hub-cafe',
-        description: 'Developer hangout and coworking cafe inside Cyberpark campus.',
-        short_description: 'Cafe · Cyberpark',
-        phone: '+91 495 000 2002',
-        latitude: 11.2712,
-        longitude: 75.8378,
-        social_media: {
-          cover_image:
-            'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80',
-        },
-        verification_status: 'approved',
-        is_verified: true,
-        is_featured: true,
-        rating_avg: 4.5,
-        review_count: 64,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380003',
-        city_id: CITY_ID,
-        area_id: AREA_PALAYAM,
-        category_id: CAT_SHOP,
-        name: 'SM Street Textiles',
-        slug: 'sm-street-textiles',
-        description: 'Classic Sweet Meat Street textiles and ethnic wear for Kozhikode families.',
-        short_description: 'Textiles · Palayam',
-        phone: '+91 495 000 2003',
-        latitude: 11.2551,
-        longitude: 75.7804,
-        social_media: {
-          cover_image:
-            'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
-        },
-        verification_status: 'approved',
-        is_verified: true,
-        is_featured: true,
-        rating_avg: 4.4,
-        review_count: 89,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380004',
-        city_id: CITY_ID,
-        area_id: AREA_MEDICAL,
-        category_id: CAT_HEALTH,
-        name: 'Malabar Care Clinic',
-        slug: 'malabar-care-clinic',
-        description: 'Multispecialty outpatient clinic near Medical College with evening OP.',
-        short_description: 'Clinic · Medical College',
-        phone: '+91 495 000 2004',
-        latitude: 11.2728,
-        longitude: 75.8371,
-        social_media: {
-          cover_image:
-            'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80',
-        },
-        verification_status: 'approved',
-        is_verified: true,
-        is_featured: true,
-        rating_avg: 4.6,
-        review_count: 210,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380005',
-        city_id: CITY_ID,
-        area_id: AREA_MAVOOR,
-        category_id: CAT_HOTEL,
-        name: 'Mavoor Stay Inn',
-        slug: 'mavoor-stay-inn',
-        description: 'Business hotel on Mavoor Road with easy access to Cyberpark and city centre.',
-        short_description: 'Hotel · Mavoor Road',
-        phone: '+91 495 000 2005',
-        latitude: 11.2645,
-        longitude: 75.7952,
-        social_media: {
-          cover_image:
-            'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
-        },
-        verification_status: 'approved',
-        is_verified: true,
-        is_featured: false,
-        rating_avg: 4.2,
-        review_count: 41,
-        status: 'active',
-        is_active: true,
-      },
-      {
-        id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380006',
-        city_id: CITY_ID,
-        area_id: AREA_BEACH,
-        category_id: CAT_DINING,
-        name: 'Zam Zam Mandi House',
-        slug: 'zam-zam-mandi-house',
-        description: 'Popular Mandi and Arabian platters near the beach stretch.',
-        short_description: 'Mandi · Beach',
-        phone: '+91 495 000 2006',
-        latitude: 11.2595,
-        longitude: 75.772,
-        social_media: {
-          cover_image:
-            'https://images.unsplash.com/photo-1555939596-3103bde0ddaa?auto=format&fit=crop&w=800&q=80',
-        },
-        verification_status: 'approved',
-        is_verified: true,
-        is_featured: true,
-        rating_avg: 4.8,
-        review_count: 320,
-        status: 'active',
-        is_active: true,
-      },
-    ],
-    'slug'
-  );
-  console.log('✓ businesses');
-
-  await upsert(
-    sb,
-    'jobs',
-    [
-      {
-        id: 'a2eebc99-9c0b-4ef8-bb6d-6bb9bd380001',
-        company_id: COMPANY_ID,
-        category_id: JOB_CAT,
-        title: 'Frontend Engineer (Next.js)',
-        slug: 'frontend-engineer-nextjs-cyberpark',
-        description: 'Build LiveCalicut-style hyperlocal experiences for Kerala cities.',
-        experience: '2+ years',
-        salary: '₹45,000 - ₹75,000 / mo',
-        salary_type: 'monthly',
-        city_id: CITY_ID,
-        area_id: AREA_CYBER,
-        employment_type: 'full-time',
-        status: 'published',
-        is_featured: true,
-        is_active: true,
-      },
-      {
-        id: 'a2eebc99-9c0b-4ef8-bb6d-6bb9bd380002',
-        company_id: COMPANY_ID,
-        category_id: JOB_CAT,
-        title: 'Backend Engineer (Supabase)',
-        slug: 'backend-engineer-supabase-cyberpark',
-        description: 'Own API routes, RLS policies, and realtime feeds for the city OS.',
-        experience: '3+ years',
-        salary: '₹55,000 - ₹90,000 / mo',
-        salary_type: 'monthly',
-        city_id: CITY_ID,
-        area_id: AREA_CYBER,
-        employment_type: 'full-time',
-        status: 'published',
-        is_featured: true,
-        is_active: true,
-      },
-      {
-        id: 'a2eebc99-9c0b-4ef8-bb6d-6bb9bd380003',
-        company_id: COMPANY_ID,
-        category_id: JOB_CAT,
-        title: 'UI Designer (Product)',
-        slug: 'ui-designer-product-cyberpark',
-        description: 'Design clean hyperlocal flows for merchants, jobs, and city discovery.',
-        experience: '2+ years',
-        salary: '₹40,000 - ₹65,000 / mo',
-        salary_type: 'monthly',
-        city_id: CITY_ID,
-        area_id: AREA_CYBER,
-        employment_type: 'full-time',
-        status: 'published',
-        is_featured: true,
-        is_active: true,
-      },
-      {
-        id: 'a2eebc99-9c0b-4ef8-bb6d-6bb9bd380004',
-        company_id: COMPANY_ID,
-        category_id: JOB_CAT,
-        title: 'QA Engineer (Internship)',
-        slug: 'qa-engineer-internship-cyberpark',
-        description: 'Manual + API testing internship for LiveCalicut release pipelines.',
-        experience: 'Fresher',
-        salary: '₹15,000 / mo',
-        salary_type: 'monthly',
-        city_id: CITY_ID,
-        area_id: AREA_CYBER,
-        employment_type: 'internship',
-        status: 'published',
-        is_featured: false,
-        is_active: true,
-      },
-    ],
-    'slug'
-  );
-  console.log('✓ jobs');
-
-  await upsert(
-    sb,
-    'news',
-    [
-      {
-        id: 'a3eebc99-9c0b-4ef8-bb6d-6bb9bd380001',
-        title: 'Cyberpark expansion brings 2,000 new tech seats',
-        slug: 'cyberpark-expansion-2026',
-        summary: 'New towers open hiring pipelines across product and services firms.',
-        content:
-          'Kozhikode Cyberpark announced additional capacity with fresh campus infrastructure, expected to accelerate IT hiring across Malabar.',
-        featured_image:
-          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
-        category_id: NEWS_CAT,
-        city_id: CITY_ID,
-        area_id: AREA_CYBER,
-        status: 'published',
-        published_at: new Date().toISOString(),
-        is_active: true,
-      },
-      {
-        id: 'a3eebc99-9c0b-4ef8-bb6d-6bb9bd380002',
-        title: 'Beach Road weekend market returns this Saturday',
-        slug: 'beach-road-weekend-market',
-        summary: 'Local artisans and food stalls line the beach promenade.',
-        content:
-          'The Kozhikode Beach weekend market returns with crafts, snacks, and evening music for families.',
-        featured_image:
-          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-        category_id: NEWS_CAT,
-        city_id: CITY_ID,
-        area_id: AREA_BEACH,
-        status: 'published',
-        published_at: new Date().toISOString(),
-        is_active: true,
-      },
-      {
-        id: 'a3eebc99-9c0b-4ef8-bb6d-6bb9bd380003',
-        title: 'Mavoor Road signal upgrade cuts peak wait times',
-        slug: 'mavoor-road-signal-upgrade',
-        summary: 'Adaptive signals go live near key junctions.',
-        content:
-          'City engineers completed the Mavoor Road signal upgrade aiming to reduce evening congestion toward Cyberpark.',
-        featured_image:
-          'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=800&q=80',
-        category_id: NEWS_CAT,
-        city_id: CITY_ID,
-        area_id: AREA_MAVOOR,
-        status: 'published',
-        published_at: new Date().toISOString(),
-        is_active: true,
-      },
-    ],
-    'slug'
-  );
-  console.log('✓ news');
-
-  await upsert(
-    sb,
     'settings',
     [
       {
@@ -563,10 +254,10 @@ async function main() {
         is_active: true,
         value: {
           hero: {
-            title: "Kozhikode's Digital Operating System",
+            title: "Calicut's Digital Operating System",
             subtitle:
-              'Discover verified local businesses, Cyberpark IT hiring, local news, beach tourism, and classifieds across Kozhikode.',
-            badgeText: 'Hyperlocal Platform • Kozhikode Verified',
+              'Discover verified local businesses, Cyberpark IT hiring, local news, beach tourism, and classifieds across Calicut.',
+            badgeText: 'Hyperlocal Platform • Calicut Verified',
             videoUrl:
               'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-ocean-waves-reaching-the-beach-41481-large.mp4',
           },

@@ -29,7 +29,7 @@ export const PlanPricingCard: React.FC<PlanPricingCardProps> = ({
       }`}
     >
       <div className="space-y-2">
-        {isPopular && <Badge variant="purple">MOST POPULAR IN KOZHIKODE</Badge>}
+        {isPopular && <Badge variant="purple">MOST POPULAR IN CALICUT</Badge>}
         <h3 className="text-xl font-black text-slate-900 dark:text-white">{name}</h3>
         <div className="flex items-baseline gap-1">
           <span className="text-3xl font-black text-cyan-600 dark:text-cyan-400">

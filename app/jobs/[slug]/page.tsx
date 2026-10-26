@@ -9,7 +9,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ slu
   const { slug } = await params;
 
   const job = {
-    title: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'SENIOR REACT & FULLSTACK ENGINEER',
+    title: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'SENIOR REACT & FULLSTACK ENGINEER',
     company: 'Cyberpark Software Solutions',
     companySlug: 'cyberpark-software-solutions',
     location: 'Cyberpark Phase 1, Nellikode, Calicut',
@@ -20,7 +20,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ slu
     isUrgent: true,
     isFeatured: true,
     description: `
-      Cyberpark Software Solutions is seeking an experienced Senior React & Fullstack Engineer to join our growing product engineering team in Hilite Cyberpark cluster, Kozhikode.
+      Cyberpark Software Solutions is seeking an experienced Senior React & Fullstack Engineer to join our growing product engineering team in Hilite Cyberpark cluster, Calicut.
     `,
     responsibilities: `
       • Develop scalable Web & Next.js applications
@@ -30,7 +30,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ slu
     requirements: `
       • 3+ years experience with Next.js, TypeScript & React
       • Strong understanding of SQL databases and REST APIs
-      • Based in Kozhikode or willing to relocate to Cyberpark hub
+      • Based in Calicut or willing to relocate to Cyberpark hub
     `,
   };
 
@@ -49,7 +49,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ slu
       '@type': 'Place',
       address: {
         '@type': 'PostalAddress',
-        addressLocality: 'Kozhikode',
+        addressLocality: 'Calicut',
         addressRegion: 'Kerala',
         addressCountry: 'IN',
       },

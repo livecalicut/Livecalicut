@@ -249,7 +249,7 @@ export class SearchEngineService {
               description:
                 `${j.companies?.name || 'Employer'} · ${j.salary || j.employment_type || ''}`.trim(),
               category: j.employment_type,
-              area: j.areas?.name || 'Kozhikode',
+              area: j.areas?.name || 'Calicut',
               is_featured: !!j.is_featured,
             })
           );
@@ -389,7 +389,7 @@ export class SearchEngineService {
               title: n.title,
               description: n.summary || '',
               category: n.news_categories?.name,
-              area: 'Kozhikode',
+              area: 'Calicut',
               published_at: n.published_at,
             })
           );

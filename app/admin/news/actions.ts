@@ -12,7 +12,7 @@ export async function fetchAdminNewsAction() {
 
     let query = auth.supabase
       .from('news')
-      .select('*, news_categories(name), profiles(full_name)')
+      .select('*, news_categories(name)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 

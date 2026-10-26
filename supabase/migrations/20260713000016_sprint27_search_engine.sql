@@ -195,7 +195,7 @@ CREATE POLICY "User owns filters" ON public.search_filters
     FOR ALL USING (auth.uid() = user_id);
 
 ----------------------------------------------------
--- 12. Seed: Kozhikode Popular Search Terms
+-- 12. Seed: Calicut Popular Search Terms
 ----------------------------------------------------
 INSERT INTO public.search_popular (query, hit_count, city_slug) VALUES
     ('biriyani', 1250, 'calicut'),
@@ -211,7 +211,7 @@ INSERT INTO public.search_popular (query, hit_count, city_slug) VALUES
 ON CONFLICT (query) DO NOTHING;
 
 ----------------------------------------------------
--- 13. Seed: Common Synonyms (Kozhikode Local)
+-- 13. Seed: Common Synonyms (Calicut Local)
 ----------------------------------------------------
 INSERT INTO public.search_synonyms (term, synonyms) VALUES
     ('biriyani',   ARRAY['biryani', 'briyani', 'biriani', 'biriyanee']),

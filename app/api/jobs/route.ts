@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { createJobSchema } from '@/lib/validations/job';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { requireRole } from '@/lib/supabase/require-auth';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -28,22 +28,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const auth = await requireRole([
+      'Merchant',
+      'Super Admin',
+      'City Admin',
+      'Moderator',
+      'Marketing Executive',
+    ]);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-
-    const role = profile?.role || 'user';
-    const isStaffOrAdmin = ['super_admin', 'marketing_executive'].includes(role);
-
+    const supabase = await createAdminClient();
     const body = await request.json();
     const { title, company, category, employment_type, experience, salary, description, requirements } = body;
 
@@ -71,12 +65,19 @@ export async function POST(request: Request) {
     if (companyData) {
       companyId = companyData.id;
     } else {
-      const { data: newComp } = await supabase.from('companies').insert({ 
+      const { data: cityRow } = await supabase.from('cities').select('id').eq('slug', 'kozhikode').maybeSingle();
+      const { data: newComp, error: companyError } = await supabase.from('companies').insert({ 
         name: company, 
         slug: companySlug,
-        owner_id: isStaffOrAdmin ? null : session.user.id,
-        created_by: session.user.id
+        description: description || company,
+        industry: category,
+        phone: '+91 00000 00000',
+        city_id: cityRow?.id,
+        created_by: auth.user.id,
+        status: 'active',
+        is_active: true,
       }).select('id').single();
+      if (companyError) throw companyError;
       if (newComp) companyId = newComp.id;
     }
 
@@ -91,13 +92,13 @@ export async function POST(request: Request) {
         company_id: companyId,
         category_id: categoryId,
         city_id: cityId,
-        created_by: session.user.id,
+        created_by: auth.user.id,
         title: title,
         slug: slug,
         description: description || title,
-        requirements: requirements || [],
-        experience: experience,
-        salary: salary,
+        requirements: Array.isArray(requirements) ? requirements.join('\n') : requirements || null,
+        experience: experience || 'Not specified',
+        salary: salary || 'Not specified',
         employment_type: employment_type || 'full-time',
         status: 'published',
       })

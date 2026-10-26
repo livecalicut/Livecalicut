@@ -118,7 +118,7 @@ export const LocationSelect: React.FC<LocationSelectProps> = ({
     selected?.name === ALL_LOCATIONS_LABEL && allLabel
       ? allLabel
       : appearance === 'labeled' && (!selected || selected.name === ALL_LOCATIONS_LABEL)
-        ? 'Kozhikode'
+        ? 'Calicut'
         : selected?.name || ALL_LOCATIONS_LABEL;
 
   return (

@@ -94,7 +94,7 @@ export default function CreatePropertyPage() {
     <div className="max-w-2xl mx-auto space-y-8 py-4">
       <PageHeader
         title="Post Real Estate Property Listing"
-        description="List your villa, apartment, commercial office or plot in Kozhikode."
+        description="List your villa, apartment, commercial office or plot in Calicut."
         icon={<Building className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Properties', href: '/properties' },

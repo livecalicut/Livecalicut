@@ -56,7 +56,7 @@ export default function AdminPropertiesPage() {
             <Building className="w-7 h-7 text-[#2563EB]" />
             <span>Real Estate & Property Governance</span>
           </h1>
-          <p className="text-sm text-[#6B7280]">Verify land title plots, commercial office rentals, and residential villas across Kozhikode</p>
+          <p className="text-sm text-[#6B7280]">Verify land title plots, commercial office rentals, and residential villas across Calicut</p>
         </div>
 
         <Link href="/properties/create">

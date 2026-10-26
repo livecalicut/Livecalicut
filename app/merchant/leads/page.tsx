@@ -7,11 +7,7 @@ import { Users, Search, MessageCircle, Phone, Filter, CheckCircle2, Clock } from
 export default function MerchantLeadsPage() {
   const [search, setSearch] = useState('');
 
-  const [leads, setLeads] = useState([
-    { id: '1', name: 'Dr. Faisal Rahman', phone: '+91 98950 12345', email: 'faisal@astermims.in', category: 'Table Reservation Inquiry', status: 'New Lead', date: 'Today 02:15 PM' },
-    { id: '2', name: 'Anjali Nambiar', phone: '+91 94471 98765', email: 'anjali@software.in', category: 'Corporate Catering Quote', status: 'Contacted', date: 'Yesterday' },
-    { id: '3', name: 'Moideenkutty K.', phone: '+91 98470 54321', email: 'moideen@smstreet.in', category: 'Bulk Sweets Order', status: 'Closed Deal', date: '3 days ago' },
-  ]);
+  const [leads, setLeads] = useState<Array<{ id: string; name: string; phone: string; email: string; category: string; status: string; date: string }>>([]);
 
   const updateLeadStatus = (id: string, status: string) => {
     setLeads(leads.map((l) => (l.id === id ? { ...l, status } : l)));
@@ -59,6 +55,11 @@ export default function MerchantLeadsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB] text-xs">
+              {filteredLeads.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-sm font-semibold text-[#6B7280]">No leads yet.</td>
+                </tr>
+              )}
               {filteredLeads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-[#F8FAFC] transition-colors">
                   <td className="py-4 px-6 font-semibold">

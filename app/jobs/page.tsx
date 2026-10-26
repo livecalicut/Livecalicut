@@ -74,8 +74,8 @@ export default function JobsPage() {
   return (
     <Container className="py-8 sm:py-12 space-y-8">
       <PageHeader
-        title="Kozhikode Employment & Jobs Portal"
-        description="Verified openings across tech, healthcare, retail, education, sales, office & local businesses across Kozhikode."
+        title="Calicut Employment & Jobs Portal"
+        description="Verified openings across tech, healthcare, retail, education, sales, office & local businesses across Calicut."
         icon={<Briefcase className="w-6 h-6" />}
         breadcrumbs={[{ label: 'Jobs & Careers' }]}
         action={
@@ -150,7 +150,7 @@ export default function JobsPage() {
       <div className="space-y-6">
         <SectionTitle
           title={isLoading ? 'Loading vacancies…' : `${total.toLocaleString()} active vacancies`}
-          subtitle={q ? `Showing results for "${q}"` : 'Cyberpark & Kozhikode local job listings'}
+          subtitle={q ? `Showing results for "${q}"` : 'Cyberpark & Calicut local job listings'}
         />
 
         {isLoading && <ListSkeleton count={LIMIT} cols={3} />}
@@ -171,7 +171,7 @@ export default function JobsPage() {
             actionHref={q ? undefined : '/business'}
             onAction={q ? () => { setQ(''); setPage(1); } : undefined}
             hooks={[
-              { href: '/business', label: 'Browse businesses', description: 'Companies hiring in Kozhikode', icon: Building2 },
+              { href: '/business', label: 'Browse businesses', description: 'Companies hiring in Calicut', icon: Building2 },
               { href: '/marketplace', label: 'Marketplace', description: 'Side gigs & classifieds', icon: ShoppingBag },
               { href: '/events', label: 'Career events', description: 'Walk-ins & meetups', icon: Calendar },
               { href: '/search', label: 'Universal search', description: 'Search across the city OS', icon: Search },

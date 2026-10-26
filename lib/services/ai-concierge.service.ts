@@ -41,16 +41,16 @@ export class AiConciergeService {
 
     let answer = '';
     if (hits.length === 0) {
-      answer = `I couldn't find exact listings for "${prompt}" in Kozhikode right now. You can try searching by neighborhood like Cyberpark, Beach Road, or SM Street.`;
+      answer = `I couldn't find exact listings for "${prompt}" in Calicut right now. You can try searching by neighborhood like Cyberpark, Beach Road, or SM Street.`;
     } else {
-      answer = `Here are the top verified Kozhikode options matching "${prompt}":`;
+      answer = `Here are the top verified Calicut options matching "${prompt}":`;
     }
 
     const quickActions = [
       'Show Open Restaurants',
       'Cyberpark Tech Vacancies',
       '3 BHK Villas in Bypass',
-      'Kozhikode Beach Pier',
+      'Calicut Beach Pier',
     ];
 
     return {

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-export const LOGO_FALLBACK = '/images/logo.svg';
+export const LOGO_FALLBACK = '/images/logo.png';
 
 interface CoverImageProps {
   src?: string | null;

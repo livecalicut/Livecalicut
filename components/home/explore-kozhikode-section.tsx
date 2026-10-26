@@ -23,7 +23,7 @@ const EXPLORE_ITEMS: ExploreCardItem[] = [
   {
     id: 'e2',
     title: 'Food Spots',
-    subtitle: 'Taste Kozhikode',
+    subtitle: 'Taste Calicut',
     image: '/heroes/city-market.jpg',
     href: '/restaurants',
   },
@@ -50,7 +50,7 @@ const EXPLORE_ITEMS: ExploreCardItem[] = [
   },
 ];
 
-export const ExploreKozhikodeSection: React.FC = () => {
+export const ExploreCalicutSection: React.FC = () => {
   return (
     <section className="w-full bg-white py-12 sm:py-16 border-b border-slate-100">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,7 +62,7 @@ export const ExploreKozhikodeSection: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-sans">
-                Explore Kozhikode
+                Explore Calicut
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-normal">
                 Places, experiences, food, events and more

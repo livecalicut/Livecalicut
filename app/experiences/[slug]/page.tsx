@@ -9,13 +9,13 @@ export default async function ExperienceDetailsPage({ params }: { params: Promis
   const { slug } = await params;
 
   const experience = {
-    title: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'SM STREET MALABAR HALWA & CULINARY HERITAGE WALK',
+    title: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'SM STREET MALABAR HALWA & CULINARY HERITAGE WALK',
     type: 'Food Trail',
     duration: '2.5 Hours',
     cost: '₹750 per person',
-    location: 'Palayam & SM Street, Kozhikode Wards',
+    location: 'Palayam & SM Street, Calicut Wards',
     description: `
-      Immerse in Kozhikode&apos;s culinary heritage with a 2.5-hour guided food walking trail through Sweetmeat Street (SM Street).
+      Immerse in Calicut&apos;s culinary heritage with a 2.5-hour guided food walking trail through Sweetmeat Street (SM Street).
       Sample legendary black & coconut halwas, freshly fried banana chips in coconut oil, unnakkayya snacks, and local Sulaimani tea.
     `,
   };

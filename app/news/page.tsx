@@ -46,7 +46,7 @@ export default function NewsListingPage() {
   return (
     <Container className="py-8 sm:py-12 space-y-8">
       <PageHeader
-        title="Kozhikode Daily News & Editorial"
+        title="Calicut Daily News & Editorial"
         description="Verified local journalism, infrastructure updates, and municipal announcements across 21 spatial wards."
         icon={<Newspaper className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[{ label: 'News Editorial' }]}
@@ -58,7 +58,7 @@ export default function NewsListingPage() {
           <Zap className="w-3.5 h-3.5 fill-white" /> Breaking News
         </span>
         <p className="truncate text-[#111827]">
-          Calicut Beach Waterfront Renovation Phase 2 Approved by Kozhikode Municipal Corporation • 500+ Career Opportunities Listed
+          Calicut Beach Waterfront Renovation Phase 2 Approved by Calicut Municipal Corporation • 500+ Career Opportunities Listed
         </p>
       </div>
 

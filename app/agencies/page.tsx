@@ -24,7 +24,7 @@ export default function AgenciesDirectoryPage() {
   return (
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
-        title="Kozhikode Real Estate Agencies"
+        title="Calicut Real Estate Agencies"
         description="Explore verified real estate agencies, builders & brokerages across Malabar."
         icon={<Building2 className="w-6 h-6" />}
         breadcrumbs={[
@@ -64,7 +64,7 @@ export default function AgenciesDirectoryPage() {
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {agency.location || 'Kozhikode'}</span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {agency.location || 'Calicut'}</span>
                   <span className="font-bold text-[#2563EB] flex items-center gap-1 group-hover:underline">
                     View Agency <ArrowRight className="w-3.5 h-3.5" />
                   </span>

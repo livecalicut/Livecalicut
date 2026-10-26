@@ -49,7 +49,7 @@ export default function PlacesCatalogPage() {
   return (
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
-        title="Places to Visit in Kozhikode"
+        title="Places to Visit in Calicut"
         description="Historical heritage sites, pristine beach piers, SM Street shopping markets & nature spots."
         icon={<Compass className="w-6 h-6" />}
         breadcrumbs={[
@@ -104,7 +104,7 @@ export default function PlacesCatalogPage() {
           </p>
           <p className="text-[#9CA3AF] text-sm">
             {places.length === 0
-              ? 'Our team is currently adding verified tourist destinations across Kozhikode.'
+              ? 'Our team is currently adding verified tourist destinations across Calicut.'
               : 'Try searching with a different keyword or category.'}
           </p>
         </div>

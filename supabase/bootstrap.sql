@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     phone TEXT,
     avatar TEXT,
     avatar_url TEXT,
-    city TEXT DEFAULT 'Kozhikode',
+    city TEXT DEFAULT 'Calicut',
     area TEXT,
     bio TEXT,
     account_status TEXT DEFAULT 'active',
@@ -266,7 +266,7 @@ CREATE TABLE IF NOT EXISTS public.news (
     category_id UUID REFERENCES public.news_categories(id) ON DELETE RESTRICT NOT NULL,
     tags JSONB DEFAULT '[]'::jsonb NOT NULL,
     author TEXT DEFAULT 'LiveCalicut Editorial' NOT NULL,
-    source TEXT DEFAULT 'Kozhikode News Desk',
+    source TEXT DEFAULT 'Calicut News Desk',
     city_id UUID REFERENCES public.cities(id) ON DELETE CASCADE NOT NULL,
     area_id UUID REFERENCES public.areas(id) ON DELETE SET NULL,
     published_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -301,7 +301,7 @@ BEGIN
         NEW.email,
         NEW.raw_user_meta_data->>'avatar_url',
         NEW.raw_user_meta_data->>'avatar_url',
-        COALESCE(NEW.raw_user_meta_data->>'city', 'Kozhikode')
+        COALESCE(NEW.raw_user_meta_data->>'city', 'Calicut')
     )
     ON CONFLICT (id) DO NOTHING;
 
@@ -417,13 +417,13 @@ CREATE POLICY "admin_insert_audit_logs" ON public.audit_logs
 
 -- Seed baseline roles + city so auth trigger works before npm seed
 INSERT INTO public.cities (id, name, slug, state, status, is_active) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Kozhikode (Calicut)', 'kozhikode', 'Kerala', 'active', true)
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Calicut', 'kozhikode', 'Kerala', 'active', true)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.roles (name, description) VALUES
     ('Guest', 'Unauthenticated public visitor'),
     ('User', 'Authenticated resident user'),
-    ('Merchant', 'Kozhikode business owner and service provider'),
+    ('Merchant', 'Calicut business owner and service provider'),
     ('Moderator', 'Content & review moderation editor'),
     ('City Admin', 'Municipal content administrator'),
     ('Super Admin', 'Full platform engine superuser')

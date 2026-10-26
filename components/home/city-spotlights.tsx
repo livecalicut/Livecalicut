@@ -4,14 +4,14 @@ const CARDS = [
   {
     href: '/restaurants',
     image: '/heroes/malabar-food.jpg',
-    title: 'Taste the Real Kozhikode',
+    title: 'Taste the Real Calicut',
     text: 'Explore the best restaurants and food joints in town.',
   },
   {
     href: '/events',
     image: '/heroes/kerala-coast.jpg',
     title: 'Discover Local Events & Happenings',
-    text: 'Stay updated with the latest events in Kozhikode.',
+    text: 'Stay updated with the latest events in Calicut.',
   },
   {
     href: '/business',

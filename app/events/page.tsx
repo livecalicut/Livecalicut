@@ -48,8 +48,8 @@ export default function EventsListingPage() {
   return (
     <Container className="py-8 sm:py-12 space-y-8">
       <PageHeader
-        title="Kozhikode City Events Calendar"
-        description="Discover upcoming cultural fests, literary gatherings, food expos & meetups across Kozhikode."
+        title="Calicut City Events Calendar"
+        description="Discover upcoming cultural fests, literary gatherings, food expos & meetups across Calicut."
         icon={<Calendar className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[{ label: 'City Events' }]}
       />
@@ -87,7 +87,7 @@ export default function EventsListingPage() {
         <EmptyState
           icon={<Calendar className="w-8 h-8 text-[#2563EB]" />}
           title="No upcoming events found"
-          description="There are currently no events matching your selected filter. Be the first to list an event in Kozhikode."
+          description="There are currently no events matching your selected filter. Be the first to list an event in Calicut."
           actionLabel="Explore All Categories"
           actionHref="/explore"
         />
@@ -98,7 +98,7 @@ export default function EventsListingPage() {
               key={evt.id}
               title={evt.title}
               date={evt.start_date ? new Date(evt.start_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Upcoming'}
-              venue={evt.venue || 'Kozhikode'}
+              venue={evt.venue || 'Calicut'}
               category={evt.event_categories?.name || evt.category || 'Event'}
             />
           ))}

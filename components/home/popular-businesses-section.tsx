@@ -38,7 +38,7 @@ export const PopularBusinessesSection: React.FC<PopularBusinessesSectionProps> =
                 Popular &amp; Verified Businesses
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-normal">
-                Discover top rated dining, shopping, hospitals &amp; retail across Kozhikode
+                Discover top rated dining, shopping, hospitals &amp; retail across Calicut
               </p>
             </div>
           </div>

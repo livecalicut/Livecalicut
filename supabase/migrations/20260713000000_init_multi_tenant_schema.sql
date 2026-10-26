@@ -30,7 +30,7 @@ CREATE TABLE public.cities (
 CREATE TABLE public.wards (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     city_id UUID REFERENCES public.cities(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL, -- e.g., Mavoor Road, Kozhikode Beach, Palayam, Cyberpark
+    name TEXT NOT NULL, -- e.g., Mavoor Road, Calicut Beach, Palayam, Cyberpark
     slug TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -226,8 +226,8 @@ ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Merchants view own subscriptions" ON public.subscriptions FOR SELECT USING (auth.uid() = merchant_id);
 
 ----------------------------------------------------
--- Seed Initial Tenant (Kozhikode / Calicut)
+-- Seed Initial Tenant (Calicut / Calicut)
 ----------------------------------------------------
 INSERT INTO public.cities (name, slug, state, latitude, longitude) VALUES
-('Kozhikode (Calicut)', 'kozhikode', 'Kerala', 11.2588, 75.7804)
+('Calicut', 'kozhikode', 'Kerala', 11.2588, 75.7804)
 ON CONFLICT (slug) DO NOTHING;

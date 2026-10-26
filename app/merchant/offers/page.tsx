@@ -5,10 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Tag, Plus, CheckCircle2, Trash2 } from 'lucide-react';
 
 export default function MerchantOffersPage() {
-  const [offers, setOffers] = useState([
-    { id: '1', title: 'Weekend Special: 15% Off Malabar Feast', code: 'FEAST15', validUntil: 'Jul 31, 2026', status: 'Active' },
-    { id: '2', title: 'Buy 1 Biryani Get 1 Dessert Free', code: 'SWEETBIRYAN', validUntil: 'Aug 15, 2026', status: 'Active' },
-  ]);
+  const [offers, setOffers] = useState<Array<{ id: string; title: string; code: string; validUntil: string; status: string }>>([]);
 
   const removeOffer = (id: string) => {
     setOffers(offers.filter((o) => o.id !== id));
@@ -22,7 +19,7 @@ export default function MerchantOffersPage() {
             <Tag className="w-7 h-7 text-[#2563EB]" />
             <span>Special Offers & Merchant Deals</span>
           </h1>
-          <p className="text-sm text-[#6B7280]">Create promotional coupons and seasonal discounts for Kozhikode citizens</p>
+          <p className="text-sm text-[#6B7280]">Create promotional coupons and seasonal discounts for Calicut citizens</p>
         </div>
 
         <button className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0">
@@ -31,6 +28,9 @@ export default function MerchantOffersPage() {
       </div>
 
       <div className="space-y-4">
+        {offers.length === 0 && (
+          <Card className="p-10 text-center text-sm font-semibold text-[#6B7280]">No offers yet.</Card>
+        )}
         {offers.map((off) => (
           <Card key={off.id} className="p-6 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs space-y-3">
             <div className="flex items-center justify-between">

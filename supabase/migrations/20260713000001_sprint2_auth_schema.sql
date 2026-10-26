@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
 -- Seed Roles & Default Cities
 ----------------------------------------------------
 INSERT INTO public.cities (id, name, slug, state) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Kozhikode (Calicut)', 'kozhikode', 'Kerala')
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Calicut', 'kozhikode', 'Kerala')
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.roles (id, name, description) VALUES
@@ -83,7 +83,7 @@ INSERT INTO public.roles (id, name, description) VALUES
 ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02', 'User', 'Registered consumer resident'),
 ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a03', 'Merchant', 'Business listing owner'),
 ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a04', 'Moderator', 'Content & review moderator'),
-('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a05', 'City Admin', 'Kozhikode city platform manager'),
+('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a05', 'City Admin', 'Calicut city platform manager'),
 ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a06', 'Super Admin', 'Enterprise root administrator')
 ON CONFLICT (name) DO NOTHING;
 

@@ -1,17 +1,26 @@
+import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
 import { SellerCard } from '@/components/marketplace/seller-card';
-import { MarketplaceCard } from '@/components/cards/marketplace-card';
-import { ResponsiveGrid } from '@/components/layout/responsive-grid';
 import { UserCheck } from 'lucide-react';
+import { createPublicClient } from '@/lib/supabase/server';
 
 export default async function SellerProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: _id } = await params;
+  const { id } = await params;
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from('profiles')
+    .select('full_name, phone')
+    .eq('id', id)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (!data) notFound();
 
   return (
     <div className="space-y-8 py-4">
       <PageHeader
-        title="Seller Profile & Classified Desk"
-        description="Verified local seller in Kozhikode."
+        title="Seller Profile"
+        description="Verified local seller in Calicut."
         icon={<UserCheck className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Marketplace', href: '/marketplace' },
@@ -20,23 +29,13 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
       />
 
       <SellerCard
-        fullName="Arjun K. Varma"
-        phone="+91 98460 77889"
-        whatsapp="+91 98460 77889"
+        fullName={data.full_name}
+        phone={data.phone || ''}
+        whatsapp={data.phone || ''}
         isVerified={true}
       />
 
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Listings Posted by Seller</h3>
-        <ResponsiveGrid cols={4}>
-          <MarketplaceCard
-            title="MacBook Pro M2 16GB / 512GB SSD"
-            price="₹88,000"
-            condition="Like New"
-            location="Hilite City, Thondayad"
-          />
-        </ResponsiveGrid>
-      </div>
+      <p className="text-sm font-semibold text-[#6B7280]">This seller has no public listings yet.</p>
     </div>
   );
 }

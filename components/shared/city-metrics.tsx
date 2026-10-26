@@ -41,7 +41,7 @@ export const CityMetrics: React.FC<CityMetricsProps> = ({ metrics: customMetrics
     {
       value: '1.2M+',
       label: 'Connected Citizens',
-      subtext: 'Daily Kozhikode residents relying on city OS data',
+      subtext: 'Daily Calicut residents relying on city OS data',
       icon: 'Users',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',

@@ -52,25 +52,43 @@ export async function fetchDashboardDataAction() {
   return { metrics, staffPerformance, recentActivities, authorized: true };
 }
 
+/** Seeded demo rows. Real user content and reference data (cities, areas, roles) stay. */
+const DUMMY_SLUGS: Record<string, string[]> = {
+  jobs: [
+    'frontend-engineer-nextjs-cyberpark',
+    'backend-engineer-supabase-cyberpark',
+    'ui-designer-product-cyberpark',
+    'qa-engineer-internship-cyberpark',
+  ],
+  businesses: [
+    'beachside-paragon',
+    'cyberpark-hub-cafe',
+    'sm-street-textiles',
+    'malabar-care-clinic',
+    'mavoor-stay-inn',
+    'zam-zam-mandi-house',
+  ],
+  news: [
+    'cyberpark-expansion-2026',
+    'beach-road-weekend-market',
+    'mavoor-road-signal-upgrade',
+  ],
+  companies: ['malabar-soft-labs'],
+};
+
 export async function wipeDummyDataAction() {
   const auth = await requireRole(['Super Admin']);
   if (auth instanceof Response) return { success: false, error: 'Unauthorized' };
 
-  const supabase = await createClient();
-  
-  // Hard delete all entities created by the system/dummy seeder
-  // Or simply delete items where status != 'active'/'published' and maybe some specific dummy flags.
-  // For safety, let's just delete unverified ones, or everything except the admin accounts.
-  // Actually, the user asked to "remove all dummy data from my projects".
-  // A safer approach for MVP: Delete all businesses, jobs, properties, etc. that were not created by a real user.
-  // We can just wipe tables (truncate) or delete where created_by is null.
-  
-  await supabase.from('businesses').delete().is('created_by', null);
-  await supabase.from('jobs').delete().is('created_by', null);
-  await supabase.from('properties').delete().is('created_by', null);
-  await supabase.from('marketplace_items').delete().is('created_by', null);
-  await supabase.from('news').delete().is('created_by', null);
-  await supabase.from('events').delete().is('created_by', null);
-  
-  return { success: true };
+  const { createAdminClient } = await import('@/lib/supabase/server');
+  const supabase = await createAdminClient();
+  const removed: string[] = [];
+
+  for (const [table, slugs] of Object.entries(DUMMY_SLUGS)) {
+    const { data, error } = await supabase.from(table).delete().in('slug', slugs).select('id');
+    if (error) return { success: false, error: `${table}: ${error.message}` };
+    removed.push(`${table}:${data?.length || 0}`);
+  }
+
+  return { success: true, removed };
 }

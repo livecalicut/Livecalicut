@@ -18,7 +18,7 @@ export default function TermsPage() {
         <section className="space-y-2">
           <h3 className="text-base font-bold text-[#111827] font-sans">1. Acceptance of Terms</h3>
           <p>
-            By accessing or using LiveCalicut.com, you agree to comply with our platform terms. All commercial outlets, job vacancies, and pre-owned classifieds posted must comply with Kozhikode municipal regulations and Malabar physical verification standards.
+            By accessing or using LiveCalicut.com, you agree to comply with our platform terms. All commercial outlets, job vacancies, and pre-owned classifieds posted must comply with Calicut municipal regulations and Malabar physical verification standards.
           </p>
         </section>
 

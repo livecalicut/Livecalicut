@@ -106,7 +106,7 @@ function SearchPageInner() {
   return (
     <Container className="space-y-8 py-8 sm:py-12">
       <PageHeader
-        title="Search Kozhikode"
+        title="Search Calicut"
         description="Businesses, jobs, marketplace, events, and news in one place."
         icon={<Search className="h-6 w-6" />}
         breadcrumbs={[{ label: 'Search' }]}
@@ -114,7 +114,7 @@ function SearchPageInner() {
 
       <div className="space-y-4">
         <UniversalSearch
-          placeholder="Search anything in Kozhikode…"
+          placeholder="Search anything in Calicut…"
           defaultValue={q}
           onSearch={(query) => {
             setQ(query);
@@ -172,7 +172,7 @@ function SearchPageInner() {
         <div className="space-y-3">
           <div className="flex items-center gap-2 font-sans text-sm font-bold text-[#111827]">
             <TrendingUp className="h-4 w-4 text-[#2563EB]" />
-            Trending in Kozhikode
+            Trending in Calicut
           </div>
           <div className="flex flex-wrap gap-2">
             {trending.map((term) => (

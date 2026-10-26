@@ -106,7 +106,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
         <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2.5 text-[11px] text-slate-500">
           <span className="flex items-center gap-1 font-medium truncate max-w-[140px]">
             <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
-            <span className="truncate">{location || 'Kozhikode'}</span>
+            <span className="truncate">{location || 'Calicut'}</span>
           </span>
 
           {timeAgo ? (

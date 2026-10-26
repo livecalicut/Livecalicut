@@ -30,7 +30,7 @@ export const FloatingAiButton: React.FC = () => {
         ...prev,
         {
           sender: 'assistant',
-          text: `Found verified Kozhikode records matching "${userMsg}":`,
+          text: `Found verified Calicut records matching "${userMsg}":`,
           listings: [
             {
               title: 'Paragon Mutton Dum Biryani',

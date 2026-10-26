@@ -5,7 +5,7 @@ import { CitySpotlights } from '@/components/home/city-spotlights';
 import { FeaturedBusinessesSection, FeaturedBusinessItem } from '@/components/home/featured-businesses-section';
 import { PopularBusinessesSection, PopularBusinessItem } from '@/components/home/popular-businesses-section';
 import { LatestListingsSection, UnifiedListingItem } from '@/components/home/latest-listings-section';
-import { ExploreKozhikodeSection } from '@/components/home/explore-kozhikode-section';
+import { ExploreCalicutSection } from '@/components/home/explore-kozhikode-section';
 import { AdvertiseSection } from '@/components/home/advertise-section';
 import { StayUpdatedSection } from '@/components/home/stay-updated-section';
 import { createPublicClient } from '@/lib/supabase/server';
@@ -101,7 +101,7 @@ async function HomeFeed() {
         slug: biz.slug,
         name: biz.name,
         category: biz.business_categories?.name || 'Business',
-        location: biz.areas?.name || 'Kozhikode',
+        location: biz.areas?.name || 'Calicut',
         rating: Number(biz.rating_avg) || 4.5,
         reviewCount: Number(biz.review_count) || 0,
         image: extractBusinessImage(biz),
@@ -116,7 +116,7 @@ async function HomeFeed() {
         slug: biz.slug,
         name: biz.name,
         category: biz.business_categories?.name || 'Business',
-        location: biz.areas?.name || 'Kozhikode',
+        location: biz.areas?.name || 'Calicut',
         rating: Number(biz.rating_avg) || 4.4,
         reviewCount: Number(biz.review_count) || 0,
         image: extractBusinessImage(biz),
@@ -128,7 +128,7 @@ async function HomeFeed() {
           slug: biz.slug,
           name: biz.name,
           category: biz.business_categories?.name || 'Business',
-          location: biz.areas?.name || 'Kozhikode',
+          location: biz.areas?.name || 'Calicut',
           rating: Number(biz.rating_avg) || 4.5,
           reviewCount: Number(biz.review_count) || 0,
           image: extractBusinessImage(biz),
@@ -145,7 +145,7 @@ async function HomeFeed() {
         title: j.title,
         subtitle: j.companies?.name || 'Full-time',
         priceOrSalary: j.salary || '₹20,000 – 35,000',
-        location: j.areas?.name || 'Kozhikode',
+        location: j.areas?.name || 'Calicut',
         timeAgo: formatTimeAgo(j.created_at),
         image: j.companies?.logo || null,
         href: `/jobs/${j.slug || j.id}`,
@@ -161,7 +161,7 @@ async function HomeFeed() {
         title: p.title,
         subtitle: p.property_categories?.name || (p.listing_type === 'rent' ? 'For Rent' : 'For Sale'),
         priceOrSalary: p.price ? (p.price.toString().startsWith('₹') ? p.price : `₹${Number(p.price).toLocaleString('en-IN')}`) : 'Price on Request',
-        location: p.location || 'Kozhikode',
+        location: p.location || 'Calicut',
         timeAgo: formatTimeAgo(p.created_at),
         image: null,
         href: `/properties/${p.slug || p.id}`,
@@ -177,7 +177,7 @@ async function HomeFeed() {
         title: m.title,
         subtitle: m.marketplace_categories?.name || m.condition || 'Pre-owned',
         priceOrSalary: m.price ? (m.price.toString().startsWith('₹') ? m.price : `₹${Number(m.price).toLocaleString('en-IN')}`) : 'Contact for price',
-        location: m.location || 'Kozhikode',
+        location: m.location || 'Calicut',
         timeAgo: formatTimeAgo(m.created_at),
         image: null,
         href: `/marketplace/${m.slug || m.id}`,
@@ -207,7 +207,7 @@ export default function HomePage() {
       <Suspense fallback={<HomeFeedSkeleton />}>
         <HomeFeed />
       </Suspense>
-      <ExploreKozhikodeSection />
+      <ExploreCalicutSection />
       <AdvertiseSection />
       <StayUpdatedSection />
     </div>

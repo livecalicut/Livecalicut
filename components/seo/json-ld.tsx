@@ -28,7 +28,7 @@ export const OrganizationSchema = () => (
       ],
       address: {
         '@type': 'PostalAddress',
-        addressLocality: 'Kozhikode',
+        addressLocality: 'Calicut',
         addressRegion: 'Kerala',
         addressCountry: 'IN',
       },

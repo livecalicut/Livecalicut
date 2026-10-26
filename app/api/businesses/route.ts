@@ -38,13 +38,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireRole(['Merchant', 'City Admin', 'Super Admin', 'Marketing Executive']);
+    const auth = await requireRole(['Merchant', 'City Admin', 'Super Admin', 'Marketing Executive', 'Moderator']);
     if (auth instanceof NextResponse) return auth;
 
-    const supabase = auth.supabase;
     const isStaffOrAdmin = ['Super Admin', 'City Admin', 'Marketing Executive', 'Moderator'].includes(
       auth.user.role
     );
+    // Writes must bypass RLS. The session client can read public rows only.
+    const supabase = await createAdminClient();
 
     const body = await request.json();
     const { name, category, phone, location, description, cover_image, ownerEmail } = body;
@@ -56,14 +57,14 @@ export async function POST(request: Request) {
     // Generate Slug
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 6);
 
-    // 1. Resolve City ID (defaulting to Kozhikode for now as per frontend)
+    // 1. Resolve City ID (defaulting to Calicut for now as per frontend)
     let cityId: string;
     const { data: cityData } = await supabase.from('cities').select('id').eq('slug', 'kozhikode').single();
     if (cityData) {
       cityId = cityData.id;
     } else {
       // Fallback: create city if missing
-      const { data: newCity } = await supabase.from('cities').insert({ name: 'Kozhikode', slug: 'kozhikode' }).select('id').single();
+      const { data: newCity } = await supabase.from('cities').insert({ name: 'Calicut', slug: 'kozhikode' }).select('id').single();
       cityId = newCity!.id;
     }
 
@@ -155,8 +156,11 @@ export async function POST(request: Request) {
         slug: slug,
         description: description || name,
         phone: phone,
-        short_description: location, // Using location as short_description for display since address column is missing
-        verification_status: 'pending',
+        short_description: location,
+        social_media: cover_image ? { cover_image } : {},
+        verification_status: isStaffOrAdmin ? 'approved' : 'pending',
+        is_verified: isStaffOrAdmin,
+        status: 'active',
       })
       .select()
       .single();

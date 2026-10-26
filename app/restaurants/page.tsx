@@ -42,8 +42,8 @@ export default function RestaurantsDirectoryPage() {
   return (
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
-        title="Kozhikode Culinary & Restaurants"
-        description="Famous Malabar biryanis, seafood delicacies, SM Street halwa shops & sea-facing cafes across Kozhikode."
+        title="Calicut Culinary & Restaurants"
+        description="Famous Malabar biryanis, seafood delicacies, SM Street halwa shops & sea-facing cafes across Calicut."
         icon={<Utensils className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Explore', href: '/explore' },
@@ -118,7 +118,7 @@ export default function RestaurantsDirectoryPage() {
 
                   <p className="text-xs text-slate-500 flex items-center gap-1.5 truncate">
                     <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>{r.location || 'Kozhikode'}</span>
+                    <span>{r.location || 'Calicut'}</span>
                   </p>
                 </div>
 

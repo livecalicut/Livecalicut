@@ -16,25 +16,25 @@ interface HeroBannerProps {
 const SLIDES = [
   {
     kicker: 'City directory',
-    line: 'Verified shops, dining, hospitals, and neighbourhood services across Kozhikode wards.',
+    line: 'Verified shops, dining, hospitals, and neighbourhood services across Calicut wards.',
     image: '/heroes/city-market.jpg',
-    alt: 'Busy local market street representing Kozhikode commerce',
+    alt: 'Busy local market street representing Calicut commerce',
   },
   {
     kicker: 'Calicut careers',
     line: 'Tech hiring, walk-ins, and local openings updated for Calicut talent every week.',
     image: '/heroes/workplace.jpg',
-    alt: 'Modern workspace for Kozhikode job seekers',
+    alt: 'Modern workspace for Calicut job seekers',
   },
   {
     kicker: 'Malabar coast',
-    line: 'Beaches, stays, and weekend plans along the Kozhikode shoreline.',
+    line: 'Beaches, stays, and weekend plans along the Calicut shoreline.',
     image: '/heroes/coastal-life.jpg',
     alt: 'Coastal shoreline representing Malabar travel and leisure',
   },
   {
     kicker: 'Kerala living',
-    line: 'Homes, classifieds, and everyday city life — mapped for Kozhikode citizens.',
+    line: 'Homes, classifieds, and everyday city life — mapped for Calicut citizens.',
     image: '/heroes/kerala-coast.jpg',
     alt: 'Kerala waterways and green coastline atmosphere',
   },
@@ -51,8 +51,8 @@ const DESTINATIONS = [
 
 const INTERVAL_MS = 5600;
 
-function useKozhikodeClock() {
-  const [label, setLabel] = useState('Kozhikode');
+function useCalicutClock() {
+  const [label, setLabel] = useState('Calicut');
 
   useEffect(() => {
     const tick = () => {
@@ -67,7 +67,7 @@ function useKozhikodeClock() {
         timeZone: 'Asia/Kolkata',
         weekday: 'long',
       }).format(now);
-      setLabel(`Kozhikode · ${day} · ${time}`);
+      setLabel(`Calicut · ${day} · ${time}`);
     };
     tick();
     const id = window.setInterval(tick, 30_000);
@@ -79,7 +79,7 @@ function useKozhikodeClock() {
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   title = 'LiveCalicut.com',
-  subtitle = 'Find verified businesses, jobs, homes, and local stories — one platform built for Kozhikode.',
+  subtitle = 'Find verified businesses, jobs, homes, and local stories — one platform built for Calicut.',
   badgeText = 'Digital operating system for the city',
 }) => {
   const router = useRouter();
@@ -92,7 +92,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [query, setQuery] = useState('');
-  const clockLabel = useKozhikodeClock();
+  const clockLabel = useCalicutClock();
 
   const restartProgress = useCallback(() => {
     const bar = progressRef.current;

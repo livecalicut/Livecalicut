@@ -7,11 +7,7 @@ import { Building, Plus, Search, Eye, MessageCircle, Trash2, Home } from 'lucide
 export default function MerchantPropertiesPage() {
   const [search, setSearch] = useState('');
 
-  const [propertiesings, setPropertiesings] = useState([
-    { id: '1', title: 'Commercial Dining Floor Space for Lease', type: 'For Lease', price: '₹75,000 / mo', location: 'Mavoor Road, Calicut', views: 640, inquiries: 18, status: 'Active' },
-    { id: '2', title: 'Luxury 3 BHK Independent Villa', type: 'For Sale', price: '₹1.25 Cr', location: 'Thondayad Bypass, Calicut', views: 1420, inquiries: 32, status: 'Active' },
-    { id: '3', title: 'Cyberpark Office Space 1,200 sq.ft', type: 'For Rent', price: '₹45,000 / mo', location: 'Sahya Building, Cyberpark', views: 890, inquiries: 21, status: 'Under Offer' },
-  ]);
+  const [propertiesings, setPropertiesings] = useState<Array<{ id: string; title: string; type: string; price: string; location: string; views: number; inquiries: number; status: string }>>([]);
 
   const updatePropStatus = (id: string, newStatus: string) => {
     setPropertiesings(propertiesings.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
@@ -69,6 +65,9 @@ export default function MerchantPropertiesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB] text-xs">
+              {filteredProps.length === 0 && (
+                <Card className="p-10 text-center text-sm font-semibold text-[#6B7280]">No properties yet.</Card>
+              )}
               {filteredProps.map((prop) => (
                 <tr key={prop.id} className="hover:bg-[#F8FAFC] transition-colors">
                   <td className="py-4 px-6 font-semibold">

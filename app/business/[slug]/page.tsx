@@ -39,7 +39,7 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
   const location =
     (business.areas as { name?: string } | null)?.name ||
     business.address ||
-    'Kozhikode';
+    'Calicut';
   const rating = Number(business.rating_avg ?? 0);
   const reviews = ((business.business_reviews as ReviewRow[] | null) || [])
     .slice()

@@ -59,8 +59,8 @@ export default function BusinessDirectoryPage() {
   return (
     <Container className="py-8 sm:py-12 space-y-8">
       <PageHeader
-        title="Kozhikode Commercial Directory"
-        description="Explore verified shops, hospitals, IT firms, restaurants & services across Kozhikode Wards."
+        title="Calicut Commercial Directory"
+        description="Explore verified shops, hospitals, IT firms, restaurants & services across Calicut Wards."
         icon={<Building2 className="w-6 h-6" />}
         breadcrumbs={[{ label: 'Business Directory' }]}
         action={
@@ -155,7 +155,7 @@ export default function BusinessDirectoryPage() {
                 ? 'Try another keyword, or browse jobs and marketplace while the directory grows.'
                 : 'Verified outlets will appear here once merchants publish their listings.'
             }
-            actionLabel={q ? 'Clear search' : 'Search Kozhikode'}
+            actionLabel={q ? 'Clear search' : 'Search Calicut'}
             actionHref={q ? undefined : '/search'}
             onAction={q ? () => { setQ(''); setPage(1); } : undefined}
             hooks={[

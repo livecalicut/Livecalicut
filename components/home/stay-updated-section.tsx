@@ -48,7 +48,7 @@ export const StayUpdatedSection: React.FC = () => {
                     Stay Updated
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
-                    Get the latest updates, events, offers and stories from Kozhikode.
+                    Get the latest updates, events, offers and stories from Calicut.
                   </p>
                 </div>
               </div>
@@ -56,7 +56,7 @@ export const StayUpdatedSection: React.FC = () => {
               {isSubscribed ? (
                 <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs sm:text-sm font-semibold animate-in fade-in">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Thank you for subscribing! You are now connected to Kozhikode city alerts.</span>
+                  <span>Thank you for subscribing! You are now connected to Calicut city alerts.</span>
                 </div>
               ) : (
                 <form
@@ -87,7 +87,7 @@ export const StayUpdatedSection: React.FC = () => {
             <div className="lg:col-span-4 flex flex-col items-start lg:items-end justify-center space-y-1">
               <span className="font-serif italic text-lg sm:text-2xl text-slate-700 font-medium tracking-tight text-right select-none">
                 A Stronger <br className="hidden lg:inline" />
-                Kozhikode Together.
+                Calicut Together.
               </span>
               <span className="text-[11px] text-slate-400 font-sans">
                 Join 12,000+ local citizens

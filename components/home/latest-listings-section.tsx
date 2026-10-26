@@ -71,7 +71,7 @@ export const LatestListingsSection: React.FC<LatestListingsSectionProps> = ({
                 Latest Listings &amp; Classifieds
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-normal">
-                Fresh jobs, properties &amp; pre-owned marketplace listings in Kozhikode
+                Fresh jobs, properties &amp; pre-owned marketplace listings in Calicut
               </p>
             </div>
           </div>
@@ -242,7 +242,7 @@ export const LatestListingsSection: React.FC<LatestListingsSectionProps> = ({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">List Flats, Villas &amp; Plots</h3>
-                <p className="text-xs text-slate-500 mt-1">Direct owner and builder listings for rent and sale in Kozhikode.</p>
+                <p className="text-xs text-slate-500 mt-1">Direct owner and builder listings for rent and sale in Calicut.</p>
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-600 group-hover:translate-x-0.5 transition-transform">
                 <PlusCircle className="w-4 h-4" /> Post Property Listing

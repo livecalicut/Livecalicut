@@ -20,7 +20,7 @@ export const KOZHIKODE_AREAS: { id: string; name: string; slug: string; pincode:
   { id: 'area-kallai', name: 'Kallai', slug: 'kallai', pincode: '673003' },
   { id: 'area-karaparamba', name: 'Karaparamba', slug: 'karaparamba', pincode: '673010' },
   { id: 'area-kottooli', name: 'Kottooli', slug: 'kottooli', pincode: '673016' },
-  { id: 'area-beach', name: 'Kozhikode Beach', slug: 'kozhikode-beach', pincode: '673032' },
+  { id: 'area-beach', name: 'Calicut Beach', slug: 'kozhikode-beach', pincode: '673032' },
   { id: 'area-malaparamba', name: 'Malaparamba', slug: 'malaparamba', pincode: '673009' },
   { id: 'area-mavoor', name: 'Mavoor Road', slug: 'mavoor-road', pincode: '673004' },
   { id: 'area-medical', name: 'Medical College', slug: 'medical-college', pincode: '673008' },

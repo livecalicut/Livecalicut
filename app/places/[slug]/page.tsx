@@ -10,17 +10,17 @@ export default async function PlaceDetailsPage({ params }: { params: Promise<{ s
   const { slug } = await params;
 
   const place = {
-    title: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'KOZHIKODE BEACH & FREEDOM SQUARE',
+    title: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'CALICUT BEACH & FREEDOM SQUARE',
     category: 'Beaches & Waterfronts',
-    location: 'Beach Road, Kozhikode Wards',
+    location: 'Beach Road, Calicut Wards',
     openingHours: '05:00 AM - 10:00 PM',
     entryFee: 'Free Entry',
     ratingAvg: 4.8,
     ratingCount: 340,
-    googleMapsLink: 'https://maps.google.com/?q=Kozhikode+Beach',
+    googleMapsLink: 'https://maps.google.com/?q=Calicut+Beach',
     description: `
-      Kozhikode Beach is a legendary sunset destination along the Arabian Sea shore.
-      Features the historic sea piers built over 120 years ago, Freedom Square cultural plaza, local Kozhikode Halwa & Ice Orath stalls, and fresh Malabar seafood vendors.
+      Calicut Beach is a legendary sunset destination along the Arabian Sea shore.
+      Features the historic sea piers built over 120 years ago, Freedom Square cultural plaza, local Calicut Halwa & Ice Orath stalls, and fresh Malabar seafood vendors.
     `,
   };
 

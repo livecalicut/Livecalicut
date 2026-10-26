@@ -14,9 +14,9 @@ const supabase = createClient(
 
 const initialCMSPayload = {
   hero: {
-    title: "Kozhikode's Digital Operating System",
-    subtitle: "Discover verified local businesses, Cyberpark IT hiring, local news, beach tourism, and classifieds across Kozhikode.",
-    badgeText: "Hyperlocal Platform • 21 Kozhikode Wards Verified",
+    title: "Calicut's Digital Operating System",
+    subtitle: "Discover verified local businesses, Cyberpark IT hiring, local news, beach tourism, and classifieds across Calicut.",
+    badgeText: "Hyperlocal Platform • 21 Calicut Wards Verified",
     videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-ocean-waves-reaching-the-beach-41481-large.mp4"
   },
   metrics: [
@@ -41,7 +41,7 @@ const initialCMSPayload = {
     {
       value: "1.2M+",
       label: "Connected Citizens",
-      subtext: "Daily Kozhikode residents relying on city OS data",
+      subtext: "Daily Calicut residents relying on city OS data",
       icon: "Users",
       color: "text-purple-600",
       bgColor: "bg-purple-50",

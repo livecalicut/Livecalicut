@@ -8,7 +8,7 @@ export default async function RestaurantDetailsPage({ params }: { params: Promis
   const { slug } = await params;
 
   const restaurant = {
-    name: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'PARAGON RESTAURANT',
+    name: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'PARAGON RESTAURANT',
     cuisine: 'Malabar Traditional & Dum Biryani',
     location: 'Mavoor Road Junction, Calicut',
     phone: '+91 495 276 8888',

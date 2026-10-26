@@ -72,7 +72,7 @@ function ApplicationsInner() {
     <div className="max-w-4xl mx-auto space-y-8 py-4 px-4">
       <PageHeader
         title="My Job Applications Tracker"
-        description="Track the status of your submitted resumes with Kozhikode employers."
+        description="Track the status of your submitted resumes with Calicut employers."
         icon={<Briefcase className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Account', href: '/account' },

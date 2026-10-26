@@ -13,7 +13,7 @@ const HOOKS = [
   { href: '/business', label: 'Businesses', description: 'Shops, dining & clinics', icon: Building2 },
   { href: '/jobs', label: 'Jobs', description: 'Cyberpark & local hiring', icon: Briefcase },
   { href: '/marketplace', label: 'Marketplace', description: 'Buy & sell nearby', icon: ShoppingBag },
-  { href: '/events', label: 'Events', description: 'What’s on in Kozhikode', icon: Calendar },
+  { href: '/events', label: 'Events', description: 'What’s on in Calicut', icon: Calendar },
 ] as const;
 
 export default function NotFoundPage() {
@@ -45,7 +45,7 @@ export default function NotFoundPage() {
             className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-sm font-bold text-[#111827] hover:border-[#2563EB]"
           >
             <Search className="h-4 w-4 text-[#2563EB]" aria-hidden />
-            Search Kozhikode
+            Search Calicut
           </Link>
         </div>
 

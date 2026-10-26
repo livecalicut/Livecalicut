@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.roles (
 INSERT INTO public.roles (name, description) VALUES
     ('Guest', 'Unauthenticated public visitor'),
     ('User', 'Authenticated resident user'),
-    ('Merchant', 'Kozhikode business owner and service provider'),
+    ('Merchant', 'Calicut business owner and service provider'),
     ('Moderator', 'Content & review moderation editor'),
     ('City Admin', 'Municipal content administrator'),
     ('Super Admin', 'Full platform engine superuser')
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20),
     avatar_url TEXT,
-    city VARCHAR(100) DEFAULT 'Kozhikode',
+    city VARCHAR(100) DEFAULT 'Calicut',
     area VARCHAR(100),
     bio TEXT,
     account_status VARCHAR(20) DEFAULT 'active' CHECK (account_status IN ('active', 'suspended', 'deactivated')),
@@ -99,7 +99,7 @@ BEGIN
         COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1)),
         NEW.email,
         NEW.raw_user_meta_data->>'avatar_url',
-        COALESCE(NEW.raw_user_meta_data->>'city', 'Kozhikode')
+        COALESCE(NEW.raw_user_meta_data->>'city', 'Calicut')
     );
 
     -- Find Default 'User' Role ID

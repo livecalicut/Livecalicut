@@ -54,7 +54,12 @@ export default function AdminBusinessesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'business', entityId: id, hardDelete: true })
     });
-    if (res.ok) loadBusinesses();
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      alert(json.error || 'Could not delete this business');
+      return;
+    }
+    loadBusinesses();
   };
 
   const filteredOutlets = outlets.filter((o) => {

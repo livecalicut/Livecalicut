@@ -120,7 +120,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
     <div className="mx-auto max-w-2xl space-y-8 py-4">
       <PageHeader
         title="Submit Candidate Application"
-        description="Apply directly to employer hiring desk in Kozhikode."
+        description="Apply directly to employer hiring desk in Calicut."
         icon={<Briefcase className="h-6 w-6" />}
         breadcrumbs={[
           { label: 'Jobs', href: '/jobs' },

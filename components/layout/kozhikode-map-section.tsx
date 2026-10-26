@@ -4,11 +4,11 @@ import { LazyGoogleMap } from '@/components/shared/lazy-google-map';
 import { SITE_WHATSAPP_DISPLAY, siteWhatsAppHref } from '@/config/constants';
 
 const KOZHIKODE_MAPS_EMBED =
-  'https://maps.google.com/maps?q=Kozhikode,+Kerala,+India&hl=en&z=13&output=embed';
+  'https://maps.google.com/maps?q=Calicut,+Kerala,+India&hl=en&z=13&output=embed';
 const KOZHIKODE_MAPS_LINK =
-  'https://www.google.com/maps/search/?api=1&query=Kozhikode,+Kerala,+India';
+  'https://www.google.com/maps/search/?api=1&query=Calicut,+Kerala,+India';
 
-export const KozhikodeMapSection: React.FC = () => {
+export const CalicutMapSection: React.FC = () => {
   return (
     <section
       className="w-full border-t border-slate-200 bg-slate-50 py-12 sm:py-16"
@@ -24,7 +24,7 @@ export const KozhikodeMapSection: React.FC = () => {
               id="kozhikode-map-heading"
               className="mt-2 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl"
             >
-              Kozhikode city desk
+              Calicut city desk
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-500">
               Listings, jobs, and local services across Calicut. Message the desk on WhatsApp.
@@ -37,7 +37,7 @@ export const KozhikodeMapSection: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">LiveCalicut</p>
-                  <p className="text-sm leading-relaxed text-slate-500">Kozhikode, Kerala, India</p>
+                  <p className="text-sm leading-relaxed text-slate-500">Calicut, Kerala, India</p>
                 </div>
               </div>
 
@@ -79,7 +79,7 @@ export const KozhikodeMapSection: React.FC = () => {
         <div className="h-[320px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs sm:h-[400px] lg:col-span-8 lg:h-auto lg:min-h-[360px]">
           <LazyGoogleMap
             src={KOZHIKODE_MAPS_EMBED}
-            title="Kozhikode, Kerala on Google Maps"
+            title="Calicut, Kerala on Google Maps"
             className="h-full w-full"
           />
         </div>

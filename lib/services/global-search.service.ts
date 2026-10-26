@@ -37,7 +37,7 @@ export class GlobalSearchService {
           title: b.name,
           summary: b.short_description || b.description.substring(0, 100),
           category: b.business_categories?.name || 'Commercial Outlets',
-          location: b.areas?.name || 'Kozhikode',
+          location: b.areas?.name || 'Calicut',
           url: `/business/${b.slug}`,
           metaBadge: `Rating ${b.rating_avg}`,
         });
@@ -61,7 +61,7 @@ export class GlobalSearchService {
           title: n.title,
           summary: n.summary,
           category: n.news_categories?.name || 'Local News',
-          location: 'Kozhikode',
+          location: 'Calicut',
           url: `/news/${n.slug}`,
         });
       });
@@ -106,9 +106,9 @@ export class GlobalSearchService {
           id: j.id,
           module: 'jobs',
           title: j.title,
-          summary: `${j.companies?.name || 'Kozhikode Firm'} • ${j.salary}`,
+          summary: `${j.companies?.name || 'Calicut Firm'} • ${j.salary}`,
           category: j.employment_type.toUpperCase(),
-          location: j.location || 'Kozhikode, Kerala',
+          location: j.location || 'Calicut, Kerala',
           url: `/jobs/${j.slug}`,
           metaBadge: j.salary,
         });
@@ -132,7 +132,7 @@ export class GlobalSearchService {
           title: m.title,
           summary: `Price ₹${m.price}`,
           category: m.marketplace_categories?.name || 'Classifieds',
-          location: 'Kozhikode',
+          location: 'Calicut',
           url: `/marketplace/${m.slug}`,
           metaBadge: `₹${m.price}`,
         });
@@ -156,7 +156,7 @@ export class GlobalSearchService {
           title: p.title,
           summary: `${p.bedrooms} BHK Real Estate • ${p.listing_type.toUpperCase()}`,
           category: p.property_categories?.name || 'Real Estate',
-          location: 'Kozhikode',
+          location: 'Calicut',
           url: `/properties/${p.slug}`,
           metaBadge: `₹${p.price}`,
         });

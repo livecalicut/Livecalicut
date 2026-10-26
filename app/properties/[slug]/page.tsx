@@ -11,7 +11,7 @@ export default async function PropertyDetailsPage({ params }: { params: Promise<
   const { slug } = await params;
 
   const property = {
-    title: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'LUXURY 3 BHK VILLA IN KOZHIKODE BYPASS',
+    title: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'LUXURY 3 BHK VILLA IN CALICUT BYPASS',
     price: 12500000,
     listingType: 'sale',
     bedrooms: 3,
@@ -19,9 +19,9 @@ export default async function PropertyDetailsPage({ params }: { params: Promise<
     areaSqft: 2400,
     parkingSpaces: 2,
     furnishedStatus: 'Fully Furnished',
-    location: 'Thondayad Bypass, Kozhikode Wards',
+    location: 'Thondayad Bypass, Calicut Wards',
     description: `
-      Spacious 3 BHK luxury independent villa for sale near Thondayad Bypass Junction, Kozhikode.
+      Spacious 3 BHK luxury independent villa for sale near Thondayad Bypass Junction, Calicut.
       Features private garden, modular Kitchen, covered 2-car parking, 24/7 security gate, solar water heater, and instant connectivity to Hilite Cyberpark & Aster MIMS Hospital.
     `,
     amenities: ['24/7 Security', 'Modular Kitchen', 'Solar Water Heater', 'Car Parking', 'Private Garden', 'Power Backup'],

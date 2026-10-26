@@ -18,7 +18,7 @@ CREATE TABLE public.roles (
 INSERT INTO public.roles (name, description) VALUES
     ('Guest', 'Unauthenticated public visitor'),
     ('User', 'Authenticated resident user'),
-    ('Merchant', 'Kozhikode business owner and service provider'),
+    ('Merchant', 'Calicut business owner and service provider'),
     ('Moderator', 'Content & review moderation editor'),
     ('City Admin', 'Municipal content administrator'),
     ('Super Admin', 'Full platform engine superuser');
@@ -32,7 +32,7 @@ CREATE TABLE public.profiles (
     phone VARCHAR(20),
     avatar_url TEXT,
     avatar TEXT,
-    city VARCHAR(100) DEFAULT 'Kozhikode',
+    city VARCHAR(100) DEFAULT 'Calicut',
     area VARCHAR(100),
     bio TEXT,
     account_status VARCHAR(20) DEFAULT 'active',
@@ -67,7 +67,7 @@ BEGIN
         NEW.email,
         NEW.raw_user_meta_data->>'avatar_url',
         NEW.raw_user_meta_data->>'avatar_url',
-        COALESCE(NEW.raw_user_meta_data->>'city', 'Kozhikode')
+        COALESCE(NEW.raw_user_meta_data->>'city', 'Calicut')
     );
 
     SELECT id INTO default_role_id FROM public.roles WHERE name = 'User' LIMIT 1;

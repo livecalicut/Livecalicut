@@ -6,12 +6,12 @@ export const VisionSection: React.FC = () => {
   const pillars = [
     {
       title: 'Hyperlocal Trust & Verification',
-      description: 'Every business, hospital, and job opening is physical-checked in Kozhikode to ensure zero fraud.',
+      description: 'Every business, hospital, and job opening is physical-checked in Calicut to ensure zero fraud.',
       icon: ShieldCheck,
     },
     {
       title: 'Realtime Civic Connectivity',
-      description: 'Sub-second search engine connecting residents directly with Kozhikode employers & local merchants.',
+      description: 'Sub-second search engine connecting residents directly with Calicut employers & local merchants.',
       icon: Zap,
     },
     {
@@ -31,11 +31,11 @@ export const VisionSection: React.FC = () => {
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-[#111827] leading-[1.15] tracking-tight font-sans">
-          Building the Digital Backbone for Kozhikode’s Future
+          Building the Digital Backbone for Calicut’s Future
         </h2>
 
         <p className="text-[16px] text-[#6B7280] leading-relaxed font-normal">
-          For centuries, Kozhikode has been the legendary City of Spices and Malabar trade. LiveCalicut evolves this heritage into a modern Digital Operating System—unifying commerce, employment, news, and public safety into one intuitive civic engine.
+          For centuries, Calicut has been the legendary City of Spices and Malabar trade. LiveCalicut evolves this heritage into a modern Digital Operating System—unifying commerce, employment, news, and public safety into one intuitive civic engine.
         </p>
 
         <div className="pt-2 flex flex-wrap gap-4">

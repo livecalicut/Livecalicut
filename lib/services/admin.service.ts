@@ -226,21 +226,34 @@ export class AdminService {
       property: 'properties',
       news: 'news',
       event: 'events',
+      place: 'places',
       report: 'reports',
       area: 'areas',
       location: 'areas',
+      city: 'cities',
+      company: 'companies',
+      business_category: 'business_categories',
+      job_category: 'job_categories',
+      news_category: 'news_categories',
+      marketplace_category: 'marketplace_categories',
+      property_category: 'property_categories',
     };
 
     const tableName = tableMap[entityType];
     if (!tableName) throw new Error(`Unknown entity type: ${entityType}`);
 
     if (hardDelete) {
-      const { error } = await supabase.from(tableName).delete().eq('id', entityId);
+      const { data, error } = await supabase.from(tableName).delete().eq('id', entityId).select('id');
       if (error) throw error;
+      if (!data?.length) throw new Error('Record was not found, or it could not be deleted');
     } else {
-      // Soft delete
-      const { error } = await supabase.from(tableName).update({ deleted_at: new Date().toISOString() }).eq('id', entityId);
+      const { data, error } = await supabase
+        .from(tableName)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', entityId)
+        .select('id');
       if (error) throw error;
+      if (!data?.length) throw new Error('Record was not found, or it could not be deleted');
     }
 
     await this.logAuditAction(supabase, adminId, `entity_delete`, entityType, entityId, { hardDelete });

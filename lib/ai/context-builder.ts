@@ -130,7 +130,7 @@ export class ContextBuilder {
       query: params.query,
       relevantData,
       platformRules: [
-        'Only answer questions related to LiveCalicut platform and Kozhikode city.',
+        'Only answer questions related to LiveCalicut platform and Calicut city.',
         'Never fabricate business names, phone numbers, addresses, or prices.',
         'If you cannot find relevant data, say so honestly.',
         'Respond in the same language as the user (Malayalam or English).',

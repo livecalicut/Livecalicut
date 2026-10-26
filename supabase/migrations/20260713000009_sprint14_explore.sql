@@ -1,4 +1,4 @@
--- LiveCalicut Sprint 14: Explore Kozhikode Platform Migration
+-- LiveCalicut Sprint 14: Explore Calicut Platform Migration
 -- Author: Chief Product Architect & Principal Software Engineer
 -- Created: 2026-07-13
 
@@ -176,7 +176,7 @@ CREATE POLICY "Public read hotels" ON public.hotels FOR SELECT USING (true);
 CREATE POLICY "Public read experiences" ON public.experiences FOR SELECT USING (status = 'active');
 
 ----------------------------------------------------
--- Seed Categories for Explore Kozhikode
+-- Seed Categories for Explore Calicut
 ----------------------------------------------------
 INSERT INTO public.place_categories (id, name, slug) VALUES
 ('j1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Beaches & Waterfronts', 'beaches-waterfronts'),

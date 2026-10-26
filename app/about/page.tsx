@@ -9,7 +9,7 @@ export default function AboutPage() {
     <Container className="py-8 sm:py-12 space-y-8 max-w-4xl">
       <PageHeader
         title="About LiveCalicut"
-        description="Kozhikode’s Digital Operating System connecting 12,400+ commercial outlets across 21 spatial wards."
+        description="Calicut’s Digital Operating System connecting 12,400+ commercial outlets across 21 spatial wards."
         icon={<Building2 className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[{ label: 'About Us' }]}
       />
@@ -18,7 +18,7 @@ export default function AboutPage() {
         <div className="space-y-3">
           <h3 className="text-xl font-extrabold text-[#111827] font-sans">Empowering Malabar Commerce & Civic Discovery</h3>
           <p>
-            LiveCalicut was built with a clear mission: to create a state-of-the-art, sub-second digital OS for Kozhikode. From iconic food heritage near SM Street and Kozhikode Beach to IT recruitment in Cyberpark, LiveCalicut bridges citizens, job seekers, and store owners with 100% physical ward verifications.
+            LiveCalicut was built with a clear mission: to create a state-of-the-art, sub-second digital OS for Calicut. From iconic food heritage near SM Street and Calicut Beach to IT recruitment in Cyberpark, LiveCalicut bridges citizens, job seekers, and store owners with 100% physical ward verifications.
           </p>
         </div>
 

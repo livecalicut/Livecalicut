@@ -142,7 +142,7 @@ CREATE POLICY "User owns delivery logs" ON public.delivery_logs
 INSERT INTO public.realtime_channels (name, channel_type, description, requires_auth, min_role) VALUES
     ('public.announcements',     'public',   'Platform-wide announcements',              false, NULL),
     ('public.trending',          'public',   'Trending listings and searches',           false, NULL),
-    ('city.calicut',             'city',     'Kozhikode city-level live updates',        false, NULL),
+    ('city.calicut',             'city',     'Calicut city-level live updates',        false, NULL),
     ('city.kochi',               'city',     'Kochi city-level live updates',            false, NULL),
     ('city.trivandrum',          'city',     'Trivandrum city-level live updates',       false, NULL),
     ('system.health',            'system',   'Platform health and status events',        true,  'admin'),

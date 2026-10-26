@@ -8,7 +8,7 @@ export default function SavedExplorePage() {
     <div className="space-y-8 py-4">
       <PageHeader
         title="Saved Exploration Spots & Tours"
-        description="Bookmarked heritage landmarks, beaches & culinary tours in Kozhikode."
+        description="Bookmarked heritage landmarks, beaches & culinary tours in Calicut."
         icon={<Bookmark className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Explore', href: '/explore' },
@@ -18,10 +18,10 @@ export default function SavedExplorePage() {
 
       <ResponsiveGrid cols={3}>
         <PlaceCard
-          title="Kozhikode Beach & Historical Freedom Square"
+          title="Calicut Beach & Historical Freedom Square"
           slug="kozhikode-beach-freedom-square"
           category="Beaches & Waterfronts"
-          location="Beach Road, Kozhikode Wards"
+          location="Beach Road, Calicut Wards"
           rating={4.8}
         />
       </ResponsiveGrid>

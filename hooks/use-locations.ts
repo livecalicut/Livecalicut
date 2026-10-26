@@ -95,7 +95,7 @@ export function useAllLocations(cityId?: string) {
         const result = await fetchLocations({ all: 1, city_id: cityId });
         if (result.rows.length > 0) return result;
       } catch {
-        // Database unreachable — keep the local Kozhikode list.
+        // Database unreachable — keep the local Calicut list.
       }
       return LOCAL_AREAS;
     },

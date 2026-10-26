@@ -135,7 +135,7 @@ async function main() {
       status: 'active',
       is_active: true,
       account_status: 'active',
-      city: 'Kozhikode',
+      city: 'Calicut',
       deleted_at: null,
     };
 

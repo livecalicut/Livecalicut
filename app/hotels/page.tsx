@@ -37,7 +37,7 @@ export default function HotelsDirectoryPage() {
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
         title="Hotels, Stays & Beach Resorts"
-        description="Luxury 5-star stays, waterfront river resorts on Chaliyar & heritage homestays in Kozhikode."
+        description="Luxury 5-star stays, waterfront river resorts on Chaliyar & heritage homestays in Calicut."
         icon={<Hotel className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Explore', href: '/explore' },
@@ -66,7 +66,7 @@ export default function HotelsDirectoryPage() {
         <EmptyState
           icon={<Hotel className="w-8 h-8 text-[#2563EB]" />}
           title="No hotels found"
-          description="No hotel listings match your current search criteria. Check back soon for new accommodations in Kozhikode."
+          description="No hotel listings match your current search criteria. Check back soon for new accommodations in Calicut."
           actionLabel="Explore All Categories"
           actionHref="/explore"
         />
@@ -89,7 +89,7 @@ export default function HotelsDirectoryPage() {
                 </h4>
                 <p className="text-xs text-slate-500 truncate flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                  {h.location || 'Kozhikode'}
+                  {h.location || 'Calicut'}
                 </p>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">

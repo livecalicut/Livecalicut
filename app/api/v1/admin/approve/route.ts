@@ -3,6 +3,7 @@ import { ApiResponse } from '@/lib/api/response';
 import { AdminService } from '@/lib/services/admin.service';
 import { adminApprovalSchema } from '@/lib/validations/admin';
 import { requireRole } from '@/lib/supabase/require-auth';
+import { createAdminClient } from '@/lib/supabase/server';
 
 const ADMIN_ROLES = ['Moderator', 'City Admin', 'Super Admin', 'Marketing Executive'];
 
@@ -14,8 +15,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validated = adminApprovalSchema.parse(body);
 
+    const admin = await createAdminClient();
     const moderated = await AdminService.moderateEntity(
-      auth.supabase,
+      admin,
       auth.user.id,
       validated.entityType,
       validated.entityId,

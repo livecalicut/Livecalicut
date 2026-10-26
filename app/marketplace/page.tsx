@@ -85,8 +85,8 @@ export default function MarketplaceHomePage() {
   return (
     <Container className="py-8 sm:py-12 space-y-8">
       <PageHeader
-        title="Kozhikode Buy & Sell Marketplace"
-        description="Verified pre-owned electronics, mobiles, vehicles, furniture & appliances posted directly by Kozhikode citizens."
+        title="Calicut Buy & Sell Marketplace"
+        description="Verified pre-owned electronics, mobiles, vehicles, furniture & appliances posted directly by Calicut citizens."
         icon={<ShoppingBag className="w-6 h-6" />}
         breadcrumbs={[{ label: 'Marketplace' }]}
         action={
@@ -181,7 +181,7 @@ export default function MarketplaceHomePage() {
       <div className="space-y-6">
         <SectionTitle
           title={isLoading ? 'Loading pre-owned items…' : `${total.toLocaleString()} items listed`}
-          subtitle={q ? `Showing results for "${q}"` : 'Verified classifieds across Kozhikode'}
+          subtitle={q ? `Showing results for "${q}"` : 'Verified classifieds across Calicut'}
         />
 
         {isLoading && <ListSkeleton count={LIMIT} cols={4} />}
@@ -210,7 +210,7 @@ export default function MarketplaceHomePage() {
                 title={item.title}
                 price={item.price_display || (item.price ? `₹${item.price.toLocaleString()}` : 'Contact Seller')}
                 condition={item.condition || 'Used'}
-                location={item.location || item.area || 'Kozhikode'}
+                location={item.location || item.area || 'Calicut'}
                 image={item.images?.[0] || (item as any).cover_image || null}
                 href={`/marketplace/${item.slug || item.id}`}
                 isVerifiedSeller={Boolean((item as any).seller_profiles?.is_verified)}

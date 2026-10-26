@@ -21,15 +21,17 @@ export function LogoLoader({
       role="status"
       aria-live="polite"
     >
-      <div className="relative flex h-16 w-16 items-center justify-center">
-        <span className="absolute inset-0 rounded-2xl border-2 border-[#2563EB]/20" />
-        <span className="absolute inset-0 animate-logo-spin rounded-2xl border-2 border-transparent border-t-[#2563EB]" />
-        <img
-          src="/images/logo.svg"
-          alt="LiveCalicut"
-          className="relative z-10 h-6 w-auto animate-logo-pulse object-contain"
-        />
-      </div>
+      <img
+        src="/images/logo.png"
+        alt="LiveCalicut.com"
+        width={1024}
+        height={153}
+        className="h-10 w-auto max-w-[16rem] animate-logo-pulse object-contain"
+      />
+      <span className="relative flex h-8 w-8 items-center justify-center">
+        <span className="absolute inset-0 rounded-full border-2 border-[#2C3691]/20" />
+        <span className="absolute inset-0 animate-logo-spin rounded-full border-2 border-transparent border-t-[#EC2028]" />
+      </span>
       <p className="text-xs font-semibold tracking-wide text-[#6B7280]">{label}</p>
     </div>
   );

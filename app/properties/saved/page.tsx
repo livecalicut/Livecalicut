@@ -28,9 +28,9 @@ export default function SavedPropertiesPage() {
             <div className="space-y-1">
               <PropertyPriceBadge price={12500000} listingType="sell" />
               <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 transition-colors line-clamp-1">
-                Luxury 3 BHK Villa in Kozhikode Bypass
+                Luxury 3 BHK Villa in Calicut Bypass
               </h4>
-              <p className="text-xs text-slate-500 truncate">Thondayad Bypass, Kozhikode</p>
+              <p className="text-xs text-slate-500 truncate">Thondayad Bypass, Calicut</p>
             </div>
           </Card>
         </Link>

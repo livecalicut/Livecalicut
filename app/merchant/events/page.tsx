@@ -12,7 +12,7 @@ export default function MerchantEventsPage() {
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h1 className="text-2xl font-black text-white">Merchant Events & Programs</h1>
-          <p className="text-xs text-slate-400">Post outlet inaugurations, food festivals & live workshops in Kozhikode.</p>
+          <p className="text-xs text-slate-400">Post outlet inaugurations, food festivals & live workshops in Calicut.</p>
         </div>
 
         <button className="px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold flex items-center gap-1.5">

@@ -54,7 +54,7 @@ export const JobCard: React.FC<JobCardProps> = ({
               )}
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-500 line-clamp-1">{company || 'Kozhikode Enterprise'}</p>
+              <p className="text-xs font-bold text-slate-500 line-clamp-1">{company || 'Calicut Enterprise'}</p>
               <h4 className="line-clamp-1 text-base font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">
                 {title}
               </h4>
@@ -96,7 +96,7 @@ export const JobCard: React.FC<JobCardProps> = ({
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
           <span className="flex items-center gap-1 truncate max-w-[140px]">
             <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">{location || 'Kozhikode'}</span>
+            <span className="truncate">{location || 'Calicut'}</span>
           </span>
 
           <span className="inline-flex items-center gap-1 font-bold text-[#2563EB] group-hover:translate-x-0.5 transition-transform">

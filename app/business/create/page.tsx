@@ -134,8 +134,8 @@ export default function CreateBusinessPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-6">
       <PageHeader
-        title="Register Kozhikode Commercial Outlet"
-        description="Add your business to Kozhikode’s Digital Operating System across 21 spatial wards."
+        title="Register Calicut Commercial Outlet"
+        description="Add your business to Calicut’s Digital Operating System across 21 spatial wards."
         icon={<Building2 className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[
           { label: 'Business Directory', href: '/business' },
@@ -151,7 +151,7 @@ export default function CreateBusinessPage() {
               Business Registered & Sent for Physical Ward Verification!
             </h3>
             <p className="text-sm text-[#6B7280]">
-              Our Kozhikode ward moderation team will physically verify your outlet details. Redirecting to Business Directory...
+              Our Calicut ward moderation team will physically verify your outlet details. Redirecting to Business Directory...
             </p>
           </div>
         </Card>
@@ -321,7 +321,7 @@ export default function CreateBusinessPage() {
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
                     City / District *
                   </label>
-                  <Input readOnly value="Kozhikode (Calicut)" className="h-[44px] rounded-xl border-[#E5E7EB] bg-[#F8FAFC] text-[#6B7280] font-bold cursor-not-allowed" />
+                  <Input readOnly value="Calicut" className="h-[44px] rounded-xl border-[#E5E7EB] bg-[#F8FAFC] text-[#6B7280] font-bold cursor-not-allowed" />
                 </div>
 
                 <div>
@@ -346,7 +346,7 @@ export default function CreateBusinessPage() {
                   required
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Near Railway Station, Mavoor Road, Kozhikode, Kerala 673001"
+                  placeholder="Near Railway Station, Mavoor Road, Calicut, Kerala 673001"
                   className="h-[44px] rounded-xl border-[#E5E7EB] text-[#111827]"
                 />
               </div>

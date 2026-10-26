@@ -9,7 +9,7 @@ export default function PrivacyPolicyPage() {
     <Container className="py-8 sm:py-12 space-y-8 max-w-4xl">
       <PageHeader
         title="Privacy Policy"
-        description="How LiveCalicut protects citizen data and respects user privacy across Kozhikode Wards."
+        description="How LiveCalicut protects citizen data and respects user privacy across Calicut Wards."
         icon={<ShieldCheck className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[{ label: 'Privacy Policy' }]}
       />
@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-2">
           <h3 className="text-base font-bold text-[#111827] font-sans">1. Information We Collect</h3>
           <p>
-            When you register an account, post commercial business listings, submit job applications, or browse Kozhikode marketplace items, LiveCalicut collects basic contact details (full name, email address, phone number, and spatial ward location) necessary to connect citizens with verified local merchants.
+            When you register an account, post commercial business listings, submit job applications, or browse Calicut marketplace items, LiveCalicut collects basic contact details (full name, email address, phone number, and spatial ward location) necessary to connect citizens with verified local merchants.
           </p>
         </section>
 

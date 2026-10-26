@@ -87,7 +87,7 @@ export default function AdminReportsPage() {
           <Card className="p-12 text-center space-y-3 border border-[#E5E7EB] bg-white rounded-3xl">
             <ShieldAlert className="w-10 h-10 text-emerald-600 mx-auto" />
             <h3 className="text-lg font-bold text-[#111827]">Zero Pending Moderation Flags</h3>
-            <p className="text-xs text-[#6B7280]">All citizen reports across Kozhikode wards have been resolved!</p>
+            <p className="text-xs text-[#6B7280]">All citizen reports across Calicut wards have been resolved!</p>
           </Card>
         )}
       </div>

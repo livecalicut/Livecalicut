@@ -61,7 +61,7 @@ const QUICK_LINKS = [
   },
   {
     label: 'Events',
-    blurb: 'Happenings in Kozhikode',
+    blurb: 'Happenings in Calicut',
     href: '/events',
     icon: Calendar,
     iconClass: 'bg-pink-500',
@@ -277,14 +277,14 @@ export const HeroRedesign: React.FC<HeroRedesignProps> = ({
         ref={contentRef}
         className="relative z-10 mx-auto flex min-h-[720px] w-full max-w-5xl flex-col items-center justify-center px-4 pt-16 pb-24 text-center sm:min-h-[660px] sm:px-8 lg:h-full lg:min-h-0 lg:pb-20"
       >
-        <p className="text-[11px] font-bold tracking-[0.22em] text-white/90 uppercase">Discover Kozhikode</p>
+        <p className="text-[11px] font-bold tracking-[0.22em] text-white/90 uppercase">Discover Calicut</p>
         <h1 className="mt-3 text-[2rem] leading-[1.08] font-extrabold tracking-tight sm:text-5xl lg:text-[3.35rem]">
-          Everything Kozhikode.
+          Everything Calicut.
           <br />
           Connected in <span className="text-[#3B82F6]">One Place.</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-white/90 sm:text-base [@media(max-height:700px)]:hidden">
-          Discover local businesses, jobs, homes, and events across Kozhikode — all in one place.
+          Discover local businesses, jobs, homes, and events across Calicut — all in one place.
         </p>
 
         <form
@@ -293,14 +293,14 @@ export const HeroRedesign: React.FC<HeroRedesignProps> = ({
         >
           <Search className="h-5 w-5 shrink-0 text-[#2563EB]" aria-hidden />
           <label htmlFor="hero-search" className="sr-only">
-            What are you looking for in Kozhikode?
+            What are you looking for in Calicut?
           </label>
           <input
             id="hero-search"
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="What are you looking for in Kozhikode?"
+            placeholder="What are you looking for in Calicut?"
             className="h-11 min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:outline-none"
           />
           <div className="mx-1 hidden h-6 w-px shrink-0 bg-slate-200 sm:block" />

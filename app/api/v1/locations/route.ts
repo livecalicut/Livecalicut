@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ApiResponse } from '@/lib/api/response';
-import { createPublicClient } from '@/lib/supabase/server';
+import { createPublicClient, createAdminClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { KOZHIKODE_AREAS } from '@/config/constants';
 
@@ -120,9 +120,11 @@ export async function POST(request: Request) {
       return ApiResponse.error('VALIDATION_ERROR', 'Invalid location name', [], 400);
     }
 
+    const admin = await createAdminClient();
+
     let cityId = body.city_id as string | undefined;
     if (!cityId) {
-      const { data: city } = await auth.supabase
+      const { data: city } = await admin
         .from('cities')
         .select('id')
         .eq('slug', 'kozhikode')
@@ -134,13 +136,13 @@ export async function POST(request: Request) {
     if (!cityId) {
       return ApiResponse.error(
         'VALIDATION_ERROR',
-        'city_id is required (no default Kozhikode city found)',
+        'city_id is required (no default Calicut city found)',
         [],
         400
       );
     }
 
-    const { data, error } = await auth.supabase
+    const { data, error } = await admin
       .from('areas')
       .insert({
         name,

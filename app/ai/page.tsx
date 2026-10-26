@@ -16,7 +16,7 @@ export default function AiAssistantPage() {
     <div className="max-w-4xl mx-auto space-y-8 py-4">
       <PageHeader
         title="LiveCalicut AI Local Concierge"
-        description="Ask natural language questions to discover Kozhikode businesses, jobs, real estate & events."
+        description="Ask natural language questions to discover Calicut businesses, jobs, real estate & events."
         icon={<Bot className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[{ label: 'AI Concierge' }]}
       />
@@ -41,7 +41,7 @@ export default function AiAssistantPage() {
             <Bot className="w-4 h-4" /> AI Concierge Ready
           </p>
           <p>
-            I am grounded exclusively on verified LiveCalicut platform listings. Ask me anything about dining, vacancies, pre-owned items, or heritage spots in Kozhikode.
+            I am grounded exclusively on verified LiveCalicut platform listings. Ask me anything about dining, vacancies, pre-owned items, or heritage spots in Calicut.
           </p>
         </div>
 

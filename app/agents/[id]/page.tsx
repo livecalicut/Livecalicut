@@ -9,7 +9,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
     <div className="space-y-8 py-4">
       <PageHeader
         title="Real Estate Broker Profile"
-        description="Verified Real Estate Agent in Kozhikode."
+        description="Verified Real Estate Agent in Calicut."
         icon={<UserCheck className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Properties', href: '/properties' },

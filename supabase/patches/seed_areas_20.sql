@@ -1,11 +1,11 @@
--- Seed the 20 Kozhikode areas used by every location picker.
+-- Seed the 20 Calicut areas used by every location picker.
 -- Idempotent: re-running only refreshes names/pincodes/coords.
 -- Paste into Supabase Dashboard → SQL → New query → Run
 
 INSERT INTO public.cities (id, name, slug, state, status, is_active)
 VALUES (
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    'Kozhikode (Calicut)',
+    'Calicut',
     'kozhikode',
     'Kerala',
     'active',
@@ -16,7 +16,7 @@ ON CONFLICT (slug) DO NOTHING;
 INSERT INTO public.areas (id, city_id, name, slug, pincode, latitude, longitude, status, is_active)
 VALUES
     ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Cyberpark',        'cyberpark',        '673016', 11.2712, 75.8378, 'active', TRUE),
-    ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Kozhikode Beach',  'kozhikode-beach',  '673032', 11.2588, 75.7704, 'active', TRUE),
+    ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Calicut Beach',  'kozhikode-beach',  '673032', 11.2588, 75.7704, 'active', TRUE),
     ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a03', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Palayam',          'palayam',          '673002', 11.2551, 75.7804, 'active', TRUE),
     ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a04', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Mavoor Road',      'mavoor-road',      '673004', 11.2645, 75.7952, 'active', TRUE),
     ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a05', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Medical College',  'medical-college',  '673008', 11.2728, 75.8371, 'active', TRUE),

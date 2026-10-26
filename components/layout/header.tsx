@@ -100,7 +100,7 @@ export const Header: React.FC = () => {
     { href: '/tourism', label: 'Tourist Places', icon: Camera, desc: 'Lighthouse, Kappad, Beypore' },
     { href: '/restaurants', label: 'Food & Dining', icon: Utensils, desc: 'Malabar biryani, sweets & cafes' },
     { href: '/places?type=beaches', label: 'Beaches & Parks', icon: Palmtree, desc: 'Calicut Beach, South Beach' },
-    { href: '/news', label: 'Local Stories & Culture', icon: Newspaper, desc: 'Kozhikode heritage & news' },
+    { href: '/news', label: 'Local Stories & Culture', icon: Newspaper, desc: 'Calicut heritage & news' },
   ];
 
   const roleNames =
@@ -124,7 +124,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className={`sticky top-0 z-40 w-full bg-[#0B1E4B] text-white ${scrolled ? 'shadow-lg' : ''}`}>
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-[4.5rem] max-w-[1440px] items-center gap-3 px-3 sm:px-6 lg:px-8">
           <div className="flex shrink-0 items-center gap-3">
             <LiveCalicutLogo tone="light" />
           </div>
@@ -139,7 +139,7 @@ export const Header: React.FC = () => {
                 }
               }}
               tone="nav"
-              allLabel="Kozhikode"
+              allLabel="Calicut"
             />
           </div>
 
@@ -192,7 +192,7 @@ export const Header: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[100] lg:hidden bg-white flex flex-col animate-in fade-in duration-150">
             {/* Mobile Menu Top Header Bar */}
-            <div className="h-16 px-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+            <div className="h-[4.5rem] px-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
               <LiveCalicutLogo />
               <button
                 type="button"
@@ -304,7 +304,7 @@ export const Header: React.FC = () => {
                 )}
               </div>
 
-              {/* Explore Kozhikode Sublinks */}
+              {/* Explore Calicut Sublinks */}
               <div className="space-y-1.5">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1">
                   Explore Calicut

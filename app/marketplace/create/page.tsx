@@ -90,7 +90,7 @@ export default function CreateMarketplaceItemPage() {
     <div className="max-w-2xl mx-auto space-y-8 py-4">
       <PageHeader
         title="Post Pre-owned Item for Sale"
-        description="List your item in Kozhikode Buy & Sell marketplace for local buyers."
+        description="List your item in Calicut Buy & Sell marketplace for local buyers."
         icon={<ShoppingBag className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Marketplace', href: '/marketplace' },
@@ -103,7 +103,7 @@ export default function CreateMarketplaceItemPage() {
           <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto animate-bounce" />
           <h3 className="text-xl font-bold text-[#111827]">Classified Listing Posted!</h3>
           <p className="text-xs text-[#6B7280]">
-            Your item is live on Kozhikode Buy & Sell Marketplace. Redirecting to catalog...
+            Your item is live on Calicut Buy & Sell Marketplace. Redirecting to catalog...
           </p>
         </Card>
       ) : (

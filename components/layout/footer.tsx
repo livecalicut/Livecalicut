@@ -20,9 +20,9 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-12 border-b border-slate-800/80">
           {/* Col 1: Brand & Social (4 cols) */}
           <div className="lg:col-span-4 space-y-5">
-            <LiveCalicutLogo showSubtitle={false} tone="light" />
+            <LiveCalicutLogo tone="light" />
             <p className="text-xs sm:text-[13px] text-slate-400 font-normal leading-relaxed max-w-sm">
-              Your trusted local platform for businesses, opportunities, services and everything Kozhikode.
+              Your trusted local platform for businesses, opportunities, services and everything Calicut.
             </p>
 
             {/* Social Icons */}
@@ -205,7 +205,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-1.5 font-medium text-slate-300">
             <span>Made with</span>
             <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
-            <span>for Kozhikode</span>
+            <span>for Calicut</span>
           </div>
 
           <p className="font-serif italic text-blue-300 text-xs sm:text-[13px] select-none">

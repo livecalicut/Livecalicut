@@ -126,7 +126,7 @@ export class IntentEngine {
       property_search: 'User is searching for property (rent/buy)',
       marketplace_search: 'User is browsing buy/sell classifieds',
       event_search: 'User is looking for upcoming events',
-      tourism_explore: 'User wants to explore Kozhikode tourist spots',
+      tourism_explore: 'User wants to explore Calicut tourist spots',
       restaurant_search: 'User is looking for food / restaurants',
       hotel_search: 'User needs hotel or accommodation',
       merchant_insight: 'Merchant seeking business analytics insight',

@@ -16,7 +16,7 @@ async function fix() {
   const roles = [
     { name: 'Guest', description: 'Unauthenticated public visitor' },
     { name: 'User', description: 'Authenticated resident user' },
-    { name: 'Merchant', description: 'Kozhikode business owner and service provider' },
+    { name: 'Merchant', description: 'Calicut business owner and service provider' },
     { name: 'Moderator', description: 'Content & review moderation editor' },
     { name: 'City Admin', description: 'Municipal content administrator' },
     { name: 'Super Admin', description: 'Full platform engine superuser' }

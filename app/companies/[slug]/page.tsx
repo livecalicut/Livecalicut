@@ -6,7 +6,7 @@ import { Building, MapPin, Globe, Phone, Mail } from 'lucide-react';
 
 export default async function CompanyProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const companyName = slug ? slug.replace(/-/g, ' ').toUpperCase() : 'CYBERPARK SOFTWARE SOLUTIONS';
+  const companyName = slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'CYBERPARK SOFTWARE SOLUTIONS';
 
   const company = {
     name: companyName,
@@ -16,7 +16,7 @@ export default async function CompanyProfilePage({ params }: { params: Promise<{
     email: 'careers@cyberpark.in',
     phone: '+91 495 255 1200',
     description: `
-      Cyberpark Software Solutions is a premier technology firm operating within Hilite Cyberpark cluster in Kozhikode, delivering modern Web, Mobile, and Cloud software solutions to international clients.
+      Cyberpark Software Solutions is a premier technology firm operating within Hilite Cyberpark cluster in Calicut, delivering modern Web, Mobile, and Cloud software solutions to international clients.
     `,
   };
 

@@ -124,7 +124,7 @@ export default function MerchantProfilePage() {
             </label>
             <textarea
               rows={4}
-              defaultValue="Iconic Malabar dining experience located near Mavoor Road Junction, Kozhikode. Renowned for authentic Malabar Dum Biryani, fresh seafood specialties, and traditional Kerala hospitality."
+              defaultValue="Iconic Malabar dining experience located near Mavoor Road Junction, Calicut. Renowned for authentic Malabar Dum Biryani, fresh seafood specialties, and traditional Kerala hospitality."
               className="w-full p-3.5 text-xs font-medium rounded-xl border border-[#E5E7EB] bg-white text-[#111827] focus:border-[#2563EB] focus:outline-none"
             />
           </div>

@@ -16,7 +16,7 @@ export const TrendingSearchesWidget: React.FC<TrendingSearchesWidgetProps> = ({
     <div className="space-y-3">
       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
         <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-pulse" />
-        Trending Searches in Kozhikode
+        Trending Searches in Calicut
       </div>
 
       <div className="flex flex-wrap gap-2">

@@ -14,7 +14,7 @@ interface OrganizerCardProps {
 export const OrganizerCard: React.FC<OrganizerCardProps> = ({
   name,
   avatar,
-  description = 'Official Kozhikode Cultural Event Host & Promotion Desk',
+  description = 'Official Calicut Cultural Event Host & Promotion Desk',
   phone = '+91 495 270 0000',
 }) => {
   return (

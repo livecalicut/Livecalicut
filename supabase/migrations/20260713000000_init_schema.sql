@@ -52,7 +52,7 @@ CREATE TABLE public.businesses (
     email TEXT,
     website TEXT,
     address TEXT NOT NULL,
-    ward_location TEXT NOT NULL, -- e.g., Mavoor Road, Kozhikode Beach, Palayam, Cyberpark
+    ward_location TEXT NOT NULL, -- e.g., Mavoor Road, Calicut Beach, Palayam, Cyberpark
     latitude NUMERIC(10, 7),
     longitude NUMERIC(10, 7),
     logo_url TEXT,

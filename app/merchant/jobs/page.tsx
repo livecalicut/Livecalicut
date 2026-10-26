@@ -9,16 +9,9 @@ import { Briefcase, Plus, Search, Users, ExternalLink, CheckCircle2, XCircle, Ca
 export default function MerchantJobsPage() {
   const [activeTab, setActiveTab] = useState<'openings' | 'applicants'>('openings');
 
-  const [jobListings, setJobListings] = useState([
-    { id: '1', title: 'Head Culinary Chef (Malabar Cuisine)', type: 'Full Time', salary: '₹35,000 - ₹45,000 / mo', applicantsCount: 14, status: 'Active' },
-    { id: '2', title: 'Cyberpark Fullstack React Engineer', type: 'Full Time (Cyberpark)', salary: '₹65,000 - ₹95,000 / mo', applicantsCount: 28, status: 'Active' },
-  ]);
+  const [jobListings] = useState<Array<{ id: string; title: string; type: string; salary: string; applicantsCount: number; status: string }>>([]);
 
-  const [applicants, setApplicants] = useState([
-    { id: 'app-1', candidateName: 'Arjun Nair', position: 'Cyberpark Fullstack React Engineer', email: 'arjun@example.com', phone: '+91 98765 43210', experience: '4 Years', resumeUrl: 'https://drive.google.com/resume.pdf', status: 'Shortlisted' },
-    { id: 'app-2', candidateName: 'Fayiz K.', position: 'Head Culinary Chef (Malabar Cuisine)', email: 'fayiz@example.com', phone: '+91 98470 12345', experience: '6 Years', resumeUrl: 'https://drive.google.com/resume2.pdf', status: 'Applied' },
-    { id: 'app-3', candidateName: 'Deepa V.', position: 'Cyberpark Fullstack React Engineer', email: 'deepa@example.com', phone: '+91 94471 99887', experience: '3 Years', resumeUrl: 'https://drive.google.com/resume3.pdf', status: 'Interview Scheduled' },
-  ]);
+  const [applicants, setApplicants] = useState<Array<{ id: string; candidateName: string; position: string; email: string; phone: string; experience: string; resumeUrl: string; status: string }>>([]);
 
   const updateCandidateStatus = (id: string, newStatus: string) => {
     setApplicants(applicants.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
@@ -66,6 +59,9 @@ export default function MerchantJobsPage() {
       {/* Tab 1: Job Postings */}
       {activeTab === 'openings' && (
         <div className="space-y-4">
+          {jobListings.length === 0 && (
+            <Card className="p-10 text-center text-sm font-semibold text-[#6B7280]">No job postings yet. Create a vacancy to see it here.</Card>
+          )}
           {jobListings.map((j) => (
             <Card key={j.id} className="p-5 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between gap-4">
               <div className="space-y-1">
@@ -100,6 +96,13 @@ export default function MerchantJobsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                {applicants.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-10 text-center text-sm font-semibold text-[#6B7280]">
+                      No applications yet.
+                    </td>
+                  </tr>
+                )}
                 {applicants.map((a) => (
                   <tr key={a.id} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="py-4 px-6 font-semibold">

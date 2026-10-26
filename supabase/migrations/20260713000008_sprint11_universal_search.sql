@@ -85,7 +85,7 @@ CREATE POLICY "Users insert history" ON public.search_history FOR INSERT WITH CH
 CREATE POLICY "Users delete own history" ON public.search_history FOR DELETE USING (auth.uid() = user_id);
 
 ----------------------------------------------------
--- Seed Popular Trending Searches for Kozhikode
+-- Seed Popular Trending Searches for Calicut
 ----------------------------------------------------
 INSERT INTO public.popular_searches (id, city_id, keyword, search_count, is_trending) VALUES
 ('i1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Malabar Biryani Paragon', 450, true),

@@ -34,7 +34,8 @@ export class PromptBuilder {
   }
 
   private static buildSystemPrompt(context: AIContext): string {
-    const cityName = context.citySlug === 'calicut' ? 'Kozhikode (Calicut)' : context.citySlug;
+    const cityName =
+      context.citySlug === 'calicut' || context.citySlug === 'kozhikode' ? 'Calicut' : context.citySlug;
     const hasData = Object.keys(context.relevantData).length > 0 &&
                     !context.relevantData.error;
 
@@ -60,7 +61,7 @@ You can help users discover:
 - Properties for rent or sale
 - Buy/sell classifieds (marketplace)
 - Events, festivals, and cultural activities
-- Tourist spots, beaches, historical places in Kozhikode
+- Tourist spots, beaches, historical places in Calicut
 - Hotels, resorts, and homestays${dataSection}
 
 ## Response Style

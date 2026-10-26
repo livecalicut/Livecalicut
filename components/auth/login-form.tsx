@@ -18,7 +18,8 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { LogIn, Mail, Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
 
 const ROLE_LANDING: Record<string, string> = {
   'Super Admin': '/admin',
@@ -104,8 +105,8 @@ export const LoginForm: React.FC = () => {
   return (
     <Card className="max-w-md w-full mx-auto p-6 shadow-xl border border-[#E5E7EB] bg-white rounded-3xl">
       <CardHeader className="text-center space-y-2 pb-2">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] mx-auto">
-          <LogIn className="w-6 h-6" />
+        <div className="flex justify-center pb-1">
+          <LiveCalicutLogo showSubtitle={false} size="lg" />
         </div>
         <CardTitle className="text-2xl font-bold text-[#111827] font-sans">Welcome Back</CardTitle>
         <CardDescription className="text-sm text-[#6B7280]">

@@ -109,7 +109,7 @@ export default function AdminEventsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
             <Calendar className="w-7 h-7 text-[#2563EB]" />
-            <span>Kozhikode Cultural Events Desk</span>
+            <span>Calicut Cultural Events Desk</span>
           </h1>
           <p className="text-sm text-[#6B7280]">
             Approve cultural programs, literary fests, and community schedules across Calicut
@@ -231,7 +231,7 @@ export default function AdminEventsPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#2563EB] font-semibold">
-              🎭 Once published, this event will be live on the Kozhikode Cultural Events feed.
+              🎭 Once published, this event will be live on the Calicut Cultural Events feed.
             </div>
 
             {error && (
@@ -281,7 +281,7 @@ export default function AdminEventsPage() {
                     type="text"
                     value={formVenue}
                     onChange={(e) => setFormVenue(e.target.value)}
-                    placeholder="e.g. Mananchira Square, Kozhikode"
+                    placeholder="e.g. Mananchira Square, Calicut"
                     className={INPUT}
                   />
                 </div>

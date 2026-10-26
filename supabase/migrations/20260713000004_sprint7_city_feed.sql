@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.news (
     category_id UUID REFERENCES public.news_categories(id) ON DELETE RESTRICT NOT NULL,
     tags JSONB DEFAULT '[]'::jsonb NOT NULL,
     author TEXT DEFAULT 'LiveCalicut Editorial' NOT NULL,
-    source TEXT DEFAULT 'Kozhikode News Desk',
+    source TEXT DEFAULT 'Calicut News Desk',
     city_id UUID REFERENCES public.cities(id) ON DELETE CASCADE NOT NULL,
     area_id UUID REFERENCES public.areas(id) ON DELETE SET NULL,
     published_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,

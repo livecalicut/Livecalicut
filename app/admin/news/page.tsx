@@ -96,7 +96,12 @@ export default function AdminNewsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'news', entityId: id, hardDelete: true }),
     });
-    if (res.ok) loadNews();
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      alert(json.error || 'Could not delete this article');
+      return;
+    }
+    loadNews();
   };
 
   const filteredNews = newsArticles.filter((n) =>
@@ -109,7 +114,7 @@ export default function AdminNewsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
             <Newspaper className="w-7 h-7 text-[#2563EB]" />
-            <span>Kozhikode News & Editorial Desk</span>
+            <span>Calicut News & Editorial Desk</span>
           </h1>
           <p className="text-sm text-[#6B7280]">
             Publish civic announcements, manage local breaking news, and curate editorial features
@@ -254,7 +259,7 @@ export default function AdminNewsPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#2563EB] font-semibold">
-              Once published, this article immediately appears in the &quot;Today in Kozhikode&quot; section
+              Once published, this article immediately appears in the &quot;Today in Calicut&quot; section
               on the homepage.
             </div>
 
@@ -268,7 +273,7 @@ export default function AdminNewsPage() {
                   required
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Kozhikode Smart City Project Phase 3 Launched"
+                  placeholder="e.g. Calicut Smart City Project Phase 3 Launched"
                   className="w-full h-11 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF]"
                 />
               </div>

@@ -26,7 +26,7 @@ export default function ExperiencesCatalogPage() {
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
         title="Food Trails & Experiential Activities"
-        description="Guided SM Street Halwa tasting walks, Chaliyar river backwater cruises & heritage sunset tours in Kozhikode."
+        description="Guided SM Street Halwa tasting walks, Chaliyar river backwater cruises & heritage sunset tours in Calicut."
         icon={<Compass className="w-6 h-6 text-[#2563EB]" />}
         breadcrumbs={[
           { label: 'Explore', href: '/explore' },
@@ -43,7 +43,7 @@ export default function ExperiencesCatalogPage() {
         <EmptyState
           icon={<Compass className="w-8 h-8 text-[#2563EB]" />}
           title="No experiences listed yet"
-          description="There are currently no guided tours or experiential activities scheduled. Check out places to visit in Kozhikode."
+          description="There are currently no guided tours or experiential activities scheduled. Check out places to visit in Calicut."
           actionLabel="Explore Places"
           actionHref="/explore"
         />
@@ -66,7 +66,7 @@ export default function ExperiencesCatalogPage() {
                 </h4>
                 <p className="text-xs text-slate-500 truncate flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                  {exp.location || 'Kozhikode'}
+                  {exp.location || 'Calicut'}
                 </p>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">

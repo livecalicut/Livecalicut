@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
 import { RoleBadge } from '@/components/auth/role-badge';
 import { useBreadcrumbs } from '@/components/dashboard/use-breadcrumbs';
 
@@ -151,6 +152,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {drawerOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
 
+        <LiveCalicutLogo showSubtitle={false} size="sm" className="hidden sm:inline-flex" />
         <nav
           aria-label="Breadcrumb"
           className="flex min-w-0 items-center gap-2 text-xs font-semibold text-[#6B7280]"

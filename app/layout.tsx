@@ -4,16 +4,16 @@ import { AppProviders } from '@/components/providers/app-providers';
 import { PageContainer } from '@/components/layout/PageContainer';
 
 export const metadata: Metadata = {
-  title: 'LiveCalicut - Hyperlocal Portal for Kozhikode & Kerala',
+  title: 'LiveCalicut - Hyperlocal Portal for Calicut & Kerala',
   description:
-    'Discover shops, dining spots, employment opportunities, local news, events, and classifieds across Kozhikode.',
+    'Discover shops, dining spots, employment opportunities, local news, events, and classifieds across Calicut.',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: '/favicon.svg',
-    apple: '/apple-icon.svg',
+    shortcut: '/favicon.png',
+    apple: '/apple-icon.png',
   },
 };
 

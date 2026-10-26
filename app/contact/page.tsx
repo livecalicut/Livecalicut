@@ -6,7 +6,7 @@ import { SITE_WHATSAPP_DISPLAY, SITE_WHATSAPP_E164, siteWhatsAppHref } from '@/c
 
 export const metadata = {
   title: 'Contact — LiveCalicut',
-  description: 'Get in touch with the LiveCalicut team in Kozhikode.',
+  description: 'Get in touch with the LiveCalicut team in Calicut.',
 };
 
 export default function ContactPage() {
@@ -22,7 +22,7 @@ export default function ContactPage() {
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#6B7280]">
             Questions about listings, merchant onboarding, jobs, or city partnerships? Reach the
-            Kozhikode team directly — we respond on business days.
+            Calicut team directly — we respond on business days.
           </p>
         </div>
 
@@ -37,7 +37,7 @@ export default function ContactPage() {
                 <p>
                   LiveCalicut City Desk
                   <br />
-                  Kozhikode, Kerala — India
+                  Calicut, Kerala — India
                   <br />
                   Serving 21 spatial wards across Calicut
                 </p>

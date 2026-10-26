@@ -13,7 +13,7 @@ import { User, Mail, Phone, MapPin, LogOut, Save, AlertCircle, CheckCircle2, Loa
 export const ProfileForm: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [roleName, setRoleName] = useState<string>('User');
-  const [cityName, setCityName] = useState<string>('Kozhikode (Calicut)');
+  const [cityName, setCityName] = useState<string>('Calicut');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');

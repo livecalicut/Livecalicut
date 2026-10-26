@@ -9,15 +9,15 @@ export default async function HotelDetailsPage({ params }: { params: Promise<{ s
   const { slug } = await params;
 
   const hotel = {
-    name: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'THE GATEWAY HOTEL BEACH ROAD (TAJ)',
-    location: 'PT Usha Road, Kozhikode Wards',
+    name: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'THE GATEWAY HOTEL BEACH ROAD (TAJ)',
+    location: 'PT Usha Road, Calicut Wards',
     starRating: 5,
     startingPrice: '₹6,500 / night',
     phone: '+91 495 661 3000',
     website: 'https://tajhotels.com',
     amenities: ['Ayurvedic Spa & Wellness', 'Swimming Pool', 'Seafood Specialty Dining', 'Ocean View Balconies', 'Conference Center'],
     description: `
-      Experience Taj hospitality at The Gateway Hotel Beach Road, Kozhikode.
+      Experience Taj hospitality at The Gateway Hotel Beach Road, Calicut.
       Nestled near historic sea pier waterfront, offering Ayurvedic wellness treatments, outdoor pool, and authentic Malabar seafood dining.
     `,
   };

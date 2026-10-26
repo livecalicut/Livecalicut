@@ -65,7 +65,7 @@ export const AdvertiseSection: React.FC = () => {
                   Advertise with LiveCalicut
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 max-w-xl font-normal leading-relaxed">
-                  Reach thousands of customers across Kozhikode daily. Boost footfall, inquiries and revenue with targeted advertising packages.
+                  Reach thousands of customers across Calicut daily. Boost footfall, inquiries and revenue with targeted advertising packages.
                 </p>
               </div>
             </div>

@@ -43,7 +43,12 @@ export default function AdminJobsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'job', entityId: id, hardDelete: true })
     });
-    if (res.ok) loadJobs();
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      alert(json.error || 'Could not delete this job');
+      return;
+    }
+    loadJobs();
   };
 
   const filteredJobs = jobsList.filter((j) => j.title?.toLowerCase().includes(search.toLowerCase()) || j.businesses?.name?.toLowerCase().includes(search.toLowerCase()));

@@ -23,8 +23,8 @@ export default function CompaniesDirectoryPage() {
   return (
     <Container className="py-6 sm:py-10 space-y-8">
       <PageHeader
-        title="Kozhikode Employers & Companies"
-        description="Explore top technology firms, retail enterprises & healthcare organizations hiring in Kozhikode."
+        title="Calicut Employers & Companies"
+        description="Explore top technology firms, retail enterprises & healthcare organizations hiring in Calicut."
         icon={<Building className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Jobs', href: '/jobs' },
@@ -54,7 +54,7 @@ export default function CompaniesDirectoryPage() {
               slug={c.slug || c.id}
               industry={c.industry || 'Business & Technology'}
               openingsCount={c.openings_count || 0}
-              location={c.location || c.address || 'Kozhikode'}
+              location={c.location || c.address || 'Calicut'}
             />
           ))}
         </ResponsiveGrid>

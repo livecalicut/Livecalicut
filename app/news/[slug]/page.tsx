@@ -10,15 +10,15 @@ export default async function NewsDetailsPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
 
   const article = {
-    title: slug ? slug.replace(/-/g, ' ').toUpperCase() : 'KOZHIKODE BEACH PROMENADE RENOVATION COMPLETED',
+    title: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'CALICUT BEACH PROMENADE RENOVATION COMPLETED',
     category: 'Infrastructure & City Planning',
     publishedAt: 'July 12, 2026 • 2 hours ago',
     author: 'LiveCalicut Editorial Desk',
     ward: 'Ward 12 Beach Road, Calicut',
     viewsCount: 1420,
-    summary: 'New eco-friendly seating, decorative lighting, and street food vending kiosks opened along Kozhikode Beach promenade.',
+    summary: 'New eco-friendly seating, decorative lighting, and street food vending kiosks opened along Calicut Beach promenade.',
     content: `
-      KOZHIKODE — The District Administration and Tourism Development Department have officially declared the Kozhikode Beach Promenade Renovation Project phase 1 complete.
+      CALICUT — The District Administration and Tourism Development Department have officially declared the Calicut Beach Promenade Renovation Project phase 1 complete.
       
       The renovated stretch features modern heritage streetlight posts, eco-friendly benches, improved pedestrian walkways, dedicated sanitation facilities, and integrated waste disposal bins to support evening tourists and local families.
       

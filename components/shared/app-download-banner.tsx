@@ -7,11 +7,11 @@ export const AppDownloadBanner: React.FC = () => {
         <div className="lg:col-span-8 space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 text-white text-xs font-bold backdrop-blur-md">
             <Smartphone className="w-3.5 h-3.5" />
-            <span>Official Kozhikode Companion App</span>
+            <span>Official Calicut Companion App</span>
           </div>
 
           <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight font-sans">
-            Carry Kozhikode in Your Pocket
+            Carry Calicut in Your Pocket
           </h3>
 
           <p className="text-[16px] text-blue-100 max-w-2xl leading-relaxed font-normal">
@@ -40,7 +40,7 @@ export const AppDownloadBanner: React.FC = () => {
             </div>
             <div className="space-y-2 text-center my-auto">
               <ShieldCheck className="w-12 h-12 text-blue-200 mx-auto" />
-              <p className="text-xs font-semibold text-white">Verified Kozhikode Platform</p>
+              <p className="text-xs font-semibold text-white">Verified Calicut Platform</p>
               <p className="text-[10px] text-blue-200">21 Wards Coverage</p>
             </div>
             <div className="w-full py-2 bg-white/20 rounded-xl text-[11px] font-bold text-center text-white">

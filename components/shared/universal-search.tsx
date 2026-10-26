@@ -87,7 +87,7 @@ export const UniversalSearch: React.FC<UniversalSearchProps> = ({
         onBlur={() => setFocused(false)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        aria-label="Search Kozhikode"
+        aria-label="Search Calicut"
         autoComplete="off"
         spellCheck={false}
         className="h-full w-full border-none bg-transparent py-0 pl-10 pr-10 text-[14px] font-medium text-[#111827] outline-none placeholder:text-[#9CA3AF] sm:text-[15px]"

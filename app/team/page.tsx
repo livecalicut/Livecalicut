@@ -4,14 +4,14 @@ import { Container } from '@/components/layout/container';
 
 export const metadata = {
   title: 'Our Team — LiveCalicut',
-  description: 'Meet the people building Kozhikode’s digital operating system.',
+  description: 'Meet the people building Calicut’s digital operating system.',
 };
 
 const TEAM = [
   {
     name: 'City Operations',
     role: 'Ward verification & merchant onboarding',
-    focus: 'Physical checks across Kozhikode wards, outlet approvals, and merchant support.',
+    focus: 'Physical checks across Calicut wards, outlet approvals, and merchant support.',
     icon: Building2,
   },
   {
@@ -43,7 +43,7 @@ export default function TeamPage() {
             Our Team
           </p>
           <h1 className="mt-2 font-sans text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
-            Built in Kozhikode, for Kozhikode
+            Built in Calicut, for Calicut
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#6B7280]">
             LiveCalicut is run by a local team focused on verified commerce, jobs, news, and civic
@@ -74,7 +74,7 @@ export default function TeamPage() {
           <h2 className="text-xl font-bold text-[#111827]">Want to work with us?</h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#6B7280]">
             Merchants, Cyberpark employers, journalists, and civic partners — tell us what you’re
-            building in Kozhikode. We’ll route you to the right desk.
+            building in Calicut. We’ll route you to the right desk.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

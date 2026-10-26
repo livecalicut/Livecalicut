@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
-import { FolderTree, Plus, Search, Layers, X, Edit3, Loader2 } from 'lucide-react';
+import { FolderTree, Plus, Search, X, Edit3, Loader2, Trash2 } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 interface CategoryNode {
@@ -65,18 +65,16 @@ export default function AdminCategoriesPage() {
     if (!formName) return;
 
     setSubmitting(true);
-    const supabase = createClient();
-    const slug = formName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-
-    let tableName = 'business_categories';
-    if (formModule === 'jobs') tableName = 'job_categories';
-    if (formModule === 'marketplace') tableName = 'marketplace_categories';
-    if (formModule === 'properties') tableName = 'property_categories';
 
     try {
-      const { error } = await supabase.from(tableName).insert({ name: formName, slug });
-      if (error) throw error;
-      toast.success('Category Added', `Created "${formName}" in ${formModule}`);
+      const res = await fetch('/api/v1/admin/taxonomy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resource: 'category', module: formModule, name: formName }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not create category node');
+      toast.success('Category Added', `Created "${formName}"`);
       setShowCreateModal(false);
       setFormName('');
       fetchTaxonomy();
@@ -92,12 +90,15 @@ export default function AdminCategoriesPage() {
     if (!editingNode || !formName) return;
 
     setSubmitting(true);
-    const supabase = createClient();
-    const slug = formName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     try {
-      const { error } = await supabase.from(editingNode.table).update({ name: formName, slug }).eq('id', editingNode.id);
-      if (error) throw error;
+      const res = await fetch('/api/v1/admin/taxonomy', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: editingNode.table, id: editingNode.id, name: formName }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not update category node');
       toast.success('Category Updated', `Updated node to "${formName}"`);
       setShowEditModal(false);
       setEditingNode(null);
@@ -107,6 +108,31 @@ export default function AdminCategoriesPage() {
       toast.error('Error', err.message || 'Could not update category node');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const deleteNode = async (node: CategoryNode) => {
+    if (!window.confirm(`Delete “${node.name}”? Categories still used by listings cannot be removed.`)) return;
+    const entityType =
+      {
+        business_categories: 'business_category',
+        job_categories: 'job_category',
+        news_categories: 'news_category',
+        marketplace_categories: 'marketplace_category',
+        property_categories: 'property_category',
+      }[node.table] || 'business_category';
+    try {
+      const res = await fetch('/api/v1/admin/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entityType, entityId: node.id, hardDelete: true }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not delete category');
+      toast.success('Category removed', node.name);
+      fetchTaxonomy();
+    } catch (err: unknown) {
+      toast.error('Delete failed', err instanceof Error ? err.message : 'Could not delete category');
     }
   };
 
@@ -170,16 +196,25 @@ export default function AdminCategoriesPage() {
 
               <div className="pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs">
                 <span className="font-bold text-[#2563EB]">Active Node</span>
-                <button
-                  onClick={() => {
-                    setEditingNode(c);
-                    setFormName(c.name);
-                    setShowEditModal(true);
-                  }}
-                  className="text-[#6B7280] hover:text-[#2563EB] font-bold inline-flex items-center gap-1"
-                >
-                  <Edit3 className="w-3.5 h-3.5" /> Edit Node
-                </button>
+                <span className="inline-flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setEditingNode(c);
+                      setFormName(c.name);
+                      setShowEditModal(true);
+                    }}
+                    className="text-[#6B7280] hover:text-[#2563EB] font-bold inline-flex items-center gap-1"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteNode(c)}
+                    className="text-rose-500 hover:text-rose-700 font-bold inline-flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </button>
+                </span>
               </div>
             </Card>
           ))}

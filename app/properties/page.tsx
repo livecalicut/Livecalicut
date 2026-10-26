@@ -54,8 +54,8 @@ export default function PropertiesHomePage() {
   return (
     <Container className="py-8 sm:py-12 space-y-8">
       <PageHeader
-        title="Kozhikode Real Estate & Properties"
-        description="Explore luxury villas, 2/3 BHK apartments, commercial offices & plots for sale or rent across Kozhikode."
+        title="Calicut Real Estate & Properties"
+        description="Explore luxury villas, 2/3 BHK apartments, commercial offices & plots for sale or rent across Calicut."
         icon={<Building className="w-6 h-6" />}
         breadcrumbs={[{ label: 'Properties & Real Estate' }]}
         action={
@@ -126,7 +126,7 @@ export default function PropertiesHomePage() {
       <div className="space-y-6">
         <SectionTitle
           title={isLoading ? 'Loading real estate…' : `${total.toLocaleString()} active properties`}
-          subtitle={q ? `Showing results for "${q}"` : 'Verified real estate listings in Kozhikode'}
+          subtitle={q ? `Showing results for "${q}"` : 'Verified real estate listings in Calicut'}
         />
 
         {isLoading && <ListSkeleton count={LIMIT} cols={3} />}
@@ -193,7 +193,7 @@ export default function PropertiesHomePage() {
                       </h4>
                       <p className="text-xs text-slate-500 flex items-center gap-1 truncate">
                         <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{prop.location || prop.area || 'Kozhikode'}</span>
+                        <span className="truncate">{prop.location || prop.area || 'Calicut'}</span>
                       </p>
                     </div>
 

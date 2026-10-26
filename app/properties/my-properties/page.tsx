@@ -9,7 +9,7 @@ export default function MyPropertiesPage() {
   const myProperties = [
     {
       id: '1',
-      title: 'Luxury 3 BHK Villa in Kozhikode Bypass',
+      title: 'Luxury 3 BHK Villa in Calicut Bypass',
       price: '₹1.25 Cr',
       status: 'published',
       views: 310,

@@ -6,13 +6,13 @@ import { UserCheck } from 'lucide-react';
 
 export default async function OrganizerProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const organizerName = slug ? slug.replace(/-/g, ' ').toUpperCase() : 'KOZHIKODE CULTURAL SOCIETY';
+  const organizerName = slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'CALICUT CULTURAL SOCIETY';
 
   return (
     <div className="space-y-8 py-4">
       <PageHeader
         title={organizerName}
-        description="Official Event Host & Cultural Promoter in Kozhikode."
+        description="Official Event Host & Cultural Promoter in Calicut."
         icon={<UserCheck className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'City Events', href: '/events' },

@@ -135,7 +135,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h4 className="text-base font-bold text-[#111827]">City Alerts & Notifications</h4>
-              <p className="text-xs text-[#6B7280]">Receive emergency civic updates and daily Kozhikode highlights</p>
+              <p className="text-xs text-[#6B7280]">Receive emergency civic updates and daily Calicut highlights</p>
             </div>
           </div>
           <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">

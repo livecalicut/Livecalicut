@@ -55,7 +55,7 @@ export default function MerchantReviewsPage() {
           <span>Customer Reviews & Feedback Stream</span>
         </h1>
         <p className="text-sm text-[#6B7280]">
-          Reviews synced from your live business listings in Kozhikode.
+          Reviews synced from your live business listings in Calicut.
         </p>
       </div>
 

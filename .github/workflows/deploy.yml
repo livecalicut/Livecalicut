@@ -1,0 +1,36 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: livecalicut-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and restart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SSH_PRIVATE_KEY}" ] || [ -z "${SSH_HOST}" ] || [ -z "${SSH_USER}" ]; then
+            echo "GitHub Actions SSH secrets are not set."
+            echo "The server still checks origin/main every minute and deploys on its own."
+            exit 0
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/livecalicut_deploy
+          chmod 600 ~/.ssh/livecalicut_deploy
+          ssh -i ~/.ssh/livecalicut_deploy \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=accept-new \
+            "${SSH_USER}@${SSH_HOST}" \
+            deploy

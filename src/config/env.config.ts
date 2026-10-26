@@ -9,7 +9,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().default('https://placeholder-project.supabase.co'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().default('placeholder-anon-key'),
   NEXT_PUBLIC_APP_NAME: z.string().default('LiveCalicut Hyperlocal Portal'),
-  NEXT_PUBLIC_APP_DEFAULT_CITY: z.string().default('Kozhikode (Calicut)'),
+  NEXT_PUBLIC_APP_DEFAULT_CITY: z.string().default('Calicut'),
   NEXT_PUBLIC_APP_DEFAULT_LAT: z.coerce.number().default(11.2588),
   NEXT_PUBLIC_APP_DEFAULT_LNG: z.coerce.number().default(75.7804),
   NEXT_PUBLIC_ENABLE_MARKETPLACE: z.preprocess(

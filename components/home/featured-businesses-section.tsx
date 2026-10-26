@@ -66,7 +66,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
-                Verified top-tier businesses, dining spots &amp; premier enterprises in Kozhikode
+                Verified top-tier businesses, dining spots &amp; premier enterprises in Calicut
               </p>
             </div>
           </div>
@@ -161,7 +161,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
                     <div className="space-y-3 pt-3 border-t border-slate-100">
                       <div className="flex items-center gap-1.5 text-xs text-slate-600 truncate">
                         <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                        <span className="truncate font-medium">{biz.location || 'Kozhikode, Kerala'}</span>
+                        <span className="truncate font-medium">{biz.location || 'Calicut, Kerala'}</span>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 pt-1">
@@ -211,7 +211,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
             {[
               {
                 title: 'Spotlight Your Business',
-                desc: 'Reach Kozhikode shoppers, diners & clients looking for verified local services daily.',
+                desc: 'Reach Calicut shoppers, diners & clients looking for verified local services daily.',
                 badge: 'Homepage Prime Spot',
                 icon: Crown,
               },
@@ -229,7 +229,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
               },
               {
                 title: 'Local Retail & Services',
-                desc: 'Drive calls, footfall and WhatsApp inquiries directly to your store in Kozhikode.',
+                desc: 'Drive calls, footfall and WhatsApp inquiries directly to your store in Calicut.',
                 badge: 'Business Boost',
                 icon: TrendingUp,
               },

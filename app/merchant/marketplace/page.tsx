@@ -7,11 +7,7 @@ import { ShoppingBag, Plus, Search, Tag, Eye, MessageCircle, Trash2 } from 'luci
 export default function MerchantMarketplacePage() {
   const [search, setSearch] = useState('');
 
-  const [itemsings, setItemsings] = useState([
-    { id: '1', title: 'Commercial Stainless Steel Deep Fryer', price: '₹14,500', category: 'Home & Store Appliances', views: 340, inquiries: 12, status: 'Available' },
-    { id: '2', title: 'Teak Wood Dining Set (6 Chairs Included)', price: '₹38,000', category: 'Furniture', views: 820, inquiries: 24, status: 'Available' },
-    { id: '3', title: 'Commercial Coffee Espresso Machine', price: '₹62,000', category: 'Store Equipment', views: 510, inquiries: 18, status: 'Reserved' },
-  ]);
+  const [itemsings, setItemsings] = useState<Array<{ id: string; title: string; price: string; category: string; views: number; inquiries: number; status: string }>>([]);
 
   const updateItemStatus = (id: string, newStatus: string) => {
     setItemsings(itemsings.map((i) => (i.id === id ? { ...i, status: newStatus } : i)));
@@ -69,6 +65,9 @@ export default function MerchantMarketplacePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB] text-xs">
+              {filteredItems.length === 0 && (
+                <Card className="p-10 text-center text-sm font-semibold text-[#6B7280]">No classifieds yet.</Card>
+              )}
               {filteredItems.map((item) => (
                 <tr key={item.id} className="hover:bg-[#F8FAFC] transition-colors">
                   <td className="py-4 px-6 font-semibold">

@@ -11,7 +11,7 @@ export default function CityFeedPage() {
   const newsList = [
     {
       id: '1',
-      title: 'Kozhikode Beach Promenade Renovation Completed',
+      title: 'Calicut Beach Promenade Renovation Completed',
       excerpt: 'New eco-friendly seating, decorative lighting, and street food stalls opened for tourists.',
       category: 'Infrastructure',
       timeAgo: '2 hours ago',
@@ -45,7 +45,7 @@ export default function CityFeedPage() {
   return (
     <div className="space-y-10 py-4">
       <PageHeader
-        title="Kozhikode Live City Feed"
+        title="Calicut Live City Feed"
         description="Your personalized stream of breaking local news, cultural fests, traffic notices & community highlights."
         icon={<Activity className="w-6 h-6" />}
         breadcrumbs={[{ label: 'City Feed' }]}
@@ -61,7 +61,7 @@ export default function CityFeedPage() {
           <div className="space-y-4">
             <SectionTitle
               title="Editorial News Stream"
-              subtitle="Verified news breaking across Kozhikode Wards"
+              subtitle="Verified news breaking across Calicut Wards"
               viewAllHref="/news"
             />
             <ResponsiveGrid cols={2}>

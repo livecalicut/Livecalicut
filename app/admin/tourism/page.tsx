@@ -99,7 +99,7 @@ export default function AdminTourismPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
             <Compass className="w-7 h-7 text-[#2563EB]" />
-            <span>Kozhikode Tourism & Heritage Desk</span>
+            <span>Calicut Tourism & Heritage Desk</span>
           </h1>
           <p className="text-sm text-[#6B7280]">
             Manage tourist attractions, heritage sites, beaches, and travel destinations across Calicut
@@ -138,7 +138,7 @@ export default function AdminTourismPage() {
         <Card className="p-12 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs text-center space-y-3">
           <Compass className="w-12 h-12 text-[#D1D5DB] mx-auto" />
           <p className="text-[#6B7280] font-semibold text-base">No tourist places added yet</p>
-          <p className="text-[#9CA3AF] text-sm">Click "Add Tourist Place" to list Kozhikode's first attraction.</p>
+          <p className="text-[#9CA3AF] text-sm">Click "Add Tourist Place" to list Calicut's first attraction.</p>
           <button
             onClick={() => setShowModal(true)}
             className="mt-2 px-5 py-2.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl inline-flex items-center gap-2"
@@ -229,7 +229,7 @@ export default function AdminTourismPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#2563EB] font-semibold">
-              🗺️ This place will appear on the public "Places to Visit in Kozhikode" page.
+              🗺️ This place will appear on the public "Places to Visit in Calicut" page.
             </div>
 
             {error && (
@@ -242,7 +242,7 @@ export default function AdminTourismPage() {
                 <div className="space-y-1.5 col-span-2 sm:col-span-1">
                   <label className={LABEL}>Place Name *</label>
                   <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Kozhikode Beach" className={INPUT} />
+                    placeholder="e.g. Calicut Beach" className={INPUT} />
                 </div>
                 <div className="space-y-1.5 col-span-2 sm:col-span-1">
                   <label className={LABEL}>Category</label>
@@ -268,12 +268,12 @@ export default function AdminTourismPage() {
                 <div className="space-y-1.5 col-span-2 sm:col-span-1">
                   <label className={LABEL}>Area / Locality *</label>
                   <input type="text" required value={location} onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. Beach Road, Kozhikode" className={INPUT} />
+                    placeholder="e.g. Beach Road, Calicut" className={INPUT} />
                 </div>
                 <div className="space-y-1.5 col-span-2 sm:col-span-1">
                   <label className={LABEL}>Full Address</label>
                   <input type="text" value={address} onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g. Kozhikode Beach, Beach Rd, Kerala 673001" className={INPUT} />
+                    placeholder="e.g. Calicut Beach, Beach Rd, Kerala 673001" className={INPUT} />
                 </div>
               </div>
 

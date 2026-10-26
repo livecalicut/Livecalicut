@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.areas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     city_id UUID REFERENCES public.cities(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL, -- e.g., Mavoor Road, Kozhikode Beach, Palayam, Cyberpark
+    name TEXT NOT NULL, -- e.g., Mavoor Road, Calicut Beach, Palayam, Cyberpark
     slug TEXT NOT NULL,
     pincode TEXT,
     latitude NUMERIC(10, 7),

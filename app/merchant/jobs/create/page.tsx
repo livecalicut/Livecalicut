@@ -106,7 +106,7 @@ export default function CreateJobPage() {
           <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto animate-bounce" />
           <h3 className="text-xl font-bold text-[#111827]">Job Listing Published!</h3>
           <p className="text-xs text-[#6B7280]">
-            Your vacancy is live on Kozhikode Job Board. Redirecting to workspace...
+            Your vacancy is live on Calicut Job Board. Redirecting to workspace...
           </p>
         </Card>
       ) : (

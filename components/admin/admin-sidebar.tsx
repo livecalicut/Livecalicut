@@ -102,7 +102,7 @@ export const AdminSidebar: React.FC = () => {
       className="flex h-screen w-60 shrink-0 flex-col border-r border-[#E5E7EB] bg-white"
     >
       <div className="shrink-0 border-b border-[#E5E7EB] px-4 py-4">
-        <LiveCalicutLogo showSubtitle={false} />
+        <LiveCalicutLogo showSubtitle={false} size="sm" />
         <p className="mt-2 text-[10px] font-bold tracking-wide text-[#6B7280] uppercase">
           Admin · {roleName}
         </p>

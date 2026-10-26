@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
-import { MapPin, Plus, Search, Building2, X, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Search, X, Loader2, Trash2 } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 interface CityTenant {
@@ -65,18 +65,20 @@ export default function AdminCitiesPage() {
     if (!cityName) return;
 
     setSubmitting(true);
-    const supabase = createClient();
-    const slug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     try {
-      const { error } = await supabase.from('cities').insert({
-        name: cityName,
-        slug: slug,
-        state: stateName,
-        is_active: status === 'active',
+      const res = await fetch('/api/v1/admin/taxonomy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resource: 'city',
+          name: cityName,
+          state: stateName,
+          status,
+        }),
       });
-
-      if (error) throw error;
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not add city tenant');
       toast.success('City Tenant Added', `Successfully configured ${cityName}`);
       setShowModal(false);
       setCityName('');
@@ -85,6 +87,23 @@ export default function AdminCitiesPage() {
       toast.error('Error', err.message || 'Could not add city tenant');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const deleteCity = async (city: CityTenant) => {
+    if (!window.confirm(`Delete ${city.name}? Cities that still have areas cannot be removed.`)) return;
+    try {
+      const res = await fetch('/api/v1/admin/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entityType: 'city', entityId: city.id, hardDelete: true }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not delete city');
+      toast.success('City removed', city.name);
+      fetchCities();
+    } catch (err: unknown) {
+      toast.error('Delete failed', err instanceof Error ? err.message : 'Could not delete city');
     }
   };
 
@@ -143,9 +162,19 @@ export default function AdminCitiesPage() {
                 </p>
               </div>
 
-              <Badge variant={c.status.includes('Active') ? 'success' : 'purple'} className="px-3 py-1 rounded-full text-xs font-bold">
-                {c.status}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={c.status.includes('Active') ? 'success' : 'purple'} className="px-3 py-1 rounded-full text-xs font-bold">
+                  {c.status}
+                </Badge>
+                <button
+                  type="button"
+                  onClick={() => deleteCity(c)}
+                  className="rounded-lg p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600"
+                  title="Delete city"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </Card>
           ))}
         </div>
@@ -170,7 +199,7 @@ export default function AdminCitiesPage() {
                   required
                   value={cityName}
                   onChange={(e) => setCityName(e.target.value)}
-                  placeholder="e.g. Kozhikode (Calicut), Kochi, Kannur"
+                  placeholder="e.g. Calicut, Kochi, Kannur"
                   className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF]"
                 />
               </div>

@@ -9,7 +9,7 @@ export default function BusinessSearchPage() {
     <div className="space-y-8 py-4">
       <PageHeader
         title="Business Search Results"
-        description="Filter and search verified local business listings in Kozhikode."
+        description="Filter and search verified local business listings in Calicut."
         icon={<Search className="w-6 h-6" />}
         breadcrumbs={[
           { label: 'Business Directory', href: '/business' },

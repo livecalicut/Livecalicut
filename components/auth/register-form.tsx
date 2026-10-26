@@ -98,7 +98,7 @@ export const RegisterForm: React.FC = () => {
         </div>
         <CardTitle className="text-2xl font-bold text-[#111827] font-sans">Create Account</CardTitle>
         <CardDescription className="text-sm text-[#6B7280]">
-          Join LiveCalicut — Kozhikode&apos;s hyperlocal portal
+          Join LiveCalicut — Calicut&apos;s hyperlocal portal
         </CardDescription>
       </CardHeader>
 

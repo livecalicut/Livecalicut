@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/supabase/require-auth';
+import { createAdminClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/services/admin.service';
 
 const ADMIN_ROLES = ['Super Admin', 'City Admin', 'Moderator', 'Marketing Executive'];
@@ -17,7 +18,10 @@ export async function POST(req: Request) {
     }
 
     const { user } = auth;
-    await AdminService.deleteEntity(auth.supabase, user.id, entityType, entityId, hardDelete);
+    // The signed-in client only has public SELECT policies, so deletes matched
+    // zero rows and looked successful. Service role runs after the role check.
+    const admin = await createAdminClient();
+    await AdminService.deleteEntity(admin, user.id, entityType, entityId, Boolean(hardDelete));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
