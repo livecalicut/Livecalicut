@@ -5,7 +5,9 @@ import { RealtimeNotificationService } from '@/lib/services/realtime-notificatio
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return NextResponse.json({ data: [] });

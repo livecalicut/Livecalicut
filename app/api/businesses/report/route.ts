@@ -5,7 +5,10 @@ import { reportBusinessSchema } from '@/lib/validations/business';
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Sign in to report a listing' }, { status: 401 });
+    }
 
     const body = await request.json();
     const validated = reportBusinessSchema.parse(body);
@@ -13,7 +16,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from('reports')
       .insert({
-        reporter_id: session?.user?.id || null,
+        reporter_id: user.id,
         entity_type: 'business',
         entity_id: validated.businessId,
         reason: validated.reason,

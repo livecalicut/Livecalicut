@@ -6,7 +6,9 @@ import { saveSearchSchema as saveSearchHistorySchema } from '@/lib/validations/s
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return NextResponse.json({ success: true, logged: false });
@@ -31,7 +33,9 @@ export async function POST(request: Request) {
 export async function DELETE() {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

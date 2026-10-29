@@ -20,7 +20,9 @@ export async function POST(request: Request) {
 
     try {
       const supabase = await createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const session = authUser ? { user: authUser } : null;
       if (session?.user) {
         userId = session.user.id;
         userRole = 'user'; // Elevated from guest

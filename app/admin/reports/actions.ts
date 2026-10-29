@@ -11,7 +11,9 @@ export async function fetchAdminReportsAction() {
     const auth = await requireRole(ADMIN_ROLES);
     if (auth instanceof NextResponse) throw new Error('Unauthorized');
 
-    const { data, error } = await auth.supabase
+    // RLS limits signed-in users to their own reports; read all after the role check
+    const admin = await createAdminClient();
+    const { data, error } = await admin
       .from('reports')
       .select('*, reporter:profiles!reports_reporter_id_fkey(full_name)')
       .is('deleted_at', null)

@@ -88,8 +88,8 @@ CREATE POLICY "Users delete own history" ON public.search_history FOR DELETE USI
 -- Seed Popular Trending Searches for Calicut
 ----------------------------------------------------
 INSERT INTO public.popular_searches (id, city_id, keyword, search_count, is_trending) VALUES
-('i1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Malabar Biryani Paragon', 450, true),
-('i1eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Cyberpark IT Jobs', 380, true),
-('i1eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', '3 BHK Villa Bypass', 210, true),
-('i1eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Pre-owned iPhone', 190, true)
+('f4eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Malabar Biryani Paragon', 450, true),
+('f4eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Cyberpark IT Jobs', 380, true),
+('f4eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', '3 BHK Villa Bypass', 210, true),
+('f4eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380000', 'Pre-owned iPhone', 190, true)
 ON CONFLICT (city_id, keyword) DO NOTHING;

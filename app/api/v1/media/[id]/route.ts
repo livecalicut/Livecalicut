@@ -24,7 +24,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
 export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return ApiResponse.error('UNAUTHORIZED', 'Authentication required to delete media', [], 401);

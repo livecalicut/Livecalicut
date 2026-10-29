@@ -24,7 +24,9 @@ async function getUserRole(supabase: any, userId: string): Promise<string> {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return ApiResponse.error('UNAUTHORIZED', 'Authentication required to subscribe to channels', [], 401);
@@ -54,7 +56,9 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return ApiResponse.error('UNAUTHORIZED', 'Authentication required to unsubscribe', [], 401);

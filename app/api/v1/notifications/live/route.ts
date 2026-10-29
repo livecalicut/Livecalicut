@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the token with Supabase Auth; getSession() trusts the cookie
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return ApiResponse.error('UNAUTHORIZED', 'Authentication required to access live notifications', [], 401);

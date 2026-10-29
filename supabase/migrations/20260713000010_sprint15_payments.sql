@@ -155,7 +155,7 @@ CREATE POLICY "Merchants view own invoices" ON public.invoices FOR SELECT USING 
 -- Seed Subscription Plans
 ----------------------------------------------------
 INSERT INTO public.subscription_plans (id, name, slug, monthly_price, yearly_price, listing_limit, image_limit, has_analytics, has_leads, featured_credits) VALUES
-('k1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Free Starter', 'free-starter', 0, 0, 1, 3, false, false, 0),
-('k1eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Professional Suite', 'professional-suite', 999, 9990, 5, 15, true, true, 2),
-('k1eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'Enterprise Business', 'enterprise-business', 2499, 24990, 25, 50, true, true, 10)
+('f5eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Free Starter', 'free-starter', 0, 0, 1, 3, false, false, 0),
+('f5eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Professional Suite', 'professional-suite', 999, 9990, 5, 15, true, true, 2),
+('f5eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'Enterprise Business', 'enterprise-business', 2499, 24990, 25, 50, true, true, 10)
 ON CONFLICT (slug) DO NOTHING;
