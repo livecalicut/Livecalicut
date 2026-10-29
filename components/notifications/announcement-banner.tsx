@@ -4,43 +4,17 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowRight, X } from 'lucide-react';
-import { SITE_WHATSAPP_DISPLAY, siteWhatsAppHref } from '@/config/constants';
+import { DEFAULT_LIVE_UPDATES, isExternalHref, type LiveUpdate } from '@/lib/live-updates';
 
 const DISMISS_KEY = 'lc-announcement-dismissed';
 
-const NOTICES = [
-  {
-    title: 'Malabar Literature Festival',
-    detail: 'Passes are live',
-    href: '/events',
-    cta: 'View events',
-  },
-  {
-    title: 'Cyberpark job fair',
-    detail: 'Registration is open',
-    href: '/jobs',
-    cta: 'See jobs',
-  },
-  {
-    title: 'List your business',
-    detail: 'Free storefront in Calicut',
-    href: '/merchant',
-    cta: 'Get started',
-  },
-  {
-    title: 'City desk',
-    detail: `WhatsApp ${SITE_WHATSAPP_DISPLAY}`,
-    href: siteWhatsAppHref('Hi LiveCalicut, I saw the city desk notice'),
-    cta: 'Message',
-    external: true,
-  },
-] as const;
+// Items are managed at /admin/live-updates; defaults show until the fetch returns
 
 function NoticeLink({
   item,
   tabIndex,
 }: {
-  item: (typeof NOTICES)[number];
+  item: LiveUpdate;
   tabIndex?: number;
 }) {
   const className =
@@ -52,7 +26,7 @@ function NoticeLink({
     </>
   );
 
-  if ('external' in item && item.external) {
+  if (isExternalHref(item.href)) {
     return (
       <a href={item.href} target="_blank" rel="noreferrer" tabIndex={tabIndex} className={className}>
         {label}
@@ -67,16 +41,16 @@ function NoticeLink({
   );
 }
 
-function NoticeTrack({ hidden }: { hidden?: boolean }) {
+function NoticeTrack({ items, hidden }: { items: LiveUpdate[]; hidden?: boolean }) {
   return (
     <div className="flex items-center" aria-hidden={hidden || undefined}>
-      {NOTICES.map((item) => (
-        <p key={item.title} className="flex shrink-0 items-center gap-2 px-7 text-[13px] whitespace-nowrap text-[#6B7280]">
+      {items.map((item) => (
+        <p key={item.id} className="flex shrink-0 items-center gap-2 px-7 text-[13px] whitespace-nowrap text-[#6B7280]">
           <span className="font-semibold text-[#111827]">{item.title}</span>
           <span className="text-[#D1D5DB]" aria-hidden>
             ·
           </span>
-          <span>{item.detail}</span>
+          {item.detail && <span>{item.detail}</span>}
           <NoticeLink item={item} tabIndex={hidden ? -1 : undefined} />
         </p>
       ))}
@@ -87,9 +61,24 @@ function NoticeTrack({ hidden }: { hidden?: boolean }) {
 export const AnnouncementBanner: React.FC = () => {
   const pathname = usePathname();
   const [visible, setVisible] = useState(true);
+  const [items, setItems] = useState<LiveUpdate[]>(DEFAULT_LIVE_UPDATES);
   // Dashboards are separate workspaces; the public-site ticker stays off them
   const isWorkspace = pathname.startsWith('/admin') || pathname.startsWith('/merchant');
-  const shown = visible && !isWorkspace;
+  const shown = visible && !isWorkspace && items.length > 0;
+
+  useEffect(() => {
+    if (isWorkspace) return;
+    let cancelled = false;
+    fetch('/api/v1/live-updates')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled && Array.isArray(json?.items)) setItems(json.items);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [isWorkspace]);
 
   useEffect(() => {
     try {
@@ -131,8 +120,8 @@ export const AnnouncementBanner: React.FC = () => {
 
       <div className="lc-marquee-wrap relative h-full min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_16px,#000_calc(100%-20px),transparent)]">
         <div className="lc-marquee flex h-full w-max items-center">
-          <NoticeTrack />
-          <NoticeTrack hidden />
+          <NoticeTrack items={items} />
+          <NoticeTrack items={items} hidden />
         </div>
       </div>
 

@@ -13,6 +13,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   merchant: 'Merchant',
   cms: 'Landing Page CMS',
   'audit-logs': 'Audit Trail Logs',
+  'live-updates': 'Live Updates',
   businesses: 'Commercial Outlets',
   jobs: 'Jobs',
   marketplace: 'Classifieds Market',

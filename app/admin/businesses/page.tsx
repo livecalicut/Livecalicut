@@ -15,6 +15,7 @@ import {
 } from '@/components/admin/data-table';
 import { adminApi } from '@/lib/admin/client';
 import { toast } from '@/lib/toast';
+import { businessImages } from '@/lib/business/images';
 
 type Business = {
   id: string;
@@ -26,6 +27,8 @@ type Business = {
   created_at: string;
   business_categories?: { name: string } | null;
   areas?: { name: string } | null;
+  social_media?: Record<string, any> | null;
+  gallery?: string[];
   [key: string]: any;
 };
 
@@ -35,12 +38,30 @@ const columns: Column<Business>[] = [
     header: 'Business',
     sortValue: (b) => b.name,
     cell: (b) => (
-      <div className="min-w-0">
-        <p className="flex items-center gap-1.5 truncate font-semibold text-[#111827]">
-          {b.name}
-          {b.is_featured && <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />}
-        </p>
-        <p className="text-[11px] text-[#6B7280]">{b.business_categories?.name || 'Uncategorized'}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        {b.gallery?.[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={b.gallery[0]}
+            alt=""
+            className="h-10 w-10 shrink-0 rounded-lg border border-[#E5E7EB] object-cover"
+          />
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F1F5F9] text-sm font-bold text-[#94A3B8]">
+            {b.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 truncate font-semibold text-[#111827]">
+            {b.name}
+            {b.is_featured && (
+              <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
+            )}
+          </p>
+          <p className="text-[11px] text-[#6B7280]">
+            {b.business_categories?.name || 'Uncategorized'}
+          </p>
+        </div>
       </div>
     ),
   },
@@ -52,7 +73,12 @@ const columns: Column<Business>[] = [
     cell: (b) => b.areas?.name || '—',
   },
   { key: 'phone', header: 'Phone', hideOnMobile: true, cell: (b) => b.phone || '—' },
-  { key: 'status', header: 'Status', sortValue: (b) => b.status, cell: (b) => <StatusBadge status={b.status} /> },
+  {
+    key: 'status',
+    header: 'Status',
+    sortValue: (b) => b.status,
+    cell: (b) => <StatusBadge status={b.status} />,
+  },
   {
     key: 'created_at',
     header: 'Added',
@@ -90,7 +116,9 @@ export default function AdminBusinessesPage() {
 
   const load = useCallback(async () => {
     const res = await fetchAdminBusinessesAction();
-    if (res.success) setRows((res.data as Business[]) || []);
+    // Older listings only have social_media.cover_image; present everything as one gallery
+    if (res.success)
+      setRows(((res.data as Business[]) || []).map((b) => ({ ...b, gallery: businessImages(b) })));
     else toast.error('Could not load businesses', res.error);
     setLoading(false);
   }, []);
@@ -129,7 +157,9 @@ export default function AdminBusinessesPage() {
         reload={load}
         columns={columns}
         filters={filters}
-        searchText={(b) => `${b.name} ${b.phone ?? ''} ${b.areas?.name ?? ''} ${b.business_categories?.name ?? ''}`}
+        searchText={(b) =>
+          `${b.name} ${b.phone ?? ''} ${b.areas?.name ?? ''} ${b.business_categories?.name ?? ''}`
+        }
         searchPlaceholder="Search name, phone, area…"
         emptyMessage="No businesses yet."
         titleOf={(b) => b.name}
@@ -137,6 +167,14 @@ export default function AdminBusinessesPage() {
         extraViewFields={(b) => [
           { label: 'Category', value: b.business_categories?.name },
           { label: 'Area', value: b.areas?.name },
+          { label: 'Address', value: b.short_description, wide: true },
+          {
+            label: 'Amenities',
+            value: Array.isArray(b.social_media?.amenities)
+              ? b.social_media.amenities.join(', ')
+              : null,
+            wide: true,
+          },
           { label: 'Added', value: formatDate(b.created_at, true) },
         ]}
         rowActions={(b) => (

@@ -10,19 +10,12 @@ import { AdvertiseSection } from '@/components/home/advertise-section';
 import { StayUpdatedSection } from '@/components/home/stay-updated-section';
 import { createPublicClient } from '@/lib/supabase/server';
 
+import { businessCover } from '@/lib/business/images';
+
 export const revalidate = 60;
 
 function extractBusinessImage(biz: any): string | null {
-  if (!biz) return null;
-  if (biz.cover_image) return biz.cover_image;
-  if (biz.image_url) return biz.image_url;
-  if (biz.social_media?.cover_image) return biz.social_media.cover_image;
-  if (biz.social_media?.image_url) return biz.social_media.image_url;
-  if (biz.social_media?.logo) return biz.social_media.logo;
-  if (Array.isArray(biz.business_images) && biz.business_images.length > 0) {
-    return biz.business_images[0]?.url || null;
-  }
-  return null;
+  return businessCover(biz) || biz?.image_url || biz?.social_media?.logo || null;
 }
 
 function withTimeout<T>(promise: PromiseLike<{ data: T | null; error: unknown }>, ms = 4000) {
@@ -61,7 +54,7 @@ async function HomeFeed() {
       withTimeout(
         supabase
           .from('businesses')
-          .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, social_media, business_images(url), business_categories(name), areas(name)')
+          .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, social_media, business_categories(name), areas(name)')
           .is('deleted_at', null)
           .order('rating_avg', { ascending: false })
           .limit(16)

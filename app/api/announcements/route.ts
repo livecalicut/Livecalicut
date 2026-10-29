@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireRole } from '@/lib/supabase/require-auth';
+import { CITY_AND_SUPER } from '@/lib/rbac/roles';
 import { createAnnouncementSchema } from '@/lib/validations/notification';
 
 export async function GET() {
@@ -29,6 +31,9 @@ export async function POST(request: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    // Broadcasts reach every user; only city/super admins may send them
+    const staff = await requireRole([...CITY_AND_SUPER]);
+    if (staff instanceof NextResponse) return staff;
 
     const body = await request.json();
     const validated = createAnnouncementSchema.parse(body);

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { businessCover, businessImages } from '@/lib/business/images';
 
 export class BusinessService {
   private static supabase = createClient();
@@ -53,7 +54,8 @@ export class BusinessService {
         location: b.areas?.name || b.location,
         area: b.areas?.name,
         rating: b.rating_avg ?? b.rating ?? 0,
-        cover_image: b.social_media?.cover_image || b.cover_image || null,
+        cover_image: businessCover(b),
+        images: businessImages(b),
       })),
       total: count ?? 0,
     };
@@ -62,7 +64,7 @@ export class BusinessService {
   static async getBusinessBySlug(slug: string) {
     const { data, error } = await this.supabase
       .from('businesses')
-      .select('*, business_categories(name, slug), areas(name, slug), business_images(*), business_hours(*), business_reviews(*, profiles(full_name, avatar))')
+      .select('*, business_categories(name, slug), areas(name, slug)')
       .eq('slug', slug)
       .is('deleted_at', null)
       .single();

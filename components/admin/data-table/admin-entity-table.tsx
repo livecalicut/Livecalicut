@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { DataTable, type Column, type TableFilter } from './data-table';
 import { RecordDrawer, recordImages, viewFieldsFromConfig, type ViewField } from './record-drawer';
 import { RecordFormModal } from './record-form';
-import { ADMIN_ENTITIES } from '@/lib/admin/entities';
+import { ADMIN_ENTITIES, withJsonFields } from '@/lib/admin/entities';
 import { adminApi } from '@/lib/admin/client';
 import { toast } from '@/lib/toast';
 
@@ -59,6 +59,11 @@ export function AdminEntityTable<T extends Row>({
   const config = ADMIN_ENTITIES[entityType];
   const [viewing, setViewing] = useState<T | null>(null);
   const [editing, setEditing] = useState<T | null>(null);
+  // Config image fields always show in the drawer, plus any page-specific keys
+  const drawerImageKeys = Array.from(
+    new Set([...imageKeys, ...config.fields.filter((f) => f.type === 'image' || f.type === 'images').map((f) => f.name)])
+  );
+  const viewed = viewing ? withJsonFields(config, viewing) : null;
 
   const save = async (values: Record<string, unknown>) => {
     if (!editing) return;
@@ -106,10 +111,10 @@ export function AdminEntityTable<T extends Row>({
         open={viewing !== null}
         title={viewing ? titleOf(viewing) : ''}
         subtitle={viewing && subtitleOf?.(viewing)}
-        images={viewing ? recordImages(viewing, imageKeys) : []}
+        images={viewed ? recordImages(viewed, drawerImageKeys) : []}
         fields={
-          viewing
-            ? [...(extraViewFields?.(viewing) ?? []), ...viewFieldsFromConfig(config.fields, viewing)]
+          viewing && viewed
+            ? [...(extraViewFields?.(viewing) ?? []), ...viewFieldsFromConfig(config.fields, viewed)]
             : []
         }
         onClose={() => setViewing(null)}
@@ -121,7 +126,7 @@ export function AdminEntityTable<T extends Row>({
         open={editing !== null}
         title={`Edit ${config.label.toLowerCase()}`}
         fields={config.fields}
-        record={editing}
+        record={editing ? withJsonFields(config, editing) : null}
         onClose={() => setEditing(null)}
         onSubmit={save}
       />

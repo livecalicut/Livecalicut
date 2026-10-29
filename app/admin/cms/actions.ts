@@ -1,10 +1,20 @@
 'use server';
 
-import { SettingsService } from '@/lib/services/settings.service';
+import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { SettingsService } from '@/lib/services/settings.service';
+import { requireRole } from '@/lib/supabase/require-auth';
+import { CITY_AND_SUPER } from '@/lib/rbac/roles';
+
+/** Server actions are public endpoints; every CMS write re-checks the caller's role. */
+async function assertCmsEditor() {
+  const auth = await requireRole([...CITY_AND_SUPER]);
+  if (auth instanceof NextResponse) throw new Error('Not allowed to edit site content');
+}
 
 export async function updateCMSHeroAction(heroData: any) {
   try {
+    await assertCmsEditor();
     const currentCMS = await SettingsService.getSetting('cms');
     const newCMS = {
       ...currentCMS,
@@ -26,6 +36,7 @@ export async function updateCMSHeroAction(heroData: any) {
 
 export async function updateCMSMetricsAction(metricsData: any[]) {
   try {
+    await assertCmsEditor();
     const currentCMS = await SettingsService.getSetting('cms');
     const newCMS = { ...currentCMS, metrics: metricsData };
     await SettingsService.updateSetting('cms', newCMS, 'Updated Metrics via Admin CMS Panel');
@@ -40,6 +51,7 @@ export async function updateCMSMetricsAction(metricsData: any[]) {
 
 export async function updateCMSTestimonialsAction(testimonialsData: any[]) {
   try {
+    await assertCmsEditor();
     const currentCMS = await SettingsService.getSetting('cms');
     const newCMS = { ...currentCMS, testimonials: testimonialsData };
     await SettingsService.updateSetting('cms', newCMS, 'Updated Testimonials via Admin CMS Panel');
@@ -54,6 +66,7 @@ export async function updateCMSTestimonialsAction(testimonialsData: any[]) {
 
 export async function updateCMSPartnersAction(partnersData: any[]) {
   try {
+    await assertCmsEditor();
     const currentCMS = await SettingsService.getSetting('cms');
     const newCMS = { ...currentCMS, partners: partnersData };
     await SettingsService.updateSetting('cms', newCMS, 'Updated Partners via Admin CMS Panel');

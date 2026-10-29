@@ -26,6 +26,8 @@ export type EntityField = {
   wide?: boolean;
   /** Upload module for image fields (see normalizeMediaModule) */
   module?: string;
+  /** Stored as a key inside this jsonb column instead of its own column */
+  jsonColumn?: string;
 };
 
 export type EntityConfig = {
@@ -65,9 +67,12 @@ export const ADMIN_ENTITIES: Record<string, EntityConfig> = {
       { name: 'email', label: 'Email', type: 'email' },
       { name: 'website', label: 'Website', type: 'url' },
       { name: 'google_maps_link', label: 'Google Maps link', type: 'url', wide: true },
+      { name: 'opening_hours', label: 'Opening hours', type: 'text', jsonColumn: 'social_media' },
       { name: 'status', label: 'Status', type: 'select', options: opts('active', 'pending', 'rejected') },
       { name: 'is_featured', label: 'Featured', type: 'checkbox' },
       { name: 'is_verified', label: 'Verified', type: 'checkbox' },
+      // businesses has no image columns in production; images live in social_media
+      { name: 'gallery', label: 'Images', type: 'images', wide: true, module: 'businesses', jsonColumn: 'social_media' },
     ],
   },
   job: {
@@ -262,6 +267,47 @@ export const ADMIN_ENTITIES: Record<string, EntityConfig> = {
  * Coerces raw form values to column types and drops anything not in the
  * entity's allow-list. Returns an error message for invalid input.
  */
+/** Copies jsonColumn-backed fields onto the row so forms and views can read them by name. */
+export function withJsonFields<T extends Record<string, any>>(config: EntityConfig, row: T): T {
+  const out: Record<string, any> = { ...row };
+  for (const field of config.fields) {
+    if (field.jsonColumn && out[field.name] === undefined) {
+      out[field.name] = row[field.jsonColumn]?.[field.name] ?? null;
+    }
+  }
+  return out as T;
+}
+
+/**
+ * Moves sanitized jsonColumn-backed values into their column, merged over the
+ * current json so unrelated keys survive. Returns the column-shaped update.
+ */
+export function foldJsonFields(
+  config: EntityConfig,
+  values: Record<string, unknown>,
+  current: Record<string, any> | null
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  const merged: Record<string, Record<string, unknown>> = {};
+  for (const [key, value] of Object.entries(values)) {
+    const field = config.fields.find((f) => f.name === key);
+    if (!field?.jsonColumn) {
+      out[key] = value;
+      continue;
+    }
+    const col = field.jsonColumn;
+    merged[col] ??= { ...((current?.[col] as Record<string, unknown>) ?? {}) };
+    merged[col][key] = value;
+    // Readers fall back to the legacy single cover; keep it in step with the gallery
+    if (key === 'gallery') merged[col].cover_image = Array.isArray(value) && value.length ? value[0] : null;
+  }
+  return { ...out, ...merged };
+}
+
+export function jsonColumnsOf(config: EntityConfig): string[] {
+  return [...new Set(config.fields.map((f) => f.jsonColumn).filter((c): c is string => Boolean(c)))];
+}
+
 export function sanitizeEntityValues(
   config: EntityConfig,
   raw: Record<string, unknown>

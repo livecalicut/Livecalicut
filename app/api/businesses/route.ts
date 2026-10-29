@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { businessCover, businessImages } from '@/lib/business/images';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { createBusinessSchema } from '@/lib/validations/business';
@@ -30,7 +31,8 @@ export async function GET(request: Request) {
     location: b.areas?.name || b.location,
     area: b.areas?.name,
     rating: b.rating_avg ?? b.rating ?? 0,
-    cover_image: b.social_media?.cover_image || b.cover_image || null,
+    cover_image: businessCover(b),
+        images: businessImages(b),
   }));
 
   return NextResponse.json({ data: mapped });
@@ -49,6 +51,16 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { name, category, phone, location, description, cover_image, ownerEmail } = body;
+    const text = (v: unknown, max = 200) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
+    const httpUrl = (v: unknown) => (typeof v === 'string' && /^https?:\/\//.test(v.trim()) ? v.trim() : null);
+    const gallery = Array.from(
+      new Set([...(Array.isArray(body.gallery) ? body.gallery : []), cover_image].map(httpUrl).filter(Boolean))
+    ).slice(0, 12) as string[];
+    const amenities = Array.isArray(body.amenities)
+      ? body.amenities.filter((a: unknown) => typeof a === 'string').map((a: string) => a.slice(0, 40)).slice(0, 20)
+      : [];
+    const websiteInput = text(body.website, 300);
+    const website = websiteInput ? httpUrl(/^https?:/i.test(websiteInput) ? websiteInput : `https://${websiteInput}`) : null;
 
     if (!name || !category || !phone || !location) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
@@ -144,6 +156,21 @@ export async function POST(request: Request) {
       ownerId = auth.user.id;
     }
 
+    // Link the typed area name to a known area when one matches
+    let areaId: string | null = null;
+    const areaName = text(body.area, 120);
+    if (areaName) {
+      const { data: areaRow } = await supabase
+        .from('areas')
+        .select('id')
+        .eq('city_id', cityId)
+        .ilike('name', areaName.replace(/[%_]/g, ''))
+        .is('deleted_at', null)
+        .limit(1)
+        .maybeSingle();
+      areaId = areaRow?.id ?? null;
+    }
+
     // Insert Business
     const { data, error } = await supabase
       .from('businesses')
@@ -156,25 +183,27 @@ export async function POST(request: Request) {
         slug: slug,
         description: description || name,
         phone: phone,
+        whatsapp: text(body.whatsapp, 30),
+        email: text(body.email, 200),
+        website,
+        area_id: areaId,
         short_description: location,
-        social_media: cover_image ? { cover_image } : {},
+        // No image/hours columns in production: photos, hours and amenities live here
+        social_media: {
+          ...(gallery[0] ? { cover_image: gallery[0], gallery } : {}),
+          ...(text(body.opening_hours) ? { opening_hours: text(body.opening_hours) } : {}),
+          ...(amenities.length ? { amenities } : {}),
+          ...(text(body.gst_number, 30) ? { gst_number: text(body.gst_number, 30) } : {}),
+        },
         verification_status: isStaffOrAdmin ? 'approved' : 'pending',
         is_verified: isStaffOrAdmin,
-        status: 'active',
+        // Merchant submissions wait for staff approval before going public
+        status: isStaffOrAdmin ? 'active' : 'pending',
       })
       .select()
       .single();
 
     if (error) throw error;
-
-    // Handle Cover Image
-    if (cover_image) {
-      await supabase.from('business_images').insert({
-        business_id: data.id,
-        url: cover_image,
-        created_by: auth.user.id
-      });
-    }
 
     return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (err: any) {

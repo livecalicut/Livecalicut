@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { businessCover } from '@/lib/business/images';
 
 export const LOGO_FALLBACK = '/images/logo.png';
 
@@ -71,11 +72,8 @@ export function resolveCoverImage(entity: Record<string, unknown> | null | undef
 
   if (direct) return direct;
 
-  const social = entity.social_media as { cover_image?: string } | null;
-  if (social?.cover_image) return social.cover_image;
-
-  const images = entity.business_images as Array<{ url?: string }> | null;
-  if (Array.isArray(images) && images[0]?.url) return images[0].url!;
+  const business = businessCover(entity as Parameters<typeof businessCover>[0]);
+  if (business) return business;
 
   const company = entity.companies as { logo?: string } | null;
   if (company?.logo) return company.logo;

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@/components/shared/page-header';
-import { ImageUploader } from '@/components/shared/image-uploader';
+import { MultiImageUploader } from '@/components/shared/multi-image-uploader';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +58,7 @@ export default function CreateBusinessPage() {
   const [area, setArea] = useState('Mavoor Road');
   const [description, setDescription] = useState('');
   const [gstNumber, setGstNumber] = useState('');
-  const [coverImage, setCoverImage] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [ownerEmail, setOwnerEmail] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(['Parking', 'WiFi', 'Card Payment']);
   const [openingHours, setOpeningHours] = useState('08:00 AM - 10:00 PM (Mon - Sun)');
@@ -113,8 +113,15 @@ export default function CreateBusinessPage() {
         category: businessType,
         phone,
         location: `${area}, ${location}`,
+        area,
         description,
-        cover_image: coverImage || undefined,
+        gallery: images,
+        whatsapp: whatsapp || undefined,
+        email: email || undefined,
+        website: website || undefined,
+        gst_number: gstNumber || undefined,
+        opening_hours: openingHours || undefined,
+        amenities: selectedAmenities,
         ownerEmail: ownerEmail || undefined,
       });
 
@@ -207,11 +214,11 @@ export default function CreateBusinessPage() {
                 </div>
               </div>
 
-              <ImageUploader
-                value={coverImage}
-                onChange={setCoverImage}
+              <MultiImageUploader
+                value={images}
+                onChange={setImages}
                 module="businesses"
-                label="Storefront Cover Image"
+                label="Storefront photos (first one is the cover)"
               />
 
               {isStaffOrAdmin && (

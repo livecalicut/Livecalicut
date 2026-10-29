@@ -24,6 +24,7 @@ import {
   BarChart3,
   LayoutTemplate,
   Compass,
+  Radio,
 } from 'lucide-react';
 
 interface NavItem {
@@ -74,6 +75,7 @@ const NAV: NavGroup[] = [
     roles: EDITORS,
     items: [
       { label: 'CMS', href: '/admin/cms', icon: LayoutTemplate, roles: ADMINS },
+      { label: 'Live updates', href: '/admin/live-updates', icon: Radio, roles: EDITORS },
       { label: 'News', href: '/admin/news', icon: Newspaper, roles: EDITORS },
       { label: 'Events', href: '/admin/events', icon: Calendar, roles: EDITORS },
       { label: 'Categories', href: '/admin/categories', icon: FolderTree, roles: ADMINS },

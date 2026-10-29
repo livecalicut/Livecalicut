@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { createAdminClient } from '@/lib/supabase/server';
-import { ADMIN_ENTITIES, sanitizeEntityValues } from '@/lib/admin/entities';
+import { ADMIN_ENTITIES, foldJsonFields, jsonColumnsOf, sanitizeEntityValues } from '@/lib/admin/entities';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,9 +38,20 @@ export async function POST(request: Request) {
     }
 
     const admin = await createAdminClient();
+
+    // Fields stored inside jsonb columns are merged into the current value
+    const jsonCols = jsonColumnsOf(config);
+    let current: Record<string, any> | null = null;
+    if (jsonCols.length) {
+      const { data: row } = await admin.from(config.table).select(jsonCols.join(',')).eq('id', entityId).maybeSingle();
+      if (!row) return NextResponse.json({ success: false, error: 'Record not found' }, { status: 404 });
+      current = row as Record<string, any>;
+    }
+    const update = foldJsonFields(config, result.values, current);
+
     const { data, error } = await admin
       .from(config.table)
-      .update({ ...result.values, updated_at: new Date().toISOString() })
+      .update({ ...update, updated_at: new Date().toISOString() })
       .eq('id', entityId)
       .select()
       .maybeSingle();

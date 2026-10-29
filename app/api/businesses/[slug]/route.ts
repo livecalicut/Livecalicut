@@ -9,7 +9,7 @@ export async function GET(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('businesses')
-    .select('*, business_categories(name, slug), areas(name, slug), business_images(*), business_hours(*), business_reviews(*, profiles(full_name, avatar))')
+    .select('*, business_categories(name, slug), areas(name, slug)')
     .eq('slug', slug)
     .is('deleted_at', null)
     .single();
