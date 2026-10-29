@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/supabase/require-auth';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/server';
 import { USER_MANAGERS, assignableRolesFor } from '@/lib/rbac/roles';
+import { generatePassword, passwordProblem } from '@/lib/admin/password';
+import { createPasswordSetupLink } from '@/lib/admin/setup-link';
 
 export async function POST(req: Request) {
   try {
@@ -9,10 +11,21 @@ export async function POST(req: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const body = await req.json();
-    const { fullName, email, roleName } = body;
+    const fullName = String(body.fullName ?? '').trim();
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const roleName = String(body.roleName ?? '');
+    // Optional: when omitted the user gets a one-time setup link instead
+    const password = typeof body.password === 'string' && body.password !== '' ? body.password : null;
 
     if (!fullName || !email || !roleName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: 'Enter a valid email address' }, { status: 400 });
+    }
+    const weakness = password ? passwordProblem(password) : null;
+    if (weakness) {
+      return NextResponse.json({ error: weakness }, { status: 400 });
     }
 
     // Super Admin is bootstrap-only — never creatable from the staff UI.
@@ -26,19 +39,21 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = await createAdminClient();
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       email_confirm: true,
       user_metadata: { full_name: fullName, created_by: auth.user.id },
-      password: Math.random().toString(36).slice(-10) + 'A1!',
+      password: password ?? generatePassword(20),
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      if (/already (been )?registered|already exists/i.test(authError.message)) {
+        return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
+      }
+      throw authError;
+    }
     const userId = authData.user.id;
 
     // Link new profile to the creating staff member (creator hierarchy)
@@ -68,12 +83,13 @@ export async function POST(req: Request) {
 
     if (roleAssignError) throw roleAssignError;
 
-    await supabaseAdmin.auth.resetPasswordForEmail(email);
+    const setupLink = password ? undefined : await createPasswordSetupLink(supabaseAdmin, email, req.url);
 
     return NextResponse.json({
       success: true,
-      user: authData.user,
+      user: { id: userId, email },
       created_by: auth.user.id,
+      setupLink,
     });
   } catch (error: any) {
     console.error('Create staff error:', error);

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Ban, Loader2, Plus, ShieldCheck, Trash2, UserCheck, X } from 'lucide-react';
+import { Ban, KeyRound, Loader2, Plus, ShieldCheck, Trash2, UserCheck, X } from 'lucide-react';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { assignableRolesFor, isCityOrSuper } from '@/lib/rbac/roles';
 import {
@@ -18,6 +18,14 @@ import {
   type TableFilter,
 } from '@/components/admin/data-table';
 import { toast } from '@/lib/toast';
+import {
+  PasswordField,
+  PasswordModeToggle,
+  ResetPasswordModal,
+  SetupLinkModal,
+  type PasswordMode,
+} from '@/components/admin/staff-password';
+import { passwordProblem } from '@/lib/admin/password';
 
 type User = {
   id: string;
@@ -61,6 +69,8 @@ export default function AdminUsersPage() {
   const { roleName } = useAuthStore();
   const creatableRoles = useMemo(() => assignableRolesFor(roleName), [roleName]);
   const canEdit = isCityOrSuper(roleName);
+  // Server re-checks per target (creator scope, role hierarchy)
+  const canManagePasswords = creatableRoles.length > 0;
 
   const [rows, setRows] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +81,10 @@ export default function AdminUsersPage() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newStaff, setNewStaff] = useState({ fullName: '', email: '', roleName: '' });
+  const [newStaff, setNewStaff] = useState({ fullName: '', email: '', roleName: '', password: '' });
+  const [passwordMode, setPasswordMode] = useState<PasswordMode>('set');
+  const [resetting, setResetting] = useState<User | null>(null);
+  const [shared, setShared] = useState<{ name: string; link: string } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -135,24 +148,34 @@ export default function AdminUsersPage() {
   };
 
   const openCreate = () => {
-    setNewStaff({ fullName: '', email: '', roleName: creatableRoles[0] || '' });
+    setNewStaff({ fullName: '', email: '', roleName: creatableRoles[0] || '', password: '' });
+    setPasswordMode('set');
     setShowCreate(true);
   };
 
   const createStaff = async (e: React.FormEvent) => {
     e.preventDefault();
+    const problem = passwordMode === 'set' ? passwordProblem(newStaff.password) : null;
+    if (problem) {
+      toast.error('Password not accepted', problem);
+      return;
+    }
     setCreating(true);
     try {
       const res = await fetch('/api/v1/admin/users/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStaff),
+        body: JSON.stringify({ ...newStaff, password: passwordMode === 'set' ? newStaff.password : undefined }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success === false) {
         throw new Error(json.error?.message || json.error || 'Account was not created');
       }
-      toast.success('Staff account created', newStaff.email);
+      if (json.setupLink) {
+        setShared({ name: newStaff.fullName, link: json.setupLink });
+      } else {
+        toast.success('Staff account created', `${newStaff.email} can sign in with the password you set.`);
+      }
       setShowCreate(false);
       await load();
     } catch (err) {
@@ -319,6 +342,11 @@ export default function AdminUsersPage() {
                   <UserCheck className="h-4 w-4" />
                 </IconButton>
               )}
+              {canManagePasswords && (
+                <IconButton label="Reset password" onClick={() => setResetting(u)}>
+                  <KeyRound className="h-4 w-4" />
+                </IconButton>
+              )}
               <IconButton label="Remove user" tone="danger" onClick={() => setPendingRemove(u)}>
                 <Trash2 className="h-4 w-4" />
               </IconButton>
@@ -328,6 +356,18 @@ export default function AdminUsersPage() {
         drawerFooter={(u, close) =>
           u.role === 'Super Admin' ? null : (
             <>
+              {canManagePasswords && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    setResetting(u);
+                  }}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-xs font-bold text-[#374151] hover:border-[#2563EB] hover:text-[#2563EB]"
+                >
+                  <KeyRound className="h-3.5 w-3.5" /> Reset password
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -432,6 +472,21 @@ export default function AdminUsersPage() {
                 cannot be created here.
               </span>
             </label>
+            <div className="space-y-1.5">
+              <span className="text-xs font-bold text-[#374151]">Password</span>
+              <PasswordModeToggle value={passwordMode} onChange={setPasswordMode} />
+            </div>
+            {passwordMode === 'set' ? (
+              <PasswordField
+                value={newStaff.password}
+                onChange={(password) => setNewStaff({ ...newStaff, password })}
+              />
+            ) : (
+              <p className="rounded-xl bg-[#F8FAFC] px-3 py-2.5 text-[11px] text-[#6B7280]">
+                After creating the account you’ll get a one-time link to share. They open it and choose their own
+                password.
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 border-t border-[#E5E7EB] bg-[#F8FAFC] px-6 py-3">
@@ -445,6 +500,13 @@ export default function AdminUsersPage() {
           </div>
         </form>
       </Modal>
+
+      <ResetPasswordModal
+        user={resetting ? { id: resetting.id, name: nameOf(resetting) } : null}
+        onClose={() => setResetting(null)}
+        onLink={(link) => resetting && setShared({ name: nameOf(resetting), link })}
+      />
+      <SetupLinkModal name={shared?.name ?? ''} link={shared?.link ?? null} onClose={() => setShared(null)} />
     </>
   );
 }

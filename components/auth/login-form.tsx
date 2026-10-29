@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -54,6 +54,12 @@ export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+
+  // Expired setup/reset links redirect here with ?error=
+  useEffect(() => {
+    const linkError = new URLSearchParams(window.location.search).get('error');
+    if (linkError) setError(linkError);
+  }, []);
   const supabase = createClient();
 
   const {
