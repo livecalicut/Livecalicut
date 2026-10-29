@@ -161,8 +161,8 @@ CREATE POLICY "Users favorite items" ON public.marketplace_favorites FOR INSERT 
 -- Seed Categories for Marketplace
 ----------------------------------------------------
 INSERT INTO public.marketplace_categories (id, name, slug) VALUES
-('g1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Electronics & Gadgets', 'electronics-gadgets'),
-('g1eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Mobiles & Tablets', 'mobiles-tablets'),
-('g1eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'Vehicles & Motorcycles', 'vehicles-motorcycles'),
-('g1eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'Furniture & Home Decor', 'furniture-decor')
+('f3eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Electronics & Gadgets', 'electronics-gadgets'),
+('f3eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Mobiles & Tablets', 'mobiles-tablets'),
+('f3eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'Vehicles & Motorcycles', 'vehicles-motorcycles'),
+('f3eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'Furniture & Home Decor', 'furniture-decor')
 ON CONFLICT (slug) DO NOTHING;

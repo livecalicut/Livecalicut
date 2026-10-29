@@ -23,7 +23,7 @@ import type { Property } from '@/lib/types/api.types';
 const PROPERTY_TYPES = [
   { label: 'All Properties', value: '' },
   { label: 'For Rent', value: 'rent' },
-  { label: 'For Sale', value: 'sale' },
+  { label: 'For Sale', value: 'sell' },
   { label: 'Commercial', value: 'commercial' },
   { label: 'Plots / Land', value: 'land' },
 ];
@@ -186,7 +186,7 @@ export default function PropertiesHomePage() {
                     <div className="pt-3 space-y-2 flex-1">
                       <PropertyPriceBadge
                         price={prop.price ?? 0}
-                        listingType={prop.listing_type || 'sale'}
+                        listingType={prop.listing_type || 'sell'}
                       />
                       <h4 className="text-[16px] sm:text-[17px] font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors line-clamp-2 font-sans">
                         {prop.title}

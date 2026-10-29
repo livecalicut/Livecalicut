@@ -13,7 +13,7 @@ export default async function PropertyDetailsPage({ params }: { params: Promise<
   const property = {
     title: slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'LUXURY 3 BHK VILLA IN CALICUT BYPASS',
     price: 12500000,
-    listingType: 'sale',
+    listingType: 'sell',
     bedrooms: 3,
     bathrooms: 3,
     areaSqft: 2400,

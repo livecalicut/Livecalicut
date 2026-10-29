@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { ApiResponse } from '@/lib/api/response';
 
@@ -76,9 +76,13 @@ export async function POST(request: Request) {
       '-' +
       Math.random().toString(36).substring(2, 6);
 
+    // Categories and seller profiles are read-only to clients under RLS; the
+    // user is already verified above, so these support rows use the service role.
+    const admin = await createAdminClient();
+
     let categoryId: string;
     const categorySlug = String(category).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const { data: categoryData } = await auth.supabase
+    const { data: categoryData } = await admin
       .from('marketplace_categories')
       .select('id')
       .eq('slug', categorySlug)
@@ -86,7 +90,7 @@ export async function POST(request: Request) {
     if (categoryData) {
       categoryId = categoryData.id;
     } else {
-      const { data: newCat, error: catError } = await auth.supabase
+      const { data: newCat, error: catError } = await admin
         .from('marketplace_categories')
         .insert({ name: category, slug: categorySlug })
         .select('id')
@@ -95,15 +99,42 @@ export async function POST(request: Request) {
       categoryId = newCat.id;
     }
 
+    const { data: city } = await admin
+      .from('cities')
+      .select('id')
+      .eq('slug', 'kozhikode')
+      .is('deleted_at', null)
+      .maybeSingle();
+    if (!city) return ApiResponse.error('SETUP_ERROR', 'Calicut city is not set up', [], 400);
+
+    // marketplace_items.seller_id references seller_profiles(id), so make sure one exists
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('full_name, email, phone')
+      .eq('id', auth.user.id)
+      .maybeSingle();
+    const { error: sellerError } = await admin.from('seller_profiles').upsert(
+      {
+        id: auth.user.id,
+        full_name: profile?.full_name || auth.user.email,
+        email: profile?.email || auth.user.email,
+        phone: profile?.phone || '',
+        city_id: city.id,
+      },
+      { onConflict: 'id', ignoreDuplicates: true }
+    );
+    if (sellerError) throw sellerError;
+
     const coverImage = images && images.length > 0 ? images[0] : null;
-    const isStaff = ['City Admin', 'Super Admin', 'Marketing Executive'].includes(auth.user.role);
 
     const { data, error } = await auth.supabase
       .from('marketplace_items')
       .insert({
-        seller_id: isStaff ? null : auth.user.id,
+        // seller_id is NOT NULL; staff-created listings are owned by the creating staff member
+        seller_id: auth.user.id,
         created_by: auth.user.id,
         category_id: categoryId,
+        city_id: city.id,
         title,
         slug,
         description: description || title,
@@ -112,6 +143,7 @@ export async function POST(request: Request) {
         is_negotiable: true,
         condition,
         cover_image: coverImage,
+        gallery: Array.isArray(images) ? images : [],
         status: 'active',
       })
       .select()

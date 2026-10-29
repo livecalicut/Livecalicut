@@ -1,19 +1,23 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { reportMarketplaceItemSchema } from '@/lib/validations/marketplace';
 
 export async function POST(request: Request) {
   try {
+    // Anonymous reports are allowed; when signed in, attribute via the verified user
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
     const body = await request.json();
     const validated = reportMarketplaceItemSchema.parse(body);
 
-    const { data, error } = await supabase
+    // Reports are moderator-only data, so RLS gives clients no direct access;
+    // the validated insert goes through the service-role client.
+    const admin = await createAdminClient();
+    const { data, error } = await admin
       .from('marketplace_reports')
       .insert({
-        reporter_id: session?.user?.id || null,
+        reporter_id: user?.id ?? null,
         item_id: validated.itemId,
         reason: validated.reason,
         details: validated.details,

@@ -211,8 +211,8 @@ CREATE POLICY "Owners update properties" ON public.properties FOR UPDATE USING (
 -- Seed Categories for Real Estate
 ----------------------------------------------------
 INSERT INTO public.property_categories (id, name, slug) VALUES
-('h1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Apartments & Flats', 'apartments-flats'),
-('h1eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Villas & Houses', 'villas-houses'),
-('h1eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'Plots & Land', 'plots-land'),
-('h1eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'Commercial & Offices', 'commercial-offices')
+('f1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Apartments & Flats', 'apartments-flats'),
+('f1eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Villas & Houses', 'villas-houses'),
+('f1eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'Plots & Land', 'plots-land'),
+('f1eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'Commercial & Offices', 'commercial-offices')
 ON CONFLICT (slug) DO NOTHING;

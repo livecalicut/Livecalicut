@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
-    const { title, listing_type, price, bedrooms, bathrooms, area_sqft, description, images } = body;
+    const { title, listing_type, price, bedrooms, bathrooms, area_sqft, description, images, category } = body;
 
     if (!title || !listing_type || !price || !area_sqft) {
       return ApiResponse.error('VALIDATION_ERROR', 'Missing required fields', [], 400);
@@ -66,13 +66,17 @@ export async function POST(request: Request) {
       '-' +
       Math.random().toString(36).substring(2, 6);
 
-    let categoryId: string | null = null;
-    const { data: catData } = await auth.supabase
+    // category_id is NOT NULL: use the requested category, else the first seeded one
+    const { data: categories } = await auth.supabase
       .from('property_categories')
-      .select('id')
-      .eq('slug', 'residential')
-      .maybeSingle();
-    if (catData) categoryId = catData.id;
+      .select('id, slug')
+      .is('deleted_at', null)
+      .order('name', { ascending: true });
+    const categoryId =
+      categories?.find((c) => c.slug === category)?.id ?? categories?.[0]?.id ?? null;
+    if (!categoryId) {
+      return ApiResponse.error('SETUP_ERROR', 'No property categories are set up', [], 400);
+    }
 
     let cityId: string | null = null;
     const { data: cityData } = await auth.supabase
@@ -83,12 +87,12 @@ export async function POST(request: Request) {
     if (cityData) cityId = cityData.id;
 
     const coverImage = images && images.length > 0 ? images[0] : null;
-    const isStaff = ['City Admin', 'Super Admin', 'Marketing Executive'].includes(auth.user.role);
 
     const { data, error } = await auth.supabase
       .from('properties')
       .insert({
-        owner_id: isStaff ? null : auth.user.id,
+        // owner_id is NOT NULL; staff-created listings are owned by the creating staff member
+        owner_id: auth.user.id,
         created_by: auth.user.id,
         category_id: categoryId,
         city_id: cityId,
@@ -101,6 +105,7 @@ export async function POST(request: Request) {
         bathrooms: bathrooms || 0,
         area_sqft: area_sqft || 0,
         cover_image: coverImage,
+        gallery: Array.isArray(images) ? images : [],
         status: 'published',
       })
       .select()

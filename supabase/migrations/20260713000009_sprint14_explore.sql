@@ -179,8 +179,8 @@ CREATE POLICY "Public read experiences" ON public.experiences FOR SELECT USING (
 -- Seed Categories for Explore Calicut
 ----------------------------------------------------
 INSERT INTO public.place_categories (id, name, slug) VALUES
-('j1eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Beaches & Waterfronts', 'beaches-waterfronts'),
-('j1eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Historical Sites & Forts', 'historical-sites'),
-('j1eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'SM Street & Shopping Malls', 'sm-street-shopping'),
-('j1eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'Culinary Trails & Dining', 'culinary-trails')
+('f2eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Beaches & Waterfronts', 'beaches-waterfronts'),
+('f2eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Historical Sites & Forts', 'historical-sites'),
+('f2eebc99-9c0b-4ef8-bb6d-6bb9bd380003', 'SM Street & Shopping Malls', 'sm-street-shopping'),
+('f2eebc99-9c0b-4ef8-bb6d-6bb9bd380004', 'Culinary Trails & Dining', 'culinary-trails')
 ON CONFLICT (slug) DO NOTHING;
