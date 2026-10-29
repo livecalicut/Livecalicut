@@ -1,47 +1,52 @@
+import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { ApiResponse } from '@/lib/api/response';
 import { MediaDamService } from '@/lib/services/media-dam.service';
 import { mediaUploadSchema } from '@/lib/validations/media';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/supabase/require-auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session?.user) {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) {
       return ApiResponse.error('UNAUTHORIZED', 'Authentication required to upload media', [], 401);
     }
 
-    // Parse multipart form data
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file');
 
     if (!file || typeof file === 'string') {
       return ApiResponse.error('VALIDATION_ERROR', 'A file must be provided in the "file" field', [], 400);
     }
 
-    // Validate metadata fields from form
-    const rawMeta = {
-      module: formData.get('module') as string,
-      entityType: formData.get('entityType') as string | undefined,
-      entityId: formData.get('entityId') as string | undefined,
-      altText: formData.get('altText') as string | undefined,
-      caption: formData.get('caption') as string | undefined,
-      isPublic: formData.get('isPublic') as string | undefined,
-      tags: formData.get('tags') as string | undefined,
-    };
-
-    const validated = mediaUploadSchema.parse(rawMeta);
-
-    // Delegate to DAM service
-    const asset = await MediaDamService.uploadFile(file, session.user.id, validated);
-
-    return ApiResponse.success(asset, 'Media asset uploaded and registered successfully', {
-      assetId: asset.id,
-      bucket: asset.storage_bucket,
-      publicUrl: asset.public_url,
+    const validated = mediaUploadSchema.parse({
+      module: formData.get('module'),
+      entityType: formData.get('entityType'),
+      entityId: formData.get('entityId'),
+      altText: formData.get('altText'),
+      caption: formData.get('caption'),
+      isPublic: formData.get('isPublic'),
+      tags: formData.get('tags'),
     });
-  } catch (err: any) {
-    return ApiResponse.error('UPLOAD_ERROR', err.message, err.errors || [], 400);
+
+    // Storage writes go through the service-role client: the user is already
+    // verified above, and the bucket has no per-user RLS policies.
+    const admin = await createAdminClient();
+    const asset = await MediaDamService.uploadFile(admin, file, auth.user.id, validated);
+
+    return ApiResponse.success(
+      { ...asset, url: asset.public_url, media_id: asset.id },
+      'Media asset uploaded successfully',
+      { bucket: asset.storage_bucket }
+    );
+  } catch (err: unknown) {
+    if (err instanceof ZodError) {
+      return ApiResponse.error('VALIDATION_ERROR', 'Invalid upload metadata', err.issues, 400);
+    }
+    const message = err instanceof Error ? err.message : 'Upload failed';
+    return ApiResponse.error('UPLOAD_ERROR', message, [], 400);
   }
 }

@@ -19,6 +19,8 @@ type LocationsMeta = {
   limit: number;
   totalPages: number;
   hasMore: boolean;
+  /** true when the API served the static list because the database was unreachable */
+  fallback?: boolean;
 };
 
 export const LOCATIONS_PAGE_SIZE = 12;

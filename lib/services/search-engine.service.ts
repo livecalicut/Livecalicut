@@ -173,7 +173,10 @@ export class SearchEngineService {
       try {
         await fn();
       } catch (err) {
-        console.warn('[SearchEngineService.live]', err instanceof Error ? err.message : err);
+        // Modules whose table isn't provisioned yet (PGRST205) are expected — don't flood the logs
+        if ((err as { code?: string })?.code !== 'PGRST205') {
+          console.warn('[SearchEngineService.live]', (err as { message?: string })?.message ?? err);
+        }
       }
     };
 

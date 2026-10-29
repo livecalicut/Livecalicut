@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { mediaApi } from '@/lib/services/api-client';
 import { Camera, Loader2, User } from 'lucide-react';
 
 interface AvatarUploadProps {
@@ -12,7 +12,6 @@ interface AvatarUploadProps {
 export const AvatarUpload: React.FC<AvatarUploadProps> = ({ url, onUploadComplete }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(url);
-  const supabase = createClient();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -23,20 +22,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({ url, onUploadComplet
       }
 
       const file = e.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `avatar_${Math.random()}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('user-avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicData } = supabase.storage
-        .from('user-avatars')
-        .getPublicUrl(filePath);
-
-      const publicUrl = publicData.publicUrl;
+      const { url: publicUrl } = await mediaApi.upload(file, 'profile');
       setPreviewUrl(publicUrl);
       onUploadComplete(publicUrl);
     } catch (error: any) {

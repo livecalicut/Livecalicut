@@ -7,11 +7,15 @@ export class PublicGatewayService {
   private static supabase = createClient();
 
   static async getHomepagePayload(citySlug: string = 'calicut') {
-    const [featuredBusinesses, activeJobs, explorePlaces] = await Promise.all([
+    // Each section degrades to empty on its own so one failing module can't 500 the homepage
+    const [businessesRes, jobsRes, placesRes] = await Promise.allSettled([
       BusinessService.getFeaturedBusinesses(),
       JobService.getJobs({ isFeatured: true, limit: 4 }),
       ExploreService.getPlaces(),
     ]);
+    const featuredBusinesses = businessesRes.status === 'fulfilled' ? businessesRes.value : [];
+    const activeJobs = jobsRes.status === 'fulfilled' ? jobsRes.value : { data: [] };
+    const explorePlaces = placesRes.status === 'fulfilled' ? placesRes.value : [];
 
     return {
       cityName: citySlug === 'calicut' ? 'Calicut' : citySlug.toUpperCase(),

@@ -41,24 +41,32 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from('areas')
-      .select('id, name, slug, pincode, city_id', { count: 'exact' })
+      .select('id, name, slug, pincode, city_id, cities(id, name, slug)', { count: 'exact' })
+      .is('deleted_at', null)
+      .eq('is_active', true)
       .order('name', { ascending: true });
 
     if (cityId) query = query.eq('city_id', cityId);
-    if (q) query = query.or(`name.ilike.%${q}%,pincode.ilike.%${q}%`);
+    if (q) {
+      // Strip PostgREST filter syntax so user input can't alter the .or() expression
+      const term = q.replace(/[%,()*\\]/g, ' ').trim();
+      if (term) query = query.or(`name.ilike.%${term}%,pincode.ilike.%${term}%`);
+    }
     if (!all) {
       const from = (page - 1) * limit;
       query = query.range(from, from + limit - 1);
     }
 
     const timeout = new Promise<{ data: null; error: { message: string }; count: null }>((resolve) => {
-      setTimeout(() => resolve({ data: null, error: { message: 'timeout' }, count: null }), 1500);
+      setTimeout(() => resolve({ data: null, error: { message: 'timeout' }, count: null }), 5000);
     });
 
     const { data, error, count } = await Promise.race([query, timeout]);
-    const liveRows = !error && data && data.length > 0 ? data : null;
 
-    if (!liveRows) {
+    // Static areas are only a safety net when the database is unreachable.
+    // An empty result (e.g. a search with no matches) is a real answer.
+    if (error || !data) {
+      console.warn('[locations] falling back to static areas:', error?.message);
       const qLower = q?.toLowerCase();
       const rows = KOZHIKODE_AREAS.filter((area) =>
         !qLower ? true : `${area.name} ${area.pincode}`.toLowerCase().includes(qLower)
@@ -69,10 +77,11 @@ export async function GET(request: Request) {
         limit: rows.length || limit,
         totalPages: 1,
         hasMore: false,
+        fallback: true,
       });
     }
 
-    const rows = liveRows;
+    const rows = data;
     const total = count ?? rows.length;
 
     return ApiResponse.success(rows, 'Locations retrieved', {

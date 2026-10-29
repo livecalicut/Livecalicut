@@ -26,3 +26,11 @@ dist-ssr
 .vercel
 add_role.cjs
 test_create.cjs
+
+# Secrets — never commit; production copy lives on the server only
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+*.tsbuildinfo

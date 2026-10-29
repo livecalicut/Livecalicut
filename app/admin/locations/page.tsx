@@ -42,6 +42,9 @@ export default function AdminLocationsPage() {
     [data]
   );
   const total = data?.pages?.[0]?.meta?.total ?? rows.length;
+  // Static fallback rows have no database ids, so they can't be edited
+  const offline = Boolean(data?.pages?.[0]?.meta?.fallback);
+  const canEditRows = canManage && !offline;
   const searching = isFetching && !isFetchingNextPage && !isLoading;
 
   const refreshLocations = () =>
@@ -137,6 +140,11 @@ export default function AdminLocationsPage() {
           <p className="mt-1 text-sm text-[#6B7280]">
             Only Super Admin can add or remove locations. Public pickers show these rows only.
           </p>
+          {offline && (
+            <p className="mt-2 text-xs font-semibold text-amber-700">
+              Database is not responding — showing the built-in area list. Refresh to retry.
+            </p>
+          )}
         </div>
         {canManage && (
           <button
@@ -213,7 +221,7 @@ export default function AdminLocationsPage() {
                   <th className="px-4 py-3 font-semibold">Area</th>
                   <th className="px-4 py-3 font-semibold">City</th>
                   <th className="px-4 py-3 font-semibold">Pincode</th>
-                  {canManage && <th className="px-4 py-3 text-right font-semibold"> </th>}
+                  {canEditRows && <th className="px-4 py-3 text-right font-semibold"> </th>}
                 </tr>
               </thead>
               <tbody>
@@ -222,7 +230,7 @@ export default function AdminLocationsPage() {
                     <td className="px-4 py-3 font-semibold text-[#111827]">{loc.name}</td>
                     <td className="px-4 py-3 text-[#6B7280]">{loc.cities?.name || '—'}</td>
                     <td className="px-4 py-3 text-[#6B7280]">{loc.pincode || '—'}</td>
-                    {canManage && (
+                    {canEditRows && (
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"

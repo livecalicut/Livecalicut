@@ -128,38 +128,33 @@ export class SetupService {
     }
 
     const started = Date.now();
-    const tables: TableCheck[] = [];
-
-    for (const table of REQUIRED_TABLES) {
-      const t0 = Date.now();
-      const { data, error } = await client.from(table).select('id').limit(1);
-      const latencyMs = Date.now() - t0;
-
-      if (error) {
-        const missing =
-          error.code === 'PGRST205' ||
-          /could not find the table/i.test(error.message) ||
-          /schema cache/i.test(error.message);
-        tables.push({
-          table,
-          status: missing ? 'missing' : 'error',
-          count: null,
-          error: error.message,
-          latencyMs,
-        });
-      } else {
-        // Accurate counts only when table exists
-        const { count } = await client
+    // Check all tables concurrently — sequential round-trips made /api/health take seconds
+    const tables: TableCheck[] = await Promise.all(
+      REQUIRED_TABLES.map(async (table): Promise<TableCheck> => {
+        const t0 = Date.now();
+        // GET (not HEAD) so a missing table still returns an error body to classify
+        const { count, error } = await client
           .from(table)
-          .select('*', { count: 'exact', head: true });
-        tables.push({
-          table,
-          status: 'ok',
-          count: count ?? data?.length ?? 0,
-          latencyMs,
-        });
-      }
-    }
+          .select('id', { count: 'exact' })
+          .limit(1);
+        const latencyMs = Date.now() - t0;
+
+        if (error) {
+          const missing =
+            error.code === 'PGRST205' ||
+            /could not find the table/i.test(error.message) ||
+            /schema cache/i.test(error.message);
+          return {
+            table,
+            status: missing ? 'missing' : 'error',
+            count: null,
+            error: error.message,
+            latencyMs,
+          };
+        }
+        return { table, status: 'ok', count: count ?? 0, latencyMs };
+      })
+    );
 
     const latencyMs = Date.now() - started;
     const missingTables = tables.filter((t) => t.status === 'missing');

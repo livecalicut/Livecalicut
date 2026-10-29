@@ -1,14 +1,15 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from '@/lib/validations/media';
 
 export interface MediaUploadOptions {
   module: string;
-  entityType?: string;
-  entityId?: string;
-  altText?: string;
-  caption?: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  altText?: string | null;
+  caption?: string | null;
   isPublic?: boolean;
-  tags?: string;
+  tags?: string | null;
 }
 
 export interface MediaAsset {
@@ -71,56 +72,54 @@ export class MediaDamService {
   }
 
   /**
-   * Resolve the correct Supabase storage bucket for a module
+   * All uploads share one public bucket; the module becomes the top-level folder.
    */
-  static resolveBucket(module: string): string {
-    const bucketMap: Record<string, string> = {
-      business: 'businesses',
-      news: 'news',
-      event: 'events',
-      job: 'jobs',
-      marketplace: 'marketplace',
-      property: 'properties',
-      explore: 'places',
-      profile: 'avatars',
-      system: 'documents',
-    };
-    return bucketMap[module] || 'documents';
+  static readonly BUCKET = 'media';
+
+  private static async ensureBucket(client: SupabaseClient) {
+    const { error } = await client.storage.createBucket(this.BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_FILE_SIZE_BYTES,
+      allowedMimeTypes: [...ALLOWED_MIME_TYPES],
+    });
+    if (error && !/already exists/i.test(error.message)) {
+      throw new Error(`Storage bucket setup failed: ${error.message}`);
+    }
   }
 
   /**
-   * Upload a single file to Supabase Storage and register in media_assets
+   * Upload a single file to Supabase Storage and register it in media_assets.
+   * `client` must be a server-side service-role client; the caller is responsible
+   * for authenticating the user first.
    */
   static async uploadFile(
+    client: SupabaseClient,
     file: File,
     ownerId: string,
     options: MediaUploadOptions
   ): Promise<MediaAsset> {
-    // Step 1: Validate
     const validation = this.validateFile(file);
     if (!validation.valid) throw new Error(validation.error);
 
-    // Step 2: Resolve bucket & stored name
-    const bucket = this.resolveBucket(options.module);
+    const bucket = this.BUCKET;
     const storedName = this.generateStoredName(file.name);
     const folderPath = `${options.module}/${ownerId}`;
     const storagePath = `${folderPath}/${storedName}`;
+    const body = Buffer.from(await file.arrayBuffer());
 
-    // Step 3: Upload to Supabase Storage
-    const { error: uploadError } = await this.supabase.storage
-      .from(bucket)
-      .upload(storagePath, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+    const put = () =>
+      client.storage.from(bucket).upload(storagePath, body, { contentType: file.type, upsert: false });
 
+    let { error: uploadError } = await put();
+    if (uploadError && /bucket not found/i.test(uploadError.message)) {
+      await this.ensureBucket(client);
+      ({ error: uploadError } = await put());
+    }
     if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
 
-    // Step 4: Get public CDN URL
-    const { data: urlData } = this.supabase.storage.from(bucket).getPublicUrl(storagePath);
+    const { data: urlData } = client.storage.from(bucket).getPublicUrl(storagePath);
     const publicUrl = urlData?.publicUrl || '';
 
-    // Step 5: Register in media_assets table
     const assetPayload = {
       original_name: file.name,
       stored_name: storedName,
@@ -140,26 +139,29 @@ export class MediaDamService {
       status: 'active',
     };
 
-    const { data: asset, error: dbError } = await this.supabase
+    // The registry is optional: the file is already stored and usable, so a
+    // missing/failed media_assets table must not fail the upload.
+    const { data: asset, error: dbError } = await client
       .from('media_assets')
-      .insert(assetPayload as any)
+      .insert(assetPayload)
       .select()
       .single();
 
-    if (dbError) throw new Error(`Media registry failed: ${dbError.message}`);
+    if (dbError) {
+      if (!/schema cache|does not exist/i.test(dbError.message)) {
+        console.warn('[MediaDamService] media_assets insert failed:', dbError.message);
+      }
+      return { id: storagePath, ...assetPayload, created_at: new Date().toISOString() } as MediaAsset;
+    }
 
-    // Step 6: Attach tags if provided
     if (options.tags) {
       const tagList = options.tags.split(',').map((t) => t.trim()).filter(Boolean);
       if (tagList.length > 0) {
-        await this.supabase.from('media_tags').insert(
-          tagList.map((tag) => ({ asset_id: asset.id, tag }))
-        );
+        await client.from('media_tags').insert(tagList.map((tag) => ({ asset_id: asset.id, tag })));
       }
     }
 
-    // Step 7: Log audit trail
-    await this.logAudit(asset.id, ownerId, 'upload');
+    await client.from('media_audit_log').insert({ asset_id: asset.id, actor_id: ownerId, action: 'upload' });
 
     return asset as MediaAsset;
   }

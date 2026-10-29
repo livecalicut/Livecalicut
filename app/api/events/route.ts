@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createPublicClient } from '@/lib/supabase/server';
+import { requireRole } from '@/lib/supabase/require-auth';
+import { CONTENT_EDITORS } from '@/lib/rbac/roles';
 
-export async function GET(request: Request) {
-  const supabase = await createClient();
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+export async function GET() {
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('events')
     .select('*, event_categories(name, slug)')
@@ -19,12 +25,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireRole([...CONTENT_EDITORS]);
+    if (auth instanceof NextResponse) return auth;
+    const supabase = await createAdminClient();
 
     const body = await request.json();
     const { title, description, category, venue, start_date, end_date, registration_link, is_ticket_required } = body;
@@ -33,19 +36,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Event title and start date are required.' }, { status: 400 });
     }
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 6);
+    const slug = slugify(title) + '-' + Math.random().toString(36).substring(2, 6);
 
-    // Resolve or create category
+    // events.category_id is NOT NULL, so fall back to a generic category
+    const categoryName = String(category || 'General').trim() || 'General';
+    const catSlug = slugify(categoryName);
     let categoryId: string | null = null;
-    if (category) {
-      const catSlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const { data: catData } = await supabase.from('event_categories').select('id').eq('slug', catSlug).single();
-      if (catData) {
-        categoryId = catData.id;
-      } else {
-        const { data: newCat } = await supabase.from('event_categories').insert({ name: category, slug: catSlug }).select('id').single();
-        if (newCat) categoryId = newCat.id;
-      }
+    const { data: catData } = await supabase.from('event_categories').select('id').eq('slug', catSlug).maybeSingle();
+    if (catData) {
+      categoryId = catData.id;
+    } else {
+      const { data: newCat, error: catError } = await supabase
+        .from('event_categories')
+        .insert({ name: categoryName, slug: catSlug })
+        .select('id')
+        .single();
+      if (catError) throw catError;
+      categoryId = newCat.id;
     }
 
     const { data, error } = await supabase
@@ -57,10 +64,11 @@ export async function POST(request: Request) {
         category_id: categoryId,
         venue: venue || '',
         start_date,
-        end_date: end_date || null,
+        // end_date is NOT NULL; single-day events end on their start date
+        end_date: end_date || start_date,
         registration_link: registration_link || null,
         is_ticket_required: is_ticket_required ?? false,
-        created_by: session.user.id,
+        created_by: auth.user.id,
         status: 'published',
       })
       .select()
@@ -68,7 +76,8 @@ export async function POST(request: Request) {
 
     if (error) throw error;
     return NextResponse.json({ success: true, data }, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message }, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : (err as { message?: string })?.message || 'Failed to create event';
+    return NextResponse.json({ success: false, message }, { status: 400 });
   }
 }
