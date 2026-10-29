@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { updateCMSMetricsAction } from './actions';
 import { Save, Loader2, Plus, Trash2 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface Metric {
   value: string;
@@ -40,9 +41,9 @@ export const MetricsEditor = ({ initialData = [] }: { initialData: Metric[] }) =
     try {
       const res = await updateCMSMetricsAction(metrics);
       if (res.error) throw new Error(res.error);
-      alert('Metrics updated successfully!');
+      toast.success('Metrics updated');
     } catch (err: any) {
-      alert(err.message || 'Failed to update Metrics');
+      toast.error('Failed to update Metrics', err.message);
     } finally {
       setIsSaving(false);
     }

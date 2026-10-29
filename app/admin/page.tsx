@@ -4,7 +4,6 @@ import { Card } from '@/components/ui/card';
 import { StatsCards } from '@/components/admin/stats-cards';
 import { Building2, Plus, Clock, Trophy, ArrowUpRight, ShieldAlert, BarChart3 } from 'lucide-react';
 import { fetchDashboardDataAction } from './actions';
-import { WipeDataButton } from './wipe-data-button';
 
 export default async function AdminDashboardPage() {
   const { metrics, staffPerformance, recentActivities, authorized } =
@@ -36,8 +35,6 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <WipeDataButton />
-
           <Link
             href="/admin/businesses"
             className="flex h-10 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-xs font-bold text-[#111827] shadow-xs transition-all hover:border-[#2563EB]"

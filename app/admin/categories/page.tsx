@@ -1,338 +1,270 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { FolderTree, Plus, Search, X, Edit3, Loader2, Trash2 } from 'lucide-react';
+import {
+  AdminPageHeader,
+  DataTable,
+  RecordDrawer,
+  RecordFormModal,
+  StatusBadge,
+  formatDate,
+  primaryButtonClass,
+  type Column,
+  type TableFilter,
+} from '@/components/admin/data-table';
+import { viewFieldsFromConfig } from '@/components/admin/data-table/record-drawer';
+import { ADMIN_ENTITIES, type EntityField } from '@/lib/admin/entities';
+import { adminApi } from '@/lib/admin/client';
 import { toast } from '@/lib/toast';
 
-interface CategoryNode {
+type ModuleKey = 'businesses' | 'jobs' | 'news' | 'marketplace' | 'properties';
+
+const MODULES: { key: ModuleKey; label: string; table: string; entity: string }[] = [
+  { key: 'businesses', label: 'Businesses', table: 'business_categories', entity: 'business_category' },
+  { key: 'jobs', label: 'Jobs', table: 'job_categories', entity: 'job_category' },
+  { key: 'news', label: 'News', table: 'news_categories', entity: 'news_category' },
+  { key: 'marketplace', label: 'Marketplace', table: 'marketplace_categories', entity: 'marketplace_category' },
+  { key: 'properties', label: 'Properties', table: 'property_categories', entity: 'property_category' },
+];
+
+const moduleLabel = (key: ModuleKey) => MODULES.find((m) => m.key === key)?.label ?? key;
+
+type Category = {
+  /** Unique across tables: ids are only unique within one category table */
+  rowKey: string;
   id: string;
   name: string;
   slug: string;
-  module: string;
-  table: string;
-  count: number;
-}
+  is_active?: boolean;
+  created_at?: string;
+  module: ModuleKey;
+  entity: string;
+  [key: string]: any;
+};
+
+// All category tables share the same editable fields
+const editFields = ADMIN_ENTITIES.business_category.fields;
+
+const createFields: EntityField[] = [
+  {
+    name: 'module',
+    label: 'Module',
+    type: 'select',
+    required: true,
+    options: MODULES.map((m) => ({ value: m.key, label: m.label })),
+  },
+  { name: 'name', label: 'Category name', type: 'text', required: true },
+];
+
+const createDefaults = { module: 'businesses' };
+
+const activeLabel = (c: Category) => (c.is_active === false ? 'Inactive' : 'Active');
+
+const columns: Column<Category>[] = [
+  {
+    key: 'name',
+    header: 'Category',
+    sortValue: (c) => c.name,
+    cell: (c) => (
+      <div className="min-w-0">
+        <p className="truncate font-semibold text-[#111827]">{c.name}</p>
+        <p className="font-mono text-[11px] text-[#6B7280]">/{c.slug}</p>
+      </div>
+    ),
+  },
+  {
+    key: 'module',
+    header: 'Module',
+    sortValue: (c) => moduleLabel(c.module),
+    cell: (c) => (
+      <span className="rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-bold text-[#2563EB]">
+        {moduleLabel(c.module)}
+      </span>
+    ),
+  },
+  { key: 'status', header: 'Status', sortValue: activeLabel, cell: (c) => <StatusBadge status={activeLabel(c)} /> },
+  {
+    key: 'created_at',
+    header: 'Added',
+    hideOnMobile: true,
+    sortValue: (c) => c.created_at,
+    cell: (c) => formatDate(c.created_at) || '—',
+  },
+];
+
+const filters: TableFilter<Category>[] = [
+  {
+    key: 'module',
+    label: 'Modules',
+    options: MODULES.map((m) => ({ value: m.key, label: m.label })),
+    match: (c, v) => c.module === v,
+  },
+  {
+    key: 'active',
+    label: 'Statuses',
+    options: [
+      { value: 'active', label: 'Active' },
+      { value: 'inactive', label: 'Inactive' },
+    ],
+    match: (c, v) => (v === 'active' ? c.is_active !== false : c.is_active === false),
+  },
+];
 
 export default function AdminCategoriesPage() {
-  const [search, setSearch] = useState('');
-  const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [rows, setRows] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState<string[]>([]);
+  const [viewing, setViewing] = useState<Category | null>(null);
+  const [editing, setEditing] = useState<Category | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  // Modals state
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingNode, setEditingNode] = useState<CategoryNode | null>(null);
+  // Some category tables are not live in production yet, so each one loads independently
+  const load = useCallback(async () => {
+    const supabase = createClient();
+    const results = await Promise.all(
+      MODULES.map(async (m) => {
+        try {
+          const { data, error } = await supabase
+            .from(m.table)
+            .select('*')
+            .is('deleted_at', null)
+            .order('name', { ascending: true });
+          if (error) return { module: m, rows: null };
+          return { module: m, rows: data || [] };
+        } catch {
+          return { module: m, rows: null };
+        }
+      })
+    );
 
-  const [formName, setFormName] = useState('');
-  const [formModule, setFormModule] = useState('businesses'); // 'businesses' | 'jobs' | 'marketplace' | 'properties'
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchTaxonomy();
+    setRows(
+      results.flatMap(({ module: m, rows: list }) =>
+        (list || []).map((c: any) => ({
+          ...c,
+          rowKey: `${m.key}:${c.id}`,
+          module: m.key,
+          entity: m.entity,
+        }))
+      )
+    );
+    setUnavailable(results.filter((r) => r.rows === null).map((r) => r.module.label));
+    setLoading(false);
   }, []);
 
-  const fetchTaxonomy = async () => {
-    setLoading(true);
-    const supabase = createClient();
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async (values: Record<string, unknown>) => {
+    if (!editing) return;
+    await adminApi.update(editing.entity, editing.id, values);
+    toast.success('Category updated', String(values.name ?? editing.name));
+    setEditing(null);
+    await load();
+  };
+
+  const remove = async (c: Category) => {
     try {
-      const [bizRes, jobsRes, marketRes, propRes] = await Promise.all([
-        supabase.from('business_categories').select('id, name, slug').is('deleted_at', null),
-        supabase.from('job_categories').select('id, name, slug').is('deleted_at', null),
-        supabase.from('marketplace_categories').select('id, name, slug').is('deleted_at', null),
-        supabase.from('property_categories').select('id, name, slug').is('deleted_at', null),
-      ]);
-
-      const nodes: CategoryNode[] = [
-        ...(bizRes.data || []).map((c) => ({ ...c, module: 'Commercial Outlets', table: 'business_categories', count: 0 })),
-        ...(jobsRes.data || []).map((c) => ({ ...c, module: 'Cyberpark Jobs', table: 'job_categories', count: 0 })),
-        ...(marketRes.data || []).map((c) => ({ ...c, module: 'Classifieds Market', table: 'marketplace_categories', count: 0 })),
-        ...(propRes.data || []).map((c) => ({ ...c, module: 'Real Estate', table: 'property_categories', count: 0 })),
-      ];
-
-      setCategories(nodes);
+      await adminApi.remove(c.entity, c.id);
+      toast.success('Category deleted', c.name);
+      if (viewing?.rowKey === c.rowKey) setViewing(null);
+      await load();
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      // Categories still referenced by listings are rejected by the API
+      toast.error('Delete failed', err instanceof Error ? err.message : undefined);
     }
   };
 
-  const handleCreateNode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName) return;
+  const create = async (values: Record<string, unknown>) => {
+    const res = await fetch('/api/v1/admin/taxonomy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resource: 'category', module: values.module, name: values.name }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || 'Could not create category');
 
-    setSubmitting(true);
-
-    try {
-      const res = await fetch('/api/v1/admin/taxonomy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resource: 'category', module: formModule, name: formName }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || 'Could not create category node');
-      toast.success('Category Added', `Created "${formName}"`);
-      setShowCreateModal(false);
-      setFormName('');
-      fetchTaxonomy();
-    } catch (err: any) {
-      toast.error('Error', err.message || 'Could not create category node');
-    } finally {
-      setSubmitting(false);
-    }
+    toast.success('Category added', `${values.name} · ${moduleLabel(values.module as ModuleKey)}`);
+    setCreating(false);
+    await load();
   };
 
-  const handleEditNode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingNode || !formName) return;
-
-    setSubmitting(true);
-
-    try {
-      const res = await fetch('/api/v1/admin/taxonomy', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table: editingNode.table, id: editingNode.id, name: formName }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || 'Could not update category node');
-      toast.success('Category Updated', `Updated node to "${formName}"`);
-      setShowEditModal(false);
-      setEditingNode(null);
-      setFormName('');
-      fetchTaxonomy();
-    } catch (err: any) {
-      toast.error('Error', err.message || 'Could not update category node');
-    } finally {
-      setSubmitting(false);
-    }
+  const openEdit = (c: Category) => {
+    setViewing(null);
+    setEditing(c);
   };
-
-  const deleteNode = async (node: CategoryNode) => {
-    if (!window.confirm(`Delete “${node.name}”? Categories still used by listings cannot be removed.`)) return;
-    const entityType =
-      {
-        business_categories: 'business_category',
-        job_categories: 'job_category',
-        news_categories: 'news_category',
-        marketplace_categories: 'marketplace_category',
-        property_categories: 'property_category',
-      }[node.table] || 'business_category';
-    try {
-      const res = await fetch('/api/v1/admin/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityType, entityId: node.id, hardDelete: true }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || 'Could not delete category');
-      toast.success('Category removed', node.name);
-      fetchTaxonomy();
-    } catch (err: unknown) {
-      toast.error('Delete failed', err instanceof Error ? err.message : 'Could not delete category');
-    }
-  };
-
-  const filteredCategories = categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.module.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-            <FolderTree className="w-7 h-7 text-[#2563EB]" />
-            <span>Categories & Taxonomy Tree Manager</span>
-          </h1>
-          <p className="text-sm text-[#6B7280]">Manage primary categories, subcategory structures, display ordering & icon taxonomy</p>
-        </div>
+      <AdminPageHeader
+        title="Categories"
+        description="Manage the categories used across businesses, jobs, news, marketplace and properties."
+        count={rows.length}
+        actions={
+          <button type="button" onClick={() => setCreating(true)} className={primaryButtonClass}>
+            <Plus className="h-4 w-4" /> Add category
+          </button>
+        }
+      />
 
-        <button
-          onClick={() => {
-            setFormName('');
-            setFormModule('businesses');
-            setShowCreateModal(true);
-          }}
-          className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Create Category Node
-        </button>
-      </div>
-
-      {/* Search Card */}
-      <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search category node..."
-            className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#D1D5DB] bg-white text-xs text-[#111827] font-semibold focus:border-[#2563EB] focus:outline-none placeholder:text-[#9CA3AF]"
-          />
-        </div>
-        <span className="text-xs font-bold text-[#6B7280]">Taxonomy Nodes: {filteredCategories.length}</span>
-      </Card>
-
-      {/* Categories Grid */}
-      {loading ? (
-        <div className="text-center py-12 text-[#6B7280] text-sm font-medium">Loading category taxonomy nodes...</div>
-      ) : filteredCategories.length === 0 ? (
-        <div className="text-center py-12 text-[#6B7280] text-sm font-medium">No category nodes found.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCategories.map((c) => (
-            <Card key={`${c.table}-${c.id}`} className="p-5 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs space-y-3 hover:border-blue-200 transition-all flex flex-col justify-between">
-              <div className="space-y-2">
-                <Badge variant="outline" className="text-[10px] text-[#2563EB] border-blue-200 bg-blue-50 font-bold uppercase">
-                  {c.module}
-                </Badge>
-                <h4 className="text-base font-bold text-[#111827] font-sans">{c.name}</h4>
-                <p className="text-[11px] text-[#6B7280] font-mono">slug: /{c.slug}</p>
-              </div>
-
-              <div className="pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs">
-                <span className="font-bold text-[#2563EB]">Active Node</span>
-                <span className="inline-flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      setEditingNode(c);
-                      setFormName(c.name);
-                      setShowEditModal(true);
-                    }}
-                    className="text-[#6B7280] hover:text-[#2563EB] font-bold inline-flex items-center gap-1"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" /> Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteNode(c)}
-                    className="text-rose-500 hover:text-rose-700 font-bold inline-flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Delete
-                  </button>
-                </span>
-              </div>
-            </Card>
-          ))}
-        </div>
+      {!loading && unavailable.length > 0 && (
+        <p className="text-xs font-semibold text-amber-700">
+          Not available yet: {unavailable.join(', ')} categories (database tables pending).
+        </p>
       )}
 
-      {/* Modal: Create Category Node */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <Card className="w-full max-w-md p-6 bg-white rounded-3xl shadow-xl space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-[#111827]">Create Category Node</h2>
-              <button onClick={() => setShowCreateModal(false)} className="text-[#6B7280] hover:bg-[#F3F4F6] p-1.5 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <DataTable<Category>
+        rows={rows}
+        columns={columns}
+        getRowId={(c) => c.rowKey}
+        loading={loading}
+        filters={filters}
+        searchText={(c) => `${c.name} ${c.slug} ${moduleLabel(c.module)}`}
+        searchPlaceholder="Search category…"
+        emptyMessage="No categories yet."
+        rowLabel={(c) => `${c.name} (${moduleLabel(c.module)})`}
+        onView={setViewing}
+        onEdit={openEdit}
+        onDelete={remove}
+      />
 
-            <form onSubmit={handleCreateNode} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Target Vertical Module</label>
-                <select
-                  value={formModule}
-                  onChange={(e) => setFormModule(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB]"
-                >
-                  <option value="businesses">Commercial Outlets</option>
-                  <option value="jobs">Cyberpark Jobs</option>
-                  <option value="marketplace">Classifieds Market</option>
-                  <option value="properties">Real Estate Listings</option>
-                </select>
-              </div>
+      <RecordDrawer
+        open={viewing !== null}
+        title={viewing?.name ?? ''}
+        subtitle={viewing && moduleLabel(viewing.module)}
+        fields={
+          viewing
+            ? [
+                { label: 'Module', value: moduleLabel(viewing.module) },
+                { label: 'Slug', value: `/${viewing.slug}` },
+                { label: 'Added', value: formatDate(viewing.created_at, true) },
+                ...viewFieldsFromConfig(editFields, viewing),
+              ]
+            : []
+        }
+        onClose={() => setViewing(null)}
+        onEdit={viewing ? () => openEdit(viewing) : undefined}
+      />
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Category Title</label>
-                <input
-                  type="text"
-                  required
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  placeholder="e.g. Seafood & Beach Cafes"
-                  className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF]"
-                />
-              </div>
+      <RecordFormModal
+        open={editing !== null}
+        title="Edit category"
+        fields={editFields}
+        record={editing}
+        onClose={() => setEditing(null)}
+        onSubmit={save}
+      />
 
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F3F4F6] rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 text-sm font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl disabled:opacity-50 inline-flex items-center gap-2"
-                >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Create Node
-                </button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
-
-      {/* Modal: Edit Category Node */}
-      {showEditModal && editingNode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <Card className="w-full max-w-md p-6 bg-white rounded-3xl shadow-xl space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-[#111827]">Edit Category Node</h2>
-              <button onClick={() => setShowEditModal(false)} className="text-[#6B7280] hover:bg-[#F3F4F6] p-1.5 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleEditNode} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Module</label>
-                <input
-                  type="text"
-                  disabled
-                  value={editingNode.module}
-                  className="w-full h-10 px-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-sm text-[#6B7280] font-semibold cursor-not-allowed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Category Title</label>
-                <input
-                  type="text"
-                  required
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB]"
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F3F4F6] rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 text-sm font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl disabled:opacity-50"
-                >
-                  {submitting ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
+      <RecordFormModal
+        open={creating}
+        title="Add category"
+        fields={createFields}
+        record={createDefaults}
+        submitLabel="Create category"
+        onClose={() => setCreating(false)}
+        onSubmit={create}
+      />
     </>
   );
 }

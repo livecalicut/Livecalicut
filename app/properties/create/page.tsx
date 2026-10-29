@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@/components/shared/page-header';
-import { ImageUploader } from '@/components/shared/image-uploader';
+import { MultiImageUploader } from '@/components/shared/multi-image-uploader';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,13 +22,13 @@ export default function CreatePropertyPage() {
   const { user, profile } = useAuthStore();
 
   const [title, setTitle] = useState('');
-  const [listingType, setListingType] = useState('sale');
+  const [listingType, setListingType] = useState('sell');
   const [price, setPrice] = useState('');
   const [bedrooms, setBedrooms] = useState('3');
   const [bathrooms, setBathrooms] = useState('3');
   const [areaSqft, setAreaSqft] = useState('2400');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -74,7 +74,7 @@ export default function CreatePropertyPage() {
         bathrooms: Number(bathrooms),
         area_sqft: Number(areaSqft),
         description,
-        images: imageUrl ? [imageUrl] : [],
+        images,
       });
 
       queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -136,7 +136,7 @@ export default function CreatePropertyPage() {
                   onChange={(e) => setListingType(e.target.value)}
                   className="w-full h-[44px] text-xs rounded-xl border-[#E5E7EB] text-[#111827] font-semibold uppercase"
                 >
-                  <option value="sale">For Sale</option>
+                  <option value="sell">For Sale</option>
                   <option value="rent">For Rent</option>
                   <option value="lease">For Lease</option>
                 </Select>
@@ -157,11 +157,12 @@ export default function CreatePropertyPage() {
               </div>
             </div>
 
-            <ImageUploader
-              value={imageUrl}
-              onChange={setImageUrl}
+            <MultiImageUploader
+              value={images}
+              onChange={setImages}
               module="properties"
-              label="Property Front Image (Optional)"
+              label="Property Photos (first photo is the cover)"
+              max={10}
             />
 
             <div className="grid grid-cols-3 gap-4">

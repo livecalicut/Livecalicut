@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { updateCMSTestimonialsAction } from './actions';
 import { Save, Loader2, Plus, Trash2 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface Testimonial {
   name: string;
@@ -35,9 +36,9 @@ export const TestimonialsEditor = ({ initialData = [] }: { initialData: Testimon
     try {
       const res = await updateCMSTestimonialsAction(items);
       if (res.error) throw new Error(res.error);
-      alert('Testimonials updated successfully!');
+      toast.success('Testimonials updated');
     } catch (err: any) {
-      alert(err.message || 'Failed to update Testimonials');
+      toast.error('Failed to update Testimonials', err.message);
     } finally {
       setIsSaving(false);
     }

@@ -8,11 +8,16 @@ import type { Breakdown } from '@/app/admin/analytics/actions';
 export type PaymentRow = {
   id: string;
   merchant: string;
+  merchant_email: string | null;
   amount: number;
   currency: string;
   status: string;
   gateway: string;
+  gateway_order_id: string | null;
+  gateway_payment_id: string | null;
+  subscription_id: string | null;
   created_at: string;
+  updated_at: string | null;
 };
 
 export type BillingOverview = {
@@ -53,7 +58,8 @@ export async function fetchBillingOverviewAction(): Promise<BillingOverview> {
   ] = await Promise.all([
     supabase
       .from('payments')
-      .select('id, amount, currency, status, payment_gateway, created_at, profiles(full_name, email)')
+      // '*' so optional gateway columns never break the query; only mapped fields leave the server
+      .select('*, profiles(full_name, email)')
       .order('created_at', { ascending: false })
       .limit(200),
     supabase
@@ -106,15 +112,20 @@ export async function fetchBillingOverviewAction(): Promise<BillingOverview> {
     statusMix: [...statusCounts.entries()]
       .map(([label, count]) => ({ label, count }))
       .sort((a, b) => b.count - a.count),
-    recentPayments: rows.slice(0, 15).map((row) => ({
+    recentPayments: rows.map((row) => ({
       id: row.id as string,
       merchant:
         nameOf(row.profiles, 'full_name') ?? nameOf(row.profiles, 'email') ?? 'Unknown merchant',
+      merchant_email: nameOf(row.profiles, 'email') ?? null,
       amount: Number(row.amount ?? 0),
       currency: (row.currency as string) ?? 'INR',
       status: (row.status as string) ?? 'unknown',
       gateway: (row.payment_gateway as string) ?? 'razorpay',
+      gateway_order_id: (row.gateway_order_id as string | null) ?? null,
+      gateway_payment_id: (row.gateway_payment_id as string | null) ?? null,
+      subscription_id: (row.subscription_id as string | null) ?? null,
       created_at: row.created_at as string,
+      updated_at: (row.updated_at as string | null) ?? null,
     })),
   };
 }

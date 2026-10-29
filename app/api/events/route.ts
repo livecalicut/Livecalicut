@@ -3,6 +3,15 @@ import { createAdminClient, createPublicClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { CONTENT_EDITORS } from '@/lib/rbac/roles';
 
+/** Keeps only http(s) URL strings, capped at 20 images. */
+function parseGallery(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((u): u is string => typeof u === 'string' && /^https?:\/\//.test(u.trim()))
+    .map((u) => u.trim())
+    .slice(0, 20);
+}
+
 function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -31,6 +40,9 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { title, description, category, venue, start_date, end_date, registration_link, is_ticket_required } = body;
+    const banner =
+      typeof body.banner === 'string' && /^https?:\/\//.test(body.banner.trim()) ? body.banner.trim() : null;
+    const gallery = parseGallery(body.gallery);
 
     if (!title || !start_date) {
       return NextResponse.json({ success: false, message: 'Event title and start date are required.' }, { status: 400 });
@@ -68,6 +80,8 @@ export async function POST(request: Request) {
         end_date: end_date || start_date,
         registration_link: registration_link || null,
         is_ticket_required: is_ticket_required ?? false,
+        banner,
+        gallery,
         created_by: auth.user.id,
         status: 'published',
       })

@@ -1,374 +1,252 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, EyeOff, Plus } from 'lucide-react';
 import { fetchAdminEventsAction } from './actions';
-import { Card } from '@/components/ui/card';
-import { Calendar, Plus, Search, XCircle, X, Loader2, MapPin, Clock } from 'lucide-react';
+import {
+  AdminEntityTable,
+  AdminPageHeader,
+  IconButton,
+  RecordFormModal,
+  StatusBadge,
+  formatDate,
+  primaryButtonClass,
+  type Column,
+  type TableFilter,
+} from '@/components/admin/data-table';
+import { adminApi } from '@/lib/admin/client';
+import type { EntityField } from '@/lib/admin/entities';
+import { toast } from '@/lib/toast';
+
+type CityEvent = {
+  id: string;
+  title: string;
+  status: string;
+  venue?: string | null;
+  start_date: string;
+  end_date?: string | null;
+  banner?: string | null;
+  gallery?: string[] | null;
+  is_featured?: boolean;
+  created_at: string;
+  event_categories?: { name: string } | null;
+  areas?: { name: string } | null;
+  profiles?: { full_name?: string | null } | null;
+  [key: string]: any;
+};
+
+const EVENT_CATEGORIES = [
+  'Cultural Festival',
+  'Music & Arts',
+  'Literary Event',
+  'Food & Culinary',
+  'Sports & Fitness',
+  'Business & Networking',
+  'Education & Workshop',
+  'Heritage & Tourism',
+  'Community Gathering',
+  'Government & Civic',
+];
+
+const createFields: EntityField[] = [
+  { name: 'title', label: 'Event title', type: 'text', required: true, wide: true },
+  {
+    name: 'category',
+    label: 'Category',
+    type: 'select',
+    required: true,
+    options: EVENT_CATEGORIES.map((c) => ({ value: c, label: c })),
+  },
+  { name: 'venue', label: 'Venue', type: 'text' },
+  { name: 'start_date', label: 'Starts', type: 'datetime', required: true },
+  { name: 'end_date', label: 'Ends', type: 'datetime' },
+  { name: 'description', label: 'Description', type: 'textarea', wide: true },
+  { name: 'registration_link', label: 'Registration / ticket link', type: 'url', wide: true },
+  { name: 'is_ticket_required', label: 'Ticket / registration required', type: 'checkbox' },
+  { name: 'banner', label: 'Banner image', type: 'image', module: 'event', wide: true },
+  { name: 'gallery', label: 'Gallery', type: 'images', module: 'event', wide: true },
+];
+
+const createDefaults = { category: 'Cultural Festival' };
+
+const columns: Column<CityEvent>[] = [
+  {
+    key: 'title',
+    header: 'Event',
+    sortValue: (e) => e.title,
+    cell: (e) => (
+      <div className="flex min-w-0 items-center gap-3">
+        {e.banner && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={e.banner} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-[#E5E7EB] object-cover" />
+        )}
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-[#111827]">{e.title}</p>
+          <p className="text-[11px] text-[#6B7280]">{e.event_categories?.name || 'General'}</p>
+        </div>
+      </div>
+    ),
+  },
+  { key: 'venue', header: 'Venue', hideOnMobile: true, sortValue: (e) => e.venue, cell: (e) => e.venue || 'TBD' },
+  {
+    key: 'start_date',
+    header: 'Schedule',
+    sortValue: (e) => e.start_date,
+    cell: (e) => (
+      <div>
+        <p className="font-medium text-[#111827]">{formatDate(e.start_date, true)}</p>
+        {e.end_date && e.end_date !== e.start_date && (
+          <p className="text-[11px] text-[#6B7280]">→ {formatDate(e.end_date, true)}</p>
+        )}
+      </div>
+    ),
+  },
+  { key: 'status', header: 'Status', sortValue: (e) => e.status, cell: (e) => <StatusBadge status={e.status} /> },
+];
+
+const isUpcoming = (e: CityEvent) => new Date(e.end_date || e.start_date).getTime() >= Date.now();
+
+const staticFilters: TableFilter<CityEvent>[] = [
+  {
+    key: 'status',
+    label: 'Statuses',
+    options: [
+      { value: 'published', label: 'Published' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'draft', label: 'Draft' },
+      { value: 'cancelled', label: 'Cancelled' },
+      { value: 'archived', label: 'Archived' },
+    ],
+    match: (e, v) => e.status === v,
+  },
+  {
+    key: 'when',
+    label: 'Dates',
+    options: [
+      { value: 'upcoming', label: 'Upcoming' },
+      { value: 'past', label: 'Past' },
+    ],
+    match: (e, v) => (v === 'upcoming' ? isUpcoming(e) : !isUpcoming(e)),
+  },
+];
 
 export default function AdminEventsPage() {
-  const [search, setSearch] = useState('');
-  const [eventsList, setEventsList] = useState<any[]>([]);
+  const [rows, setRows] = useState<CityEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
-  // Create Event Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [formTitle, setFormTitle] = useState('');
-  const [formDescription, setFormDescription] = useState('');
-  const [formCategory, setFormCategory] = useState('Cultural Festival');
-  const [formVenue, setFormVenue] = useState('');
-  const [formStartDate, setFormStartDate] = useState('');
-  const [formEndDate, setFormEndDate] = useState('');
-  const [formRegLink, setFormRegLink] = useState('');
-  const [formTicketRequired, setFormTicketRequired] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    loadEvents();
+  // The events table may not exist yet in production; treat a failed load as an empty list
+  const load = useCallback(async () => {
+    try {
+      const res = await fetchAdminEventsAction();
+      setRows(res.success ? ((res.data as CityEvent[]) || []) : []);
+    } catch {
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const loadEvents = async () => {
-    setLoading(true);
-    const res = await fetchAdminEventsAction();
-    if (res.success) setEventsList(res.data || []);
-    setLoading(false);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const filters = useMemo<TableFilter<CityEvent>[]>(() => {
+    const categories = Array.from(new Set(rows.map((e) => e.event_categories?.name).filter(Boolean))) as string[];
+    if (categories.length === 0) return staticFilters;
+    return [
+      ...staticFilters,
+      {
+        key: 'category',
+        label: 'Categories',
+        options: categories.sort().map((c) => ({ value: c, label: c })),
+        match: (e, v) => e.event_categories?.name === v,
+      },
+    ];
+  }, [rows]);
+
+  const createEvent = async (values: Record<string, unknown>) => {
+    const res = await fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...values,
+        end_date: values.end_date || undefined,
+        registration_link: values.registration_link || undefined,
+        banner: values.banner || null,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.success === false) throw new Error(json.message || 'Could not create event');
+
+    toast.success('Event published', String(values.title));
+    setCreating(false);
+    await load();
   };
 
-  const handleCreateEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!formTitle || !formStartDate) {
-      setError('Event title and start date are required.');
-      return;
-    }
-    setSubmitting(true);
+  const moderate = async (e: CityEvent, action: 'approve' | 'reject') => {
     try {
-      const res = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formTitle,
-          description: formDescription,
-          category: formCategory,
-          venue: formVenue,
-          start_date: formStartDate,
-          end_date: formEndDate || undefined,
-          registration_link: formRegLink || undefined,
-          is_ticket_required: formTicketRequired,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Failed to create event');
-
-      // Reset form
-      setShowModal(false);
-      setFormTitle(''); setFormDescription(''); setFormCategory('Cultural Festival');
-      setFormVenue(''); setFormStartDate(''); setFormEndDate('');
-      setFormRegLink(''); setFormTicketRequired(false);
-      loadEvents();
-    } catch (err: any) {
-      setError(err.message || 'Could not create event.');
-    } finally {
-      setSubmitting(false);
+      await adminApi.moderate('event', e.id, action);
+      toast.success(action === 'approve' ? 'Event published' : 'Event unpublished', e.title);
+      await load();
+    } catch (err) {
+      toast.error('Action failed', err instanceof Error ? err.message : undefined);
     }
   };
-
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    const action = currentStatus === 'published' ? 'reject' : 'approve';
-    const res = await fetch('/api/v1/admin/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityType: 'event', entityId: id, action }),
-    });
-    if (res.ok) loadEvents();
-  };
-
-  const deleteEvent = async (id: string) => {
-    if (!window.confirm('Delete this event permanently?')) return;
-    const res = await fetch('/api/v1/admin/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityType: 'event', entityId: id, hardDelete: true }),
-    });
-    if (res.ok) loadEvents();
-  };
-
-  const filtered = eventsList.filter(
-    (e) =>
-      e.title?.toLowerCase().includes(search.toLowerCase()) ||
-      e.venue?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const INPUT = 'w-full h-11 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF]';
-  const LABEL = 'text-xs font-bold text-[#4B5563] uppercase tracking-wider';
 
   return (
     <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-            <Calendar className="w-7 h-7 text-[#2563EB]" />
-            <span>Calicut Cultural Events Desk</span>
-          </h1>
-          <p className="text-sm text-[#6B7280]">
-            Approve cultural programs, literary fests, and community schedules across Calicut
-          </p>
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Create City Event
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Events"
+        description="Approve cultural programmes, literary fests and community schedules across the city."
+        count={rows.length}
+        actions={
+          <button type="button" onClick={() => setCreating(true)} className={primaryButtonClass}>
+            <Plus className="h-4 w-4" /> Create event
+          </button>
+        }
+      />
 
-      {/* Search */}
-      <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search event title or venue..."
-            className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#D1D5DB] bg-white text-xs text-[#111827] font-semibold focus:border-[#2563EB] focus:outline-none placeholder:text-[#9CA3AF]"
-          />
-        </div>
-        <span className="text-xs font-bold text-[#6B7280]">Total Events: {filtered.length}</span>
-      </Card>
+      <AdminEntityTable<CityEvent>
+        entityType="event"
+        rows={rows}
+        loading={loading}
+        reload={load}
+        columns={columns}
+        filters={filters}
+        searchText={(e) => `${e.title} ${e.venue ?? ''} ${e.event_categories?.name ?? ''}`}
+        searchPlaceholder="Search title, venue, category…"
+        emptyMessage="No city events yet."
+        titleOf={(e) => e.title}
+        subtitleOf={(e) => <StatusBadge status={e.status} />}
+        imageKeys={['banner', 'gallery']}
+        extraViewFields={(e) => [
+          { label: 'Category', value: e.event_categories?.name || 'General' },
+          { label: 'Area', value: e.areas?.name },
+          { label: 'Created by', value: e.profiles?.full_name },
+          { label: 'Added', value: formatDate(e.created_at, true) },
+        ]}
+        rowActions={(e) =>
+          e.status === 'published' ? (
+            <IconButton label="Unpublish" tone="danger" onClick={() => moderate(e, 'reject')}>
+              <EyeOff className="h-4 w-4" />
+            </IconButton>
+          ) : (
+            <IconButton label="Approve & publish" onClick={() => moderate(e, 'approve')}>
+              <CheckCircle2 className="h-4 w-4" />
+            </IconButton>
+          )
+        }
+      />
 
-      {/* Events Table */}
-      <Card className="p-0 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider">
-                <th className="py-3.5 px-6">Event Name / Category</th>
-                <th className="py-3.5 px-4">Venue</th>
-                <th className="py-3.5 px-4">Schedule Dates</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E7EB] text-xs">
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-8 text-[#6B7280]">Loading events...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-12">
-                    <div className="space-y-2">
-                      <Calendar className="w-10 h-10 text-[#D1D5DB] mx-auto" />
-                      <p className="text-[#6B7280] font-semibold text-sm">No city events yet</p>
-                      <p className="text-[#9CA3AF] text-xs">Click "Create City Event" to schedule the first cultural event.</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : filtered.map((e) => (
-                <tr key={e.id} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="py-4 px-6">
-                    <p className="font-bold text-[#111827] font-sans">{e.title}</p>
-                    <p className="text-[11px] text-[#6B7280]">{e.event_categories?.name || 'General'}</p>
-                  </td>
-                  <td className="py-4 px-4 text-[#4B5563] font-medium flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-[#9CA3AF] shrink-0" />
-                    {e.venue || 'TBD'}
-                  </td>
-                  <td className="py-4 px-4 font-bold text-[#2563EB]">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#9CA3AF]" />
-                      {new Date(e.start_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                    {e.end_date && (
-                      <p className="text-[11px] text-[#6B7280] font-normal">
-                        → {new Date(e.end_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
-                      e.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {e.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right space-x-2">
-                    <button
-                      onClick={() => toggleStatus(e.id, e.status)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                        e.status === 'published'
-                          ? 'border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100'
-                          : 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {e.status === 'published' ? 'Unpublish' : 'Approve & Publish'}
-                    </button>
-                    <button
-                      onClick={() => deleteEvent(e.id)}
-                      className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all inline-flex items-center gap-1"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* ─── Create Event Modal ─── */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 bg-white rounded-3xl shadow-2xl space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-extrabold text-[#111827] flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-[#2563EB]" /> Create City Event
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-[#6B7280] hover:bg-[#F3F4F6] p-1.5 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#2563EB] font-semibold">
-              🎭 Once published, this event will be live on the Calicut Cultural Events feed.
-            </div>
-
-            {error && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold">
-                ⚠️ {error}
-              </div>
-            )}
-
-            <form onSubmit={handleCreateEvent} className="space-y-4">
-
-              <div className="space-y-1.5">
-                <label className={LABEL}>Event Title *</label>
-                <input
-                  type="text"
-                  required
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Malabar Literary Festival 2025"
-                  className={INPUT}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className={LABEL}>Category</label>
-                  <select
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value)}
-                    className={INPUT}
-                  >
-                    <option>Cultural Festival</option>
-                    <option>Music & Arts</option>
-                    <option>Literary Event</option>
-                    <option>Food & Culinary</option>
-                    <option>Sports & Fitness</option>
-                    <option>Business & Networking</option>
-                    <option>Education & Workshop</option>
-                    <option>Heritage & Tourism</option>
-                    <option>Community Gathering</option>
-                    <option>Government & Civic</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className={LABEL}>Venue / Location</label>
-                  <input
-                    type="text"
-                    value={formVenue}
-                    onChange={(e) => setFormVenue(e.target.value)}
-                    placeholder="e.g. Mananchira Square, Calicut"
-                    className={INPUT}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className={LABEL}>Start Date & Time *</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={formStartDate}
-                    onChange={(e) => setFormStartDate(e.target.value)}
-                    className={INPUT}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className={LABEL}>End Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={formEndDate}
-                    onChange={(e) => setFormEndDate(e.target.value)}
-                    className={INPUT}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className={LABEL}>Event Description</label>
-                <textarea
-                  rows={4}
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  placeholder="Describe the event — schedule, highlights, guests, entry details..."
-                  className="w-full px-3 py-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF] resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className={LABEL}>Registration / Ticket Link (optional)</label>
-                <input
-                  type="url"
-                  value={formRegLink}
-                  onChange={(e) => setFormRegLink(e.target.value)}
-                  placeholder="https://bookmyshow.com/... or WhatsApp registration link"
-                  className={INPUT}
-                />
-              </div>
-
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  type="checkbox"
-                  id="ticketRequired"
-                  checked={formTicketRequired}
-                  onChange={(e) => setFormTicketRequired(e.target.checked)}
-                  className="w-4 h-4 rounded border-[#D1D5DB] accent-[#2563EB]"
-                />
-                <label htmlFor="ticketRequired" className="text-xs font-bold text-[#4B5563]">
-                  Entry ticket / registration required
-                </label>
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3 border-t border-[#E5E7EB]">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 text-sm font-bold text-[#4B5563] hover:bg-[#F3F4F6] rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-2.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl disabled:opacity-50 inline-flex items-center gap-2"
-                >
-                  {submitting ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Publishing...</>
-                  ) : (
-                    <><Calendar className="w-4 h-4" /> Publish to City Events</>
-                  )}
-                </button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
+      <RecordFormModal
+        open={creating}
+        title="Create city event"
+        fields={createFields}
+        record={createDefaults}
+        submitLabel="Publish event"
+        onClose={() => setCreating(false)}
+        onSubmit={createEvent}
+      />
     </>
   );
 }

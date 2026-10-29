@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { updateCMSHeroAction } from './actions';
 import { Save, Loader2 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface HeroEditorProps {
   initialData: {
@@ -27,9 +28,9 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ initialData }) => {
     try {
       const res = await updateCMSHeroAction(formData);
       if (res.error) throw new Error(res.error);
-      alert('Hero section updated successfully!');
+      toast.success('Hero section updated');
     } catch (err: any) {
-      alert(err.message || 'Failed to update CMS');
+      toast.error('Failed to update CMS', err.message);
     } finally {
       setIsSaving(false);
     }

@@ -1,151 +1,216 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
-import { fetchAdminMarketplaceAction } from './actions';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
-import { ShoppingBag, Search, ShieldCheck, Tag, XCircle, Plus } from 'lucide-react';
+import { CheckCircle2, Plus, Star, XCircle } from 'lucide-react';
+import { fetchAdminMarketplaceAction } from './actions';
+import {
+  AdminEntityTable,
+  AdminPageHeader,
+  IconButton,
+  StatusBadge,
+  formatDate,
+  primaryButtonClass,
+  type Column,
+  type TableFilter,
+} from '@/components/admin/data-table';
+import { adminApi } from '@/lib/admin/client';
+import { toast } from '@/lib/toast';
+
+type Listing = {
+  id: string;
+  title: string;
+  price: number | string | null;
+  status: string;
+  condition?: string | null;
+  is_featured: boolean;
+  is_negotiable?: boolean;
+  cover_image?: string | null;
+  created_at: string;
+  seller_profiles?: { full_name: string } | null;
+  marketplace_categories?: { name: string } | null;
+  areas?: { name: string } | null;
+  [key: string]: any;
+};
+
+// The marketplace tables may not be migrated yet; treat that as "no data".
+const isMissingTable = (msg?: string) => !!msg && /does not exist|schema cache|could not find/i.test(msg);
+
+const formatPrice = (v: Listing['price']) =>
+  v === null || v === undefined || v === '' ? '—' : `₹${Number(v).toLocaleString('en-IN')}`;
+
+const humanize = (v?: string | null) => (v ? v.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '');
+
+const columns: Column<Listing>[] = [
+  {
+    key: 'title',
+    header: 'Listing',
+    sortValue: (l) => l.title,
+    cell: (l) => (
+      <div className="flex min-w-0 items-center gap-3">
+        {l.cover_image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={l.cover_image} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-[#E5E7EB] object-cover" />
+        ) : (
+          <div className="h-10 w-10 shrink-0 rounded-lg border border-[#E5E7EB] bg-[#F8FAFC]" />
+        )}
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 truncate font-semibold text-[#111827]">
+            {l.title}
+            {l.is_featured && <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />}
+          </p>
+          <p className="text-[11px] text-[#6B7280]">{l.marketplace_categories?.name || 'Uncategorized'}</p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    key: 'price',
+    header: 'Price',
+    sortValue: (l) => Number(l.price) || 0,
+    cell: (l) => <span className="font-semibold text-[#111827]">{formatPrice(l.price)}</span>,
+  },
+  {
+    key: 'seller',
+    header: 'Seller',
+    hideOnMobile: true,
+    sortValue: (l) => l.seller_profiles?.full_name,
+    cell: (l) => l.seller_profiles?.full_name || '—',
+  },
+  {
+    key: 'area',
+    header: 'Area',
+    hideOnMobile: true,
+    sortValue: (l) => l.areas?.name,
+    cell: (l) => l.areas?.name || '—',
+  },
+  { key: 'status', header: 'Status', sortValue: (l) => l.status, cell: (l) => <StatusBadge status={l.status} /> },
+  {
+    key: 'created_at',
+    header: 'Listed',
+    hideOnMobile: true,
+    sortValue: (l) => l.created_at,
+    cell: (l) => formatDate(l.created_at),
+  },
+];
+
+const filters: TableFilter<Listing>[] = [
+  {
+    key: 'status',
+    label: 'Statuses',
+    options: [
+      { value: 'active', label: 'Active' },
+      { value: 'sold', label: 'Sold' },
+      { value: 'archived', label: 'Archived' },
+    ],
+    match: (l, v) => l.status === v,
+  },
+  {
+    key: 'condition',
+    label: 'Conditions',
+    options: ['brand_new', 'like_new', 'used_good', 'used_fair'].map((value) => ({ value, label: humanize(value) })),
+    match: (l, v) => l.condition === v,
+  },
+  {
+    key: 'featured',
+    label: 'Listings',
+    options: [
+      { value: 'featured', label: 'Featured' },
+      { value: 'standard', label: 'Standard' },
+    ],
+    match: (l, v) => (v === 'featured' ? l.is_featured : !l.is_featured),
+  },
+];
 
 export default function AdminMarketplacePage() {
-  const [search, setSearch] = useState('');
-
-  const [items, setItems] = useState<any[]>([]);
+  const [rows, setRows] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
 
-  useEffect(() => {
-    loadItems();
-  }, []);
-
-  const loadItems = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     const res = await fetchAdminMarketplaceAction();
     if (res.success) {
-      setItems(res.data || []);
+      setRows((res.data as Listing[]) || []);
+      setUnavailable(false);
+    } else if (isMissingTable(res.error)) {
+      setRows([]);
+      setUnavailable(true);
+    } else {
+      toast.error('Could not load listings', res.error);
     }
     setLoading(false);
-  };
+  }, []);
 
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    const action = currentStatus === 'active' ? 'reject' : 'approve';
-    const res = await fetch('/api/v1/admin/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityType: 'marketplace', entityId: id, action })
-    });
-    if (res.ok) loadItems();
-  };
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const deleteItem = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this listing?')) return;
-    const res = await fetch('/api/v1/admin/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityType: 'marketplace', entityId: id, hardDelete: true })
-    });
-    if (res.ok) loadItems();
+  const moderate = async (l: Listing, action: 'approve' | 'reject' | 'feature' | 'unfeature') => {
+    try {
+      await adminApi.moderate('marketplace', l.id, action);
+      toast.success('Listing updated', l.title);
+      await load();
+    } catch (err) {
+      toast.error('Action failed', err instanceof Error ? err.message : undefined);
+    }
   };
-
-  const filteredItems = items.filter((it) => it.title?.toLowerCase().includes(search.toLowerCase()) || it.seller_profiles?.full_name?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-            <ShoppingBag className="w-7 h-7 text-[#2563EB]" />
-            <span>Buy & Sell Classifieds Moderation</span>
-          </h1>
-          <p className="text-sm text-[#6B7280]">Review citizen listings, moderate reported pre-owned items, and verify prices</p>
-        </div>
+      <AdminPageHeader
+        title="Marketplace"
+        description="Review buy & sell listings, take down reported items and feature good deals."
+        count={rows.length}
+        actions={
+          <Link href="/marketplace/create" className={primaryButtonClass}>
+            <Plus className="h-4 w-4" /> Add listing
+          </Link>
+        }
+      />
 
-        <Link href="/marketplace/create">
-          <button className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0">
-            <Plus className="w-4 h-4" /> Add Classified Item
-          </button>
-        </Link>
-      </div>
-
-      {/* Search Card */}
-      <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search listing or seller..."
-            className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-xs text-[#111827] focus:bg-white focus:border-[#2563EB] focus:outline-none"
-          />
-        </div>
-        <span className="text-xs font-bold text-[#6B7280]">Total Items: {filteredItems.length}</span>
-      </Card>
-
-      {/* Table */}
-      <Card className="p-0 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider">
-                <th className="py-3.5 px-6">Item Title / Category</th>
-                <th className="py-3.5 px-4">Price</th>
-                <th className="py-3.5 px-4">Seller Account</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-6 text-right">Moderation Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E7EB] text-xs">
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-8">Loading listings...</td></tr>
-              ) : filteredItems.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8">No listings found</td></tr>
-              ) : filteredItems.map((it) => (
-                <tr key={it.id} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="py-4 px-6 font-semibold">
-                    <p className="font-bold text-[#111827] font-sans">{it.title}</p>
-                    <p className="text-[11px] text-[#6B7280] flex items-center gap-1">
-                      <Tag className="w-3 h-3 text-[#2563EB]" /> {it.marketplace_categories?.name || 'Uncategorized'}
-                    </p>
-                  </td>
-                  <td className="py-4 px-4 font-black text-[#111827]">₹{Number(it.price).toLocaleString('en-IN')}</td>
-                  <td className="py-4 px-4 text-[#4B5563] font-medium">{it.seller_profiles?.full_name || 'Anonymous User'}</td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
-                        it.status === 'active'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : it.status === 'pending'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-rose-100 text-rose-700'
-                      }`}
-                    >
-                      {it.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right space-x-2">
-                    <button
-                      onClick={() => toggleStatus(it.id, it.status)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                        it.status === 'active'
-                          ? 'border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100'
-                          : 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {it.status === 'active' ? 'Flag & Take Down' : 'Approve Item'}
-                    </button>
-                    <button
-                      onClick={() => deleteItem(it.id)}
-                      className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all inline-flex items-center gap-1"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <AdminEntityTable<Listing>
+        entityType="marketplace"
+        rows={rows}
+        loading={loading}
+        reload={load}
+        columns={columns}
+        filters={filters}
+        imageKeys={['cover_image', 'gallery']}
+        searchText={(l) =>
+          `${l.title} ${l.seller_profiles?.full_name ?? ''} ${l.marketplace_categories?.name ?? ''} ${l.areas?.name ?? ''}`
+        }
+        searchPlaceholder="Search title, seller, category…"
+        emptyMessage={
+          unavailable ? 'The marketplace is not set up yet. Listings will appear here once it is enabled.' : 'No listings yet.'
+        }
+        titleOf={(l) => l.title}
+        subtitleOf={(l) => <StatusBadge status={l.status} />}
+        extraViewFields={(l) => [
+          { label: 'Category', value: l.marketplace_categories?.name },
+          { label: 'Seller', value: l.seller_profiles?.full_name },
+          { label: 'Area', value: l.areas?.name },
+          { label: 'Listed', value: formatDate(l.created_at, true) },
+        ]}
+        rowActions={(l) => (
+          <>
+            {l.status !== 'active' && (
+              <IconButton label="Approve" onClick={() => moderate(l, 'approve')}>
+                <CheckCircle2 className="h-4 w-4" />
+              </IconButton>
+            )}
+            {l.status === 'active' && (
+              <IconButton label="Take down" tone="danger" onClick={() => moderate(l, 'reject')}>
+                <XCircle className="h-4 w-4" />
+              </IconButton>
+            )}
+            <IconButton
+              label={l.is_featured ? 'Remove from featured' : 'Feature'}
+              onClick={() => moderate(l, l.is_featured ? 'unfeature' : 'feature')}
+            >
+              <Star className={`h-4 w-4 ${l.is_featured ? 'fill-amber-400 text-amber-400' : ''}`} />
+            </IconButton>
+          </>
+        )}
+      />
     </>
   );
 }

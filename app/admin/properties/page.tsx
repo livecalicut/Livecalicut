@@ -1,147 +1,222 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { CheckCircle2, Plus, Star, XCircle } from 'lucide-react';
 import { fetchAdminPropertiesAction } from './actions';
-import { Card } from '@/components/ui/card';
-import { Building, Search, Plus, MapPin, XCircle, Home } from 'lucide-react';
+import {
+  AdminEntityTable,
+  AdminPageHeader,
+  IconButton,
+  StatusBadge,
+  formatDate,
+  primaryButtonClass,
+  type Column,
+  type TableFilter,
+} from '@/components/admin/data-table';
+import { adminApi } from '@/lib/admin/client';
+import { toast } from '@/lib/toast';
+
+type Property = {
+  id: string;
+  title: string;
+  price: number | string | null;
+  status: string;
+  listing_type?: string | null;
+  bedrooms?: number | null;
+  area_sqft?: number | null;
+  is_featured: boolean;
+  cover_image?: string | null;
+  created_at: string;
+  profiles?: { full_name: string } | null;
+  property_categories?: { name: string } | null;
+  areas?: { name: string } | null;
+  [key: string]: any;
+};
+
+// The property tables may not be migrated yet; treat that as "no data".
+const isMissingTable = (msg?: string) => !!msg && /does not exist|schema cache|could not find/i.test(msg);
+
+const formatPrice = (v: Property['price']) =>
+  v === null || v === undefined || v === '' ? '—' : `₹${Number(v).toLocaleString('en-IN')}`;
+
+const humanize = (v?: string | null) => (v ? v.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '');
+
+const columns: Column<Property>[] = [
+  {
+    key: 'title',
+    header: 'Property',
+    sortValue: (p) => p.title,
+    cell: (p) => (
+      <div className="flex min-w-0 items-center gap-3">
+        {p.cover_image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={p.cover_image} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-[#E5E7EB] object-cover" />
+        ) : (
+          <div className="h-10 w-10 shrink-0 rounded-lg border border-[#E5E7EB] bg-[#F8FAFC]" />
+        )}
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 truncate font-semibold text-[#111827]">
+            {p.title}
+            {p.is_featured && <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />}
+          </p>
+          <p className="text-[11px] text-[#6B7280]">
+            {[p.property_categories?.name, humanize(p.listing_type)].filter(Boolean).join(' · ') || 'Uncategorized'}
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    key: 'price',
+    header: 'Price',
+    sortValue: (p) => Number(p.price) || 0,
+    cell: (p) => <span className="font-semibold text-[#111827]">{formatPrice(p.price)}</span>,
+  },
+  {
+    key: 'area',
+    header: 'Area',
+    hideOnMobile: true,
+    sortValue: (p) => p.areas?.name,
+    cell: (p) => p.areas?.name || '—',
+  },
+  {
+    key: 'owner',
+    header: 'Owner',
+    hideOnMobile: true,
+    sortValue: (p) => p.profiles?.full_name,
+    cell: (p) => p.profiles?.full_name || '—',
+  },
+  { key: 'status', header: 'Status', sortValue: (p) => p.status, cell: (p) => <StatusBadge status={p.status} /> },
+  {
+    key: 'created_at',
+    header: 'Listed',
+    hideOnMobile: true,
+    sortValue: (p) => p.created_at,
+    cell: (p) => formatDate(p.created_at),
+  },
+];
+
+const filters: TableFilter<Property>[] = [
+  {
+    key: 'status',
+    label: 'Statuses',
+    options: [
+      { value: 'published', label: 'Published' },
+      { value: 'draft', label: 'Draft' },
+      { value: 'sold', label: 'Sold' },
+      { value: 'rented', label: 'Rented' },
+    ],
+    match: (p, v) => p.status === v,
+  },
+  {
+    key: 'listing_type',
+    label: 'Listing types',
+    options: ['sell', 'rent', 'lease', 'buy'].map((value) => ({ value, label: humanize(value) })),
+    match: (p, v) => p.listing_type === v,
+  },
+  {
+    key: 'featured',
+    label: 'Listings',
+    options: [
+      { value: 'featured', label: 'Featured' },
+      { value: 'standard', label: 'Standard' },
+    ],
+    match: (p, v) => (v === 'featured' ? p.is_featured : !p.is_featured),
+  },
+];
 
 export default function AdminPropertiesPage() {
-  const [search, setSearch] = useState('');
-
-  const [properties, setProperties] = useState<any[]>([]);
+  const [rows, setRows] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
 
-  useEffect(() => {
-    loadProperties();
-  }, []);
-
-  const loadProperties = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     const res = await fetchAdminPropertiesAction();
     if (res.success) {
-      setProperties(res.data || []);
+      setRows((res.data as Property[]) || []);
+      setUnavailable(false);
+    } else if (isMissingTable(res.error)) {
+      setRows([]);
+      setUnavailable(true);
+    } else {
+      toast.error('Could not load properties', res.error);
     }
     setLoading(false);
-  };
+  }, []);
 
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    const action = currentStatus === 'published' ? 'reject' : 'approve';
-    const res = await fetch('/api/v1/admin/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityType: 'property', entityId: id, action })
-    });
-    if (res.ok) loadProperties();
-  };
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const deleteProperty = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this property?')) return;
-    const res = await fetch('/api/v1/admin/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entityType: 'property', entityId: id, hardDelete: true })
-    });
-    if (res.ok) loadProperties();
+  const moderate = async (p: Property, action: 'approve' | 'reject' | 'feature' | 'unfeature') => {
+    try {
+      await adminApi.moderate('property', p.id, action);
+      toast.success('Property updated', p.title);
+      await load();
+    } catch (err) {
+      toast.error('Action failed', err instanceof Error ? err.message : undefined);
+    }
   };
-
-  const filteredProperties = properties.filter((p) => p.title?.toLowerCase().includes(search.toLowerCase()) || p.areas?.name?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-            <Building className="w-7 h-7 text-[#2563EB]" />
-            <span>Real Estate & Property Governance</span>
-          </h1>
-          <p className="text-sm text-[#6B7280]">Verify land title plots, commercial office rentals, and residential villas across Calicut</p>
-        </div>
+      <AdminPageHeader
+        title="Properties"
+        description="Verify real estate listings, unpublish stale ones and feature premium properties."
+        count={rows.length}
+        actions={
+          <Link href="/properties/create" className={primaryButtonClass}>
+            <Plus className="h-4 w-4" /> Add property
+          </Link>
+        }
+      />
 
-        <Link href="/properties/create">
-          <button className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0">
-            <Plus className="w-4 h-4" /> Add Property Listing
-          </button>
-        </Link>
-      </div>
-
-      {/* Search Card */}
-      <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search location or title..."
-            className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-xs text-[#111827] focus:bg-white focus:border-[#2563EB] focus:outline-none"
-          />
-        </div>
-        <span className="text-xs font-bold text-[#6B7280]">Listings: {filteredProperties.length}</span>
-      </Card>
-
-      {/* Table */}
-      <Card className="p-0 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider">
-                <th className="py-3.5 px-6">Property Title / Location</th>
-                <th className="py-3.5 px-4">Price Value</th>
-                <th className="py-3.5 px-4">Agent / Seller</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-6 text-right">Moderation Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E7EB] text-xs">
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-8">Loading properties...</td></tr>
-              ) : filteredProperties.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8">No properties found</td></tr>
-              ) : filteredProperties.map((p) => (
-                <tr key={p.id} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="py-4 px-6 font-semibold">
-                    <p className="font-bold text-[#111827] font-sans">{p.title}</p>
-                    <p className="text-[11px] text-[#6B7280] flex items-center gap-1">
-                      <Home className="w-3 h-3 text-[#2563EB]" /> {p.areas?.name || 'Unspecified Location'}
-                    </p>
-                  </td>
-                  <td className="py-4 px-4 font-black text-[#111827]">₹{Number(p.price).toLocaleString('en-IN')}</td>
-                  <td className="py-4 px-4 text-[#4B5563] font-medium">{p.profiles?.full_name || 'Anonymous User'}</td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
-                        p.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right space-x-2">
-                    <button
-                      onClick={() => toggleStatus(p.id, p.status)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                        p.status === 'published'
-                          ? 'border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100'
-                          : 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {p.status === 'published' ? 'Revoke Status' : 'Approve & Verify'}
-                    </button>
-                    <button
-                      onClick={() => deleteProperty(p.id)}
-                      className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all inline-flex items-center gap-1"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <AdminEntityTable<Property>
+        entityType="property"
+        rows={rows}
+        loading={loading}
+        reload={load}
+        columns={columns}
+        filters={filters}
+        imageKeys={['cover_image', 'gallery']}
+        searchText={(p) =>
+          `${p.title} ${p.areas?.name ?? ''} ${p.profiles?.full_name ?? ''} ${p.property_categories?.name ?? ''} ${p.address ?? ''}`
+        }
+        searchPlaceholder="Search title, area, owner…"
+        emptyMessage={
+          unavailable
+            ? 'Property listings are not set up yet. Listings will appear here once they are enabled.'
+            : 'No properties yet.'
+        }
+        titleOf={(p) => p.title}
+        subtitleOf={(p) => <StatusBadge status={p.status} />}
+        extraViewFields={(p) => [
+          { label: 'Category', value: p.property_categories?.name },
+          { label: 'Owner', value: p.profiles?.full_name },
+          { label: 'Area', value: p.areas?.name },
+          { label: 'Listed', value: formatDate(p.created_at, true) },
+        ]}
+        rowActions={(p) => (
+          <>
+            {p.status !== 'published' && (
+              <IconButton label="Publish" onClick={() => moderate(p, 'approve')}>
+                <CheckCircle2 className="h-4 w-4" />
+              </IconButton>
+            )}
+            {p.status === 'published' && (
+              <IconButton label="Unpublish" tone="danger" onClick={() => moderate(p, 'reject')}>
+                <XCircle className="h-4 w-4" />
+              </IconButton>
+            )}
+            <IconButton
+              label={p.is_featured ? 'Remove from featured' : 'Feature'}
+              onClick={() => moderate(p, p.is_featured ? 'unfeature' : 'feature')}
+            >
+              <Star className={`h-4 w-4 ${p.is_featured ? 'fill-amber-400 text-amber-400' : ''}`} />
+            </IconButton>
+          </>
+        )}
+      />
     </>
   );
 }

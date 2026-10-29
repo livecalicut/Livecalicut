@@ -1,356 +1,241 @@
 'use client';
-
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { MapPin, Plus, Search, Loader2, X, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import type { AreaRow } from '@/hooks/use-locations';
 import {
-  useDebouncedValue,
-  useLocationsFeed,
-  type AreaRow,
-} from '@/hooks/use-locations';
+  AdminPageHeader,
+  DataTable,
+  RecordDrawer,
+  RecordFormModal,
+  primaryButtonClass,
+  type Column,
+  type TableFilter,
+} from '@/components/admin/data-table';
+import { adminApi } from '@/lib/admin/client';
+import type { EntityField } from '@/lib/admin/entities';
+import { toast } from '@/lib/toast';
 
 type City = { id: string; name: string; slug: string };
+
+// The public locations API omits coordinates and is_active, so the form only
+// edits what the row actually carries; sending blanks would wipe stored values.
+const editFields: EntityField[] = [
+  { name: 'name', label: 'Area name', type: 'text', required: true, wide: true },
+  { name: 'pincode', label: 'Pincode', type: 'text' },
+];
+
+const columns: Column<AreaRow>[] = [
+  {
+    key: 'name',
+    header: 'Area',
+    sortValue: (a) => a.name,
+    cell: (a) => <span className="font-semibold text-[#111827]">{a.name}</span>,
+  },
+  { key: 'city', header: 'City', sortValue: (a) => a.cities?.name, cell: (a) => a.cities?.name || '—' },
+  { key: 'pincode', header: 'Pincode', sortValue: (a) => a.pincode, cell: (a) => a.pincode || '—' },
+];
 
 export default function AdminLocationsPage() {
   const { hasRole } = useAuthStore();
   const canManage = hasRole('Super Admin');
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, 300);
-  const [cities, setCities] = useState<City[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [name, setName] = useState('');
-  const [cityId, setCityId] = useState('');
-  const [pincode, setPincode] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const {
-    data,
-    isLoading,
-    isFetching,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useLocationsFeed({ search: debouncedSearch, limit: 20 });
-
-  const rows: AreaRow[] = useMemo(
-    () => (data?.pages || []).flatMap((page) => page.rows),
-    [data]
-  );
-  const total = data?.pages?.[0]?.meta?.total ?? rows.length;
+  const [rows, setRows] = useState<AreaRow[]>([]);
+  const [loading, setLoading] = useState(true);
   // Static fallback rows have no database ids, so they can't be edited
-  const offline = Boolean(data?.pages?.[0]?.meta?.fallback);
-  const canEditRows = canManage && !offline;
-  const searching = isFetching && !isFetchingNextPage && !isLoading;
+  const [offline, setOffline] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [viewing, setViewing] = useState<AreaRow | null>(null);
+  const [editing, setEditing] = useState<AreaRow | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  const refreshLocations = () =>
-    Promise.all([
+  const canEditRows = canManage && !offline;
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/v1/locations?all=1', { cache: 'no-store' });
+      const json = await res.json();
+      setRows(json.data || []);
+      setOffline(Boolean(json.meta?.fallback));
+    } catch {
+      setRows([]);
+      setOffline(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    fetch('/api/v1/cities', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((json) => setCities(json.data || []))
+      .catch(() => setCities([]));
+  }, [load]);
+
+  const refreshLocations = async () => {
+    await Promise.all([
+      load(),
       queryClient.invalidateQueries({ queryKey: ['locations-feed'] }),
       // Footer, header picker and filter dropdowns all read from this cache
       queryClient.invalidateQueries({ queryKey: ['locations-all'] }),
     ]);
+  };
 
-  useEffect(() => {
-    fetch('/api/v1/cities', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((json) => {
-        const list: City[] = json.data || [];
-        setCities(list);
-        setCityId((current) => current || list[0]?.id || '');
-      })
-      .catch(() => setCities([]));
-  }, []);
-
-  // Auto-load the next page when the table bottom comes into view
-  useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node || !hasNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && !isFetchingNextPage) fetchNextPage();
+  const createFields = useMemo<EntityField[]>(
+    () => [
+      {
+        name: 'city_id',
+        label: 'City',
+        type: 'select',
+        // Left blank, the API falls back to the default Calicut city
+        required: cities.length > 0,
+        options: cities.map((c) => ({ value: c.id, label: c.name })),
       },
-      { rootMargin: '240px 0px' }
-    );
+      { name: 'pincode', label: 'Pincode', type: 'text' },
+      { name: 'name', label: 'Area name', type: 'text', required: true, wide: true },
+    ],
+    [cities]
+  );
+  const createDefaults = useMemo(() => ({ city_id: cities[0]?.id ?? '' }), [cities]);
 
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const filters = useMemo<TableFilter<AreaRow>[]>(() => {
+    const names = Array.from(new Set(rows.map((a) => a.cities?.name).filter(Boolean))) as string[];
+    if (names.length < 2) return [];
+    return [
+      {
+        key: 'city',
+        label: 'Cities',
+        options: names.sort().map((n) => ({ value: n, label: n })),
+        match: (a, v) => a.cities?.name === v,
+      },
+    ];
+  }, [rows]);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canManage || !name.trim()) return;
+  const create = async (values: Record<string, unknown>) => {
+    const res = await fetch('/api/v1/locations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: String(values.name ?? '').trim(),
+        city_id: values.city_id || undefined,
+        pincode: String(values.pincode ?? '').trim() || undefined,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.success) {
+      throw new Error(json.error?.message || json.message || 'Could not add area');
+    }
+    toast.success('Area added', String(values.name));
+    setCreating(false);
+    await refreshLocations();
+  };
 
-    setSubmitting(true);
-    setError('');
+  const save = async (values: Record<string, unknown>) => {
+    if (!editing) return;
+    await adminApi.update('area', editing.id, values);
+    toast.success('Area updated', String(values.name ?? editing.name));
+    setEditing(null);
+    await refreshLocations();
+  };
+
+  const remove = async (a: AreaRow) => {
     try {
-      const res = await fetch('/api/v1/locations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          city_id: cityId || undefined,
-          pincode: pincode.trim() || undefined,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error?.message || json.message || 'Failed to add location');
-      }
-      setShowModal(false);
-      setName('');
-      setPincode('');
+      await adminApi.remove('area', a.id);
+      toast.success('Area deleted', a.name);
+      if (viewing?.id === a.id) setViewing(null);
       await refreshLocations();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Could not add location');
-    } finally {
-      setSubmitting(false);
+    } catch (err) {
+      toast.error('Delete failed', err instanceof Error ? err.message : undefined);
     }
   };
 
-  const deleteLocation = async (id: string) => {
-    if (!canManage) return;
-    if (!window.confirm('Delete this location?')) return;
-    try {
-      const res = await fetch('/api/v1/admin/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityType: 'area', entityId: id, hardDelete: true }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || json.message || 'Delete failed');
-      }
-      await refreshLocations();
-    } catch (err) {
-      console.error(err);
-      alert(err instanceof Error ? err.message : 'Could not delete location');
-    }
+  const openEdit = (a: AreaRow) => {
+    setViewing(null);
+    setEditing(a);
   };
 
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#111827]">Areas</h1>
-          <p className="mt-1 text-sm text-[#6B7280]">
-            Only Super Admin can add or remove locations. Public pickers show these rows only.
-          </p>
-          {offline && (
-            <p className="mt-2 text-xs font-semibold text-amber-700">
-              Database is not responding — showing the built-in area list. Refresh to retry.
-            </p>
-          )}
-        </div>
-        {canManage && (
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-xs font-bold text-white hover:bg-[#1D4ED8]"
-          >
-            <Plus className="h-4 w-4" />
-            Add location
-          </button>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:w-80">
-          {searching ? (
-            <Loader2 className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 animate-spin text-[#2563EB]" />
-          ) : (
-            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#6B7280]" />
-          )}
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search area or pincode…"
-            className="h-9 w-full rounded-xl border border-[#D1D5DB] bg-white pl-9 pr-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563EB]"
-          />
-        </div>
-        <p className="text-xs font-semibold text-[#6B7280]">
-          {debouncedSearch ? `${total} match${total === 1 ? '' : 'es'}` : `${total} in database`}
-        </p>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-sm text-[#6B7280]">
-          <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
-          Loading…
-        </div>
-      ) : rows.length === 0 ? (
-        <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-14 text-center">
-          <MapPin className="mx-auto h-10 w-10 text-[#D1D5DB]" />
-          <p className="mt-3 text-sm font-semibold text-[#6B7280]">
-            {debouncedSearch
-              ? `No area matches “${debouncedSearch}”`
-              : 'No locations in the database yet'}
-          </p>
-          {debouncedSearch ? (
+      <AdminPageHeader
+        title="Areas"
+        description="Only Super Admin can add, edit or remove areas. Public pickers show these rows only."
+        count={rows.length}
+        actions={
+          canManage && (
             <button
               type="button"
-              onClick={() => setSearch('')}
-              className="mt-4 inline-flex h-9 items-center rounded-xl border border-[#E5E7EB] px-4 text-xs font-bold text-[#2563EB] hover:border-[#2563EB]"
+              onClick={() => setCreating(true)}
+              disabled={offline}
+              className={primaryButtonClass}
             >
-              Clear search
+              <Plus className="h-4 w-4" /> Add area
             </button>
-          ) : (
-            canManage && (
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-xs font-bold text-white hover:bg-[#1D4ED8]"
-              >
-                <Plus className="h-4 w-4" />
-                Add location
-              </button>
-            )
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] uppercase tracking-wide text-[#6B7280]">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Area</th>
-                  <th className="px-4 py-3 font-semibold">City</th>
-                  <th className="px-4 py-3 font-semibold">Pincode</th>
-                  {canEditRows && <th className="px-4 py-3 text-right font-semibold"> </th>}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((loc) => (
-                  <tr key={loc.id} className="border-t border-[#F3F4F6]">
-                    <td className="px-4 py-3 font-semibold text-[#111827]">{loc.name}</td>
-                    <td className="px-4 py-3 text-[#6B7280]">{loc.cities?.name || '—'}</td>
-                    <td className="px-4 py-3 text-[#6B7280]">{loc.pincode || '—'}</td>
-                    {canEditRows && (
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => deleteLocation(loc.id)}
-                          className="rounded-lg p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          )
+        }
+      />
 
-          <div ref={sentinelRef}>
-            {isFetchingNextPage ? (
-              <p className="flex items-center justify-center gap-2 py-3 text-xs font-semibold text-[#6B7280]">
-                <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
-                Loading more…
-              </p>
-            ) : hasNextPage ? (
-              <button
-                type="button"
-                onClick={() => fetchNextPage()}
-                className="mx-auto block h-9 rounded-xl border border-[#E5E7EB] bg-white px-4 text-xs font-bold text-[#2563EB] hover:border-[#2563EB]"
-              >
-                Load more
-              </button>
-            ) : (
-              <p className="py-2 text-center text-[11px] font-semibold text-[#9CA3AF]">
-                Showing all {rows.length} of {total}
-              </p>
-            )}
-          </div>
-        </div>
+      {offline && (
+        <p className="text-xs font-semibold text-amber-700">
+          Database is not responding — showing the built-in area list (read-only). Refresh to retry.
+        </p>
       )}
 
-      {showModal && canManage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#111827]">Add location</h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowModal(false);
-                  setError('');
-                }}
-                className="rounded-lg p-1.5 text-[#6B7280] hover:bg-[#F3F4F6]"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      <DataTable<AreaRow>
+        rows={rows}
+        columns={columns}
+        getRowId={(a) => a.id}
+        loading={loading}
+        filters={filters}
+        searchText={(a) => `${a.name} ${a.pincode ?? ''} ${a.cities?.name ?? ''}`}
+        searchPlaceholder="Search area or pincode…"
+        emptyMessage="No areas in the database yet."
+        rowLabel={(a) => a.name}
+        pageSize={25}
+        onView={setViewing}
+        onEdit={canEditRows ? openEdit : undefined}
+        onDelete={canEditRows ? remove : undefined}
+      />
 
-            {error && (
-              <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
-                {error}
-              </div>
-            )}
+      <RecordDrawer
+        open={viewing !== null}
+        title={viewing?.name ?? ''}
+        subtitle={viewing?.cities?.name}
+        fields={
+          viewing
+            ? [
+                { label: 'City', value: viewing.cities?.name },
+                { label: 'Pincode', value: viewing.pincode },
+                { label: 'Slug', value: viewing.slug ? `/${viewing.slug}` : null },
+              ]
+            : []
+        }
+        onClose={() => setViewing(null)}
+        onEdit={canEditRows && viewing ? () => openEdit(viewing) : undefined}
+      />
 
-            <form onSubmit={handleCreate} className="space-y-3">
-              <div>
-                <label className="mb-1 block text-xs font-bold text-[#4B5563]">City</label>
-                <select
-                  value={cityId}
-                  onChange={(e) => setCityId(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-[#D1D5DB] bg-white px-3 text-sm font-semibold text-[#111827] outline-none focus:border-[#2563EB]"
-                >
-                  {cities.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-bold text-[#4B5563]">Area name *</label>
-                <input
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Mavoor Road, Palayam"
-                  className="h-10 w-full rounded-xl border border-[#D1D5DB] bg-white px-3 text-sm font-semibold text-[#111827] outline-none focus:border-[#2563EB]"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-bold text-[#4B5563]">Pincode</label>
-                <input
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  placeholder="Optional"
-                  className="h-10 w-full rounded-xl border border-[#D1D5DB] bg-white px-3 text-sm font-semibold text-[#111827] outline-none focus:border-[#2563EB]"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setError('');
-                  }}
-                  className="h-9 rounded-xl px-4 text-sm font-bold text-[#4B5563] hover:bg-[#F3F4F6]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50"
-                >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {canEditRows && (
+        <>
+          <RecordFormModal
+            open={editing !== null}
+            title="Edit area"
+            fields={editFields}
+            record={editing}
+            onClose={() => setEditing(null)}
+            onSubmit={save}
+          />
+          <RecordFormModal
+            open={creating}
+            title="Add area"
+            fields={createFields}
+            record={createDefaults}
+            submitLabel="Save area"
+            onClose={() => setCreating(false)}
+            onSubmit={create}
+          />
+        </>
       )}
     </>
   );

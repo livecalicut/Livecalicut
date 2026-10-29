@@ -1,368 +1,450 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Ban, Loader2, Plus, ShieldCheck, Trash2, UserCheck, X } from 'lucide-react';
 import { useAuthStore } from '@/src/store/useAuthStore';
-import { assignableRolesFor } from '@/lib/rbac/roles';
-import { Users, Search, Filter, Trash2, X, Plus } from 'lucide-react';
+import { assignableRolesFor, isCityOrSuper } from '@/lib/rbac/roles';
+import {
+  AdminEntityTable,
+  AdminPageHeader,
+  ConfirmDialog,
+  IconButton,
+  Modal,
+  StatusBadge,
+  formatDate,
+  primaryButtonClass,
+  secondaryButtonClass,
+  type Column,
+  type TableFilter,
+} from '@/components/admin/data-table';
 import { toast } from '@/lib/toast';
+
+type User = {
+  id: string;
+  full_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  area?: string | null;
+  city_ward?: string | null;
+  role?: string | null;
+  account_status?: string | null;
+  created_at?: string | null;
+  [key: string]: any;
+};
+
+type UserAction = 'suspend' | 'activate' | 'ban' | 'soft_delete' | 'assign_role';
+
+const ALL_ROLES = ['Super Admin', 'City Admin', 'Marketing Executive', 'Moderator', 'Merchant', 'User'];
+
+const inputClass =
+  'h-10 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none';
+
+const nameOf = (u: User) => u.full_name || u.email || 'Anonymous';
+const locationOf = (u: User) => u.city_ward || [u.area, u.city].filter(Boolean).join(', ');
+const statusOf = (u: User) => u.account_status || 'active';
+
+async function patchUser(body: Record<string, unknown>) {
+  const res = await fetch('/api/v1/admin/users', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.success === false) {
+    throw new Error(json.error?.message || json.error || json.message || `Request failed (${res.status})`);
+  }
+  return json;
+}
 
 export default function AdminUsersPage() {
   const { roleName } = useAuthStore();
   const creatableRoles = useMemo(() => assignableRolesFor(roleName), [roleName]);
+  const canEdit = isCityOrSuper(roleName);
 
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('All');
-
-  const [usersList, setUsersList] = useState<any[]>([]);
+  const [rows, setRows] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  // Search handed over from the dashboard header (?q=)
+  const [headerQuery, setHeaderQuery] = useState('');
+  const [pendingRemove, setPendingRemove] = useState<User | null>(null);
+  const [removing, setRemoving] = useState(false);
 
-  // Modal State
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newStaffData, setNewStaffData] = useState({
-    fullName: '',
-    email: '',
-    roleName: creatableRoles[0] || 'Moderator',
-  });
+  const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [newStaff, setNewStaff] = useState({ fullName: '', email: '', roleName: '' });
 
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get('q');
-    if (q) setSearch(q);
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const load = useCallback(async () => {
     try {
       const res = await fetch('/api/v1/admin/users');
       const json = await res.json();
-      if (json.success) {
-        setUsersList(json.data || []);
-      }
+      if (json.success) setRows(json.data || []);
+      else toast.error('Could not load users', json.error?.message || json.error);
     } catch (err) {
-      console.error('Failed to fetch users', err);
+      toast.error('Could not load users', err instanceof Error ? err.message : undefined);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    const newAction = currentStatus === 'active' ? 'suspend' : 'activate';
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setHeaderQuery(q);
+    load();
+  }, [load]);
+
+  const visibleRows = useMemo(() => {
+    const q = headerQuery.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((u) => `${u.full_name ?? ''} ${u.email ?? ''}`.toLowerCase().includes(q));
+  }, [rows, headerQuery]);
+
+  const runAction = async (u: User, action: UserAction, done: string) => {
     try {
-      const res = await fetch('/api/v1/admin/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id, action: newAction })
-      });
-      if (res.ok) fetchUsers();
+      await patchUser({ userId: u.id, action });
+      toast.success(done, nameOf(u));
+      await load();
     } catch (err) {
-      console.error('Action failed', err);
+      toast.error('Action failed', err instanceof Error ? err.message : undefined);
     }
   };
 
-  const deleteUser = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+  const toggleStatus = (u: User) =>
+    statusOf(u) === 'active'
+      ? runAction(u, 'suspend', 'User suspended')
+      : runAction(u, 'activate', 'User activated');
+
+  const updateRole = async (u: User, newRole: string) => {
+    const previousRole = u.role || 'User';
+    setRows((current) => current.map((r) => (r.id === u.id ? { ...r, role: newRole } : r)));
     try {
-      const res = await fetch('/api/v1/admin/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id, action: 'soft_delete' })
-      });
-      if (res.ok) fetchUsers();
+      await patchUser({ userId: u.id, action: 'assign_role', roleName: newRole });
+      toast.success('Role updated', `${newRole} is now assigned.`);
+      load();
     } catch (err) {
-      console.error('Delete failed', err);
+      setRows((current) => current.map((r) => (r.id === u.id ? { ...r, role: previousRole } : r)));
+      toast.error('Role not saved', err instanceof Error ? err.message : 'Try again.');
     }
   };
 
-  const handleCreateStaff = async (e: React.FormEvent) => {
+  const confirmRemove = async () => {
+    if (!pendingRemove) return;
+    setRemoving(true);
+    await runAction(pendingRemove, 'soft_delete', 'User removed');
+    setRemoving(false);
+    setPendingRemove(null);
+  };
+
+  const openCreate = () => {
+    setNewStaff({ fullName: '', email: '', roleName: creatableRoles[0] || '' });
+    setShowCreate(true);
+  };
+
+  const createStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
     try {
       const res = await fetch('/api/v1/admin/users/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStaffData)
+        body: JSON.stringify(newStaff),
       });
-      if (res.ok) {
-        setShowCreateModal(false);
-        setNewStaffData({ fullName: '', email: '', roleName: 'Moderator' });
-        fetchUsers();
-      } else {
-        const errorData = await res.json();
-        alert(`Failed to create staff: ${errorData.error}`);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error creating staff account');
-    }
-    setCreating(false);
-  };
-
-  const updateRole = async (id: string, newRole: string, previousRole: string) => {
-    setUsersList((current) => current.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
-    try {
-      const res = await fetch('/api/v1/admin/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id, action: 'assign_role', roleName: newRole }),
-      });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success === false) {
-        throw new Error(json.error?.message || json.error || 'Role was not saved');
+        throw new Error(json.error?.message || json.error || 'Account was not created');
       }
-      toast.success('Role updated', `${newRole} is now assigned.`);
-      fetchUsers();
+      toast.success('Staff account created', newStaff.email);
+      setShowCreate(false);
+      await load();
     } catch (err) {
-      setUsersList((current) =>
-        current.map((u) => (u.id === id ? { ...u, role: previousRole } : u))
-      );
-      toast.error('Role not saved', err instanceof Error ? err.message : 'Try again.');
+      toast.error('Could not create staff', err instanceof Error ? err.message : undefined);
+    } finally {
+      setCreating(false);
     }
   };
 
-  const filteredUsers = usersList.filter((u) => {
-    const fullName = u.full_name || '';
-    const email = u.email || '';
-    const matchesSearch = fullName.toLowerCase().includes(search.toLowerCase()) || email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === 'All' || u.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  const roleControl = (u: User) =>
+    u.role === 'Super Admin' ? (
+      <StatusBadge status="Super Admin" tone="amber" />
+    ) : (
+      // Wrapper stops the row click (which opens the drawer) when using the select
+      <span onClick={(e) => e.stopPropagation()}>
+        <select
+          aria-label={`Role for ${nameOf(u)}`}
+          value={u.role || 'User'}
+          onChange={(e) => updateRole(u, e.target.value)}
+          className="h-8 rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-xs font-semibold text-[#111827] focus:border-[#2563EB] focus:outline-none"
+        >
+          {Array.from(new Set([u.role || 'User', 'User', 'Merchant', ...creatableRoles])).map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
+        </select>
+      </span>
+    );
+
+  const columns: Column<User>[] = [
+    {
+      key: 'name',
+      header: 'User',
+      sortValue: (u) => nameOf(u).toLowerCase(),
+      cell: (u) => (
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF] text-sm font-bold text-[#2563EB]">
+            {nameOf(u).charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-[#111827]">{u.full_name || 'Anonymous'}</p>
+            <p className="truncate text-[11px] text-[#6B7280]">{u.email}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'location',
+      header: 'Location',
+      hideOnMobile: true,
+      sortValue: (u) => locationOf(u),
+      cell: (u) => locationOf(u) || '—',
+    },
+    { key: 'role', header: 'Role', sortValue: (u) => u.role || 'User', cell: roleControl },
+    {
+      key: 'status',
+      header: 'Status',
+      sortValue: (u) => statusOf(u),
+      cell: (u) => <StatusBadge status={statusOf(u)} />,
+    },
+    {
+      key: 'created_at',
+      header: 'Joined',
+      hideOnMobile: true,
+      sortValue: (u) => u.created_at,
+      cell: (u) => formatDate(u.created_at),
+    },
+  ];
+
+  const filters: TableFilter<User>[] = [
+    {
+      key: 'role',
+      label: 'Roles',
+      options: ALL_ROLES.filter((r) => r !== 'Super Admin' || roleName === 'Super Admin').map((r) => ({
+        value: r,
+        label: r,
+      })),
+      match: (u, v) => (u.role || 'User') === v,
+    },
+    {
+      key: 'status',
+      label: 'Statuses',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'suspended', label: 'Suspended' },
+        { value: 'deactivated', label: 'Deactivated' },
+      ],
+      match: (u, v) => statusOf(u) === v,
+    },
+  ];
 
   return (
     <>
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight font-sans flex items-center gap-2">
-            <Users className="w-7 h-7 text-[#2563EB]" />
-            <span>
-              {roleName === 'Super Admin' || roleName === 'City Admin'
-                ? 'Users & Access Control'
-                : 'My created users'}
-            </span>
-          </h1>
-          <p className="text-sm text-[#6B7280]">
-            {roleName === 'Super Admin'
-              ? 'Full platform users. Super Admin accounts stay hidden from lower roles.'
-              : roleName === 'City Admin'
-                ? 'City users and staff you manage (Super Admin accounts are hidden).'
-                : 'Only users you created appear here — other roles and Super Admin data stay private.'}
-          </p>
-        </div>
+      <AdminPageHeader
+        title={canEdit ? 'Users & access' : 'My created users'}
+        description={
+          roleName === 'Super Admin'
+            ? 'Full platform users. Super Admin accounts stay hidden from lower roles.'
+            : roleName === 'City Admin'
+              ? 'City users and staff you manage (Super Admin accounts are hidden).'
+              : 'Only users you created appear here — other roles and Super Admin data stay private.'
+        }
+        count={rows.length}
+        actions={
+          creatableRoles.length > 0 && (
+            <button type="button" onClick={openCreate} className={primaryButtonClass}>
+              <Plus className="h-4 w-4" /> Add staff member
+            </button>
+          )
+        }
+      />
 
-        {creatableRoles.length > 0 && (
+      {headerQuery && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-2.5 text-xs text-[#1E40AF]">
+          <span>
+            Showing users matching <strong>“{headerQuery}”</strong>
+          </span>
           <button
-            onClick={() => {
-              setNewStaffData({
-                fullName: '',
-                email: '',
-                roleName: creatableRoles[0],
-              });
-              setShowCreateModal(true);
-            }}
-            className="h-[40px] px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
+            type="button"
+            onClick={() => setHeaderQuery('')}
+            className="inline-flex items-center gap-1 font-bold hover:underline"
           >
-            <Plus className="w-4 h-4" /> Add Staff Member
+            <X className="h-3.5 w-3.5" /> Clear
           </button>
-        )}
-      </div>
-
-      {/* Controls Bar: Search & Role Filter */}
-      <Card className="p-4 border border-[#E5E7EB] bg-white rounded-2xl shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7280] pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search user by name or email..."
-            className="w-full pl-10 pr-4 h-[38px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-xs text-[#111827] focus:bg-white focus:border-[#2563EB] focus:outline-none"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 text-xs">
-          <Filter className="w-4 h-4 text-[#6B7280]" />
-          <span className="font-bold text-[#111827]">Role Filter:</span>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="h-[38px] px-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-xs font-semibold text-[#111827] focus:outline-none"
-          >
-            <option value="All">All Roles</option>
-            {roleName === 'Super Admin' && <option value="Super Admin">Super Admin</option>}
-            <option value="City Admin">City Admin</option>
-            <option value="Marketing Executive">Marketing Executive</option>
-            <option value="Moderator">Moderator</option>
-            <option value="Merchant">Merchant</option>
-            <option value="User">User</option>
-          </select>
-        </div>
-      </Card>
-
-      {/* User Table Card */}
-      <Card className="p-0 border border-[#E5E7EB] bg-white rounded-3xl shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider">
-                <th className="py-3.5 px-6">User / Email</th>
-                <th className="py-3.5 px-4">Location / Ward</th>
-                <th className="py-3.5 px-4">Assigned Role</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E7EB] text-xs">
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-8">Loading users...</td></tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8">No users found</td></tr>
-              ) : filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="py-4 px-6 font-semibold">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-[#2563EB] font-extrabold flex items-center justify-center">
-                        {(u.full_name || 'U').charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-bold text-[#111827] font-sans">{u.full_name || 'Anonymous'}</p>
-                        <p className="text-[11px] text-[#6B7280]">{u.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-[#4B5563] font-medium">{u.city_ward || 'Not specified'}</td>
-                  <td className="py-4 px-4">
-                    {u.role === 'Super Admin' ? (
-                      <span className="inline-flex rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800">
-                        Super Admin
-                      </span>
-                    ) : (
-                      <select
-                        value={u.role || 'User'}
-                        onChange={(e) => updateRole(u.id, e.target.value, u.role || 'User')}
-                        className="h-[32px] rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-xs font-bold text-[#111827] focus:border-[#2563EB]"
-                      >
-                        {Array.from(
-                          new Set([u.role || 'User', 'User', 'Merchant', ...creatableRoles].filter(Boolean))
-                        ).map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                        u.account_status === 'active'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-rose-100 text-rose-700'
-                      }`}
-                    >
-                      {u.account_status === 'active' ? 'Active' : 'Suspended'}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right space-x-2">
-                    <button
-                      onClick={() => toggleStatus(u.id, u.account_status)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                        u.account_status === 'active'
-                          ? 'border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100'
-                          : 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {u.account_status === 'active' ? 'Suspend' : 'Activate'}
-                    </button>
-                    <button
-                      onClick={() => deleteUser(u.id)}
-                      className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all inline-flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Create Staff Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <Card className="w-full max-w-md p-6 bg-white rounded-3xl shadow-xl space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-[#111827]">Create Staff Account</h2>
-              <button onClick={() => setShowCreateModal(false)} className="text-[#6B7280] hover:bg-[#F3F4F6] p-1.5 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateStaff} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={newStaffData.fullName}
-                  onChange={(e) => setNewStaffData({ ...newStaffData, fullName: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF]"
-                  placeholder="e.g. Rahul Kumar"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={newStaffData.email}
-                  onChange={(e) => setNewStaffData({ ...newStaffData, email: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB] placeholder:text-[#9CA3AF]"
-                  placeholder="name@livecalicut.in"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#4B5563]">Assign Role</label>
-                <select
-                  value={newStaffData.roleName}
-                  onChange={(e) => setNewStaffData({ ...newStaffData, roleName: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl border border-[#D1D5DB] bg-white text-sm text-[#111827] font-semibold focus:outline-none focus:border-[#2563EB]"
-                >
-                  {creatableRoles.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-[#6B7280]">
-                  New staff are linked to your account (created_by). They only see their own data.
-                  Super Admin cannot be created here.
-                </p>
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F3F4F6] rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="px-5 py-2 text-sm font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl disabled:opacity-50"
-                >
-                  {creating ? 'Creating...' : 'Create Account'}
-                </button>
-              </div>
-            </form>
-          </Card>
         </div>
       )}
+
+      <AdminEntityTable<User>
+        entityType="user"
+        rows={visibleRows}
+        loading={loading}
+        reload={load}
+        columns={columns}
+        filters={filters}
+        searchText={(u) => `${u.full_name ?? ''} ${u.email ?? ''} ${u.phone ?? ''} ${locationOf(u)}`}
+        searchPlaceholder="Search name, email, phone…"
+        emptyMessage="No users yet."
+        titleOf={nameOf}
+        subtitleOf={(u) => (
+          <span className="flex flex-wrap items-center gap-2">
+            {u.email}
+            <StatusBadge status={statusOf(u)} />
+          </span>
+        )}
+        canEdit={canEdit}
+        canDelete={false}
+        extraViewFields={(u) => [
+          { label: 'Email', value: u.email },
+          { label: 'Role', value: u.role || 'User' },
+          { label: 'Status', value: <StatusBadge status={statusOf(u)} /> },
+          { label: 'Ward', value: u.city_ward },
+          { label: 'Joined', value: formatDate(u.created_at, true) },
+        ]}
+        rowActions={(u) =>
+          u.role === 'Super Admin' ? null : (
+            <>
+              {statusOf(u) === 'active' ? (
+                <IconButton label="Suspend" tone="danger" onClick={() => toggleStatus(u)}>
+                  <Ban className="h-4 w-4" />
+                </IconButton>
+              ) : (
+                <IconButton label="Activate" onClick={() => toggleStatus(u)}>
+                  <UserCheck className="h-4 w-4" />
+                </IconButton>
+              )}
+              <IconButton label="Remove user" tone="danger" onClick={() => setPendingRemove(u)}>
+                <Trash2 className="h-4 w-4" />
+              </IconButton>
+            </>
+          )
+        }
+        drawerFooter={(u, close) =>
+          u.role === 'Super Admin' ? null : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  close();
+                  setPendingRemove(u);
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-4 text-xs font-bold text-rose-600 hover:bg-rose-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Remove
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  close();
+                  toggleStatus(u);
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-xs font-bold text-[#374151] hover:border-[#2563EB] hover:text-[#2563EB]"
+              >
+                {statusOf(u) === 'active' ? (
+                  <>
+                    <Ban className="h-3.5 w-3.5" /> Suspend
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-3.5 w-3.5" /> Activate
+                  </>
+                )}
+              </button>
+            </>
+          )
+        }
+      />
+
+      <ConfirmDialog
+        open={pendingRemove !== null}
+        title="Remove this user?"
+        message={
+          pendingRemove
+            ? `“${nameOf(pendingRemove)}” will be removed from the platform and hidden from this list.`
+            : ''
+        }
+        confirmLabel="Remove user"
+        busy={removing}
+        onConfirm={confirmRemove}
+        onCancel={() => setPendingRemove(null)}
+      />
+
+      <Modal open={showCreate} onClose={() => !creating && setShowCreate(false)} size="sm" labelledBy="create-staff-title">
+        <form onSubmit={createStaff} className="flex min-h-0 flex-col">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4">
+            <h2 id="create-staff-title" className="flex items-center gap-2 text-base font-bold text-[#111827]">
+              <ShieldCheck className="h-5 w-5 text-[#2563EB]" /> Create staff account
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowCreate(false)}
+              aria-label="Close"
+              className="rounded-lg p-1.5 text-[#6B7280] hover:bg-[#F1F5F9] hover:text-[#111827]"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4 overflow-y-auto px-6 py-5">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-bold text-[#374151]">Full name</span>
+              <input
+                type="text"
+                required
+                value={newStaff.fullName}
+                onChange={(e) => setNewStaff({ ...newStaff, fullName: e.target.value })}
+                className={inputClass}
+                placeholder="e.g. Rahul Kumar"
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-bold text-[#374151]">Email address</span>
+              <input
+                type="email"
+                required
+                value={newStaff.email}
+                onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
+                className={inputClass}
+                placeholder="name@livecalicut.in"
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-bold text-[#374151]">Role</span>
+              <select
+                value={newStaff.roleName}
+                onChange={(e) => setNewStaff({ ...newStaff, roleName: e.target.value })}
+                className={inputClass}
+              >
+                {creatableRoles.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+              <span className="block text-[11px] text-[#6B7280]">
+                New staff are linked to your account (created_by) and only see their own data. Super Admin
+                cannot be created here.
+              </span>
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-2 border-t border-[#E5E7EB] bg-[#F8FAFC] px-6 py-3">
+            <button type="button" onClick={() => setShowCreate(false)} className={secondaryButtonClass}>
+              Cancel
+            </button>
+            <button type="submit" disabled={creating} className={primaryButtonClass}>
+              {creating && <Loader2 className="h-4 w-4 animate-spin" />}
+              Create account
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

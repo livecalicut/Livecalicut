@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@/components/shared/page-header';
-import { ImageUploader } from '@/components/shared/image-uploader';
+import { MultiImageUploader } from '@/components/shared/multi-image-uploader';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,7 @@ export default function CreateMarketplaceItemPage() {
   const [price, setPrice] = useState('');
   const [condition, setCondition] = useState('like_new');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -70,7 +70,7 @@ export default function CreateMarketplaceItemPage() {
         price: Number(price),
         condition,
         description,
-        images: imageUrl ? [imageUrl] : [],
+        images,
       });
 
       queryClient.invalidateQueries({ queryKey: ['marketplace'] });
@@ -139,11 +139,12 @@ export default function CreateMarketplaceItemPage() {
               </Select>
             </div>
 
-            <ImageUploader
-              value={imageUrl}
-              onChange={setImageUrl}
+            <MultiImageUploader
+              value={images}
+              onChange={setImages}
               module="marketplace"
-              label="Item Photo (Optional)"
+              label="Item Photos (first photo is the cover)"
+              max={10}
             />
 
             <div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { updateCMSPartnersAction } from './actions';
 import { Save, Loader2, Plus, Trash2 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface Partner {
   name: string;
@@ -33,9 +34,9 @@ export const PartnersEditor = ({ initialData = [] }: { initialData: Partner[] })
     try {
       const res = await updateCMSPartnersAction(items);
       if (res.error) throw new Error(res.error);
-      alert('Partners updated successfully!');
+      toast.success('Partners updated');
     } catch (err: any) {
-      alert(err.message || 'Failed to update Partners');
+      toast.error('Failed to update Partners', err.message);
     } finally {
       setIsSaving(false);
     }
