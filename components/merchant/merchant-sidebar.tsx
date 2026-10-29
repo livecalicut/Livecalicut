@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
 import { LiveCalicutLogo } from '@/components/shared/live-calicut-logo';
 import {
   LayoutDashboard,
@@ -18,289 +17,158 @@ import {
   BarChart3,
   Settings,
   ArrowLeft,
-  ShieldCheck,
   Tag,
-  Hotel,
-  Utensils,
-  HeartPulse,
-  Shirt,
-  Car,
-  GraduationCap,
-  Wrench,
-  Loader2,
+  Newspaper,
 } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Module definitions: each category slug → which sidebar items appear
-// ─────────────────────────────────────────────────────────────────────────────
 type NavItem = { label: string; href: string; icon: React.ElementType };
+type NavGroup = { label: string; items: NavItem[] };
 
-const ALWAYS_VISIBLE: NavItem[] = [
-  { label: 'Dashboard', href: '/merchant', icon: LayoutDashboard },
-  { label: 'Business Profile', href: '/merchant/profile', icon: Store },
-  { label: 'Store Analytics', href: '/merchant/analytics', icon: BarChart3 },
-  { label: 'Customer Leads', href: '/merchant/leads', icon: Users },
+const OVERVIEW: NavGroup = {
+  label: 'Overview',
+  items: [
+    { label: 'Dashboard', href: '/merchant', icon: LayoutDashboard },
+    { label: 'Analytics', href: '/merchant/analytics', icon: BarChart3 },
+    { label: 'Customer leads', href: '/merchant/leads', icon: Users },
+    { label: 'Reviews', href: '/merchant/reviews', icon: MessageSquare },
+  ],
+};
+
+const BUSINESS: NavGroup = {
+  label: 'Business',
+  items: [{ label: 'Business profile', href: '/merchant/profile', icon: Store }],
+};
+
+const ACCOUNT: NavGroup = {
+  label: 'Account',
+  items: [
+    { label: 'Subscription', href: '/merchant/subscription', icon: CreditCard },
+    { label: 'Settings', href: '/merchant/settings', icon: Settings },
+  ],
+};
+
+const LISTING_MODULES = {
+  jobs: { label: 'Job vacancies', href: '/merchant/jobs', icon: Briefcase },
+  offers: { label: 'Offers & deals', href: '/merchant/offers', icon: Tag },
+  events: { label: 'Events', href: '/merchant/events', icon: Calendar },
+  properties: { label: 'Properties', href: '/merchant/properties', icon: Building },
+  marketplace: { label: 'Marketplace', href: '/merchant/marketplace', icon: ShoppingBag },
+  news: { label: 'News & updates', href: '/merchant/news', icon: Newspaper },
+} satisfies Record<string, NavItem>;
+
+type ModuleKey = keyof typeof LISTING_MODULES;
+
+/** Business category keywords → listing modules relevant to that trade */
+const CATEGORY_MODULES: { keywords: string[]; modules: ModuleKey[] }[] = [
+  { keywords: ['job', 'hiring', 'hr', 'recruit', 'manpower', 'staffing', 'placement', 'employment'], modules: ['jobs'] },
+  { keywords: ['hotel', 'hostel', 'stay', 'lodge', 'resort', 'accommodation', 'room', 'service apartment'], modules: ['properties', 'events'] },
+  { keywords: ['restaurant', 'food', 'cafe', 'catering', 'bakery', 'canteen', 'dining', 'kitchen'], modules: ['offers', 'events'] },
+  { keywords: ['real estate', 'property', 'land', 'flat', 'apartment', 'villa', 'plot', 'rent', 'lease'], modules: ['properties'] },
+  { keywords: ['shop', 'retail', 'store', 'mart', 'supermarket', 'grocery', 'textile', 'fashion', 'clothing', 'garment'], modules: ['marketplace', 'offers'] },
+  { keywords: ['health', 'hospital', 'clinic', 'doctor', 'medical', 'pharmacy', 'dental', 'ayurveda', 'lab', 'diagnostic'], modules: ['events'] },
+  { keywords: ['education', 'school', 'college', 'coaching', 'academy', 'institute', 'training', 'tuition'], modules: ['events', 'jobs'] },
+  { keywords: ['auto', 'car', 'vehicle', 'bike', 'mechanic', 'garage', 'spare'], modules: ['marketplace'] },
 ];
 
-const ALWAYS_BOTTOM: NavItem[] = [
-  { label: 'Customer Reviews', href: '/merchant/reviews', icon: MessageSquare },
-  { label: 'Subscription Plan', href: '/merchant/subscription', icon: CreditCard },
-  { label: 'Merchant Settings', href: '/merchant/settings', icon: Settings },
-];
+/** Every merchant can post jobs and offers; trade-specific modules are added on top */
+const DEFAULT_MODULES: ModuleKey[] = ['jobs', 'offers'];
 
-/**
- * Map from keyword patterns (matched against business category name) → extra modules
- * A business owner gets a module if their category name includes any of the keywords.
- */
-const CATEGORY_MODULE_MAP: { keywords: string[]; items: NavItem[]; groupLabel: string }[] = [
-  {
-    keywords: ['job', 'hiring', 'hr', 'recruit', 'manpower', 'staffing', 'placement', 'employment'],
-    groupLabel: 'HIRING & JOBS',
-    items: [
-      { label: 'Post Job Vacancies', href: '/merchant/jobs', icon: Briefcase },
-    ],
-  },
-  {
-    keywords: ['hotel', 'hostel', 'stay', 'lodge', 'resort', 'accommodation', 'room', 'service apartment'],
-    groupLabel: 'HOSPITALITY',
-    items: [
-      { label: 'Accommodation Listings', href: '/merchant/properties', icon: Hotel },
-      { label: 'Events & Packages', href: '/merchant/events', icon: Calendar },
-    ],
-  },
-  {
-    keywords: ['restaurant', 'food', 'cafe', 'catering', 'bakery', 'canteen', 'hotel', 'dining', 'kitchen'],
-    groupLabel: 'FOOD & DINING',
-    items: [
-      { label: 'Daily Offers & Deals', href: '/merchant/offers', icon: Tag },
-      { label: 'Events & Promotions', href: '/merchant/events', icon: Calendar },
-    ],
-  },
-  {
-    keywords: ['real estate', 'property', 'land', 'flat', 'apartment', 'villa', 'plot', 'rent', 'lease'],
-    groupLabel: 'REAL ESTATE',
-    items: [
-      { label: 'Property Listings', href: '/merchant/properties', icon: Building },
-    ],
-  },
-  {
-    keywords: ['shop', 'retail', 'store', 'mart', 'supermarket', 'grocery', 'textile', 'fashion', 'clothing', 'garment'],
-    groupLabel: 'RETAIL',
-    items: [
-      { label: 'Classified Items & Sales', href: '/merchant/marketplace', icon: ShoppingBag },
-      { label: 'Special Offers', href: '/merchant/offers', icon: Tag },
-    ],
-  },
-  {
-    keywords: ['health', 'hospital', 'clinic', 'doctor', 'medical', 'pharmacy', 'dental', 'ayurveda', 'lab', 'diagnostic'],
-    groupLabel: 'HEALTHCARE',
-    items: [
-      { label: 'Events & Health Camps', href: '/merchant/events', icon: Calendar },
-    ],
-  },
-  {
-    keywords: ['education', 'school', 'college', 'coaching', 'academy', 'institute', 'training', 'tuition'],
-    groupLabel: 'EDUCATION',
-    items: [
-      { label: 'Events & Open Days', href: '/merchant/events', icon: Calendar },
-      { label: 'Post Faculty Jobs', href: '/merchant/jobs', icon: Briefcase },
-    ],
-  },
-  {
-    keywords: ['auto', 'car', 'vehicle', 'bike', 'service', 'mechanic', 'garage', 'spare'],
-    groupLabel: 'AUTOMOTIVE',
-    items: [
-      { label: 'Classified Listings', href: '/merchant/marketplace', icon: ShoppingBag },
-    ],
-  },
-];
+function listingModulesFor(categories: string[]): NavItem[] {
+  // No outlet yet (or staff viewing): show every module so nothing is hidden
+  if (categories.length === 0) return Object.values(LISTING_MODULES);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Dynamic Sidebar Component
-// ─────────────────────────────────────────────────────────────────────────────
+  const keys = new Set<ModuleKey>(DEFAULT_MODULES);
+  for (const { keywords, modules } of CATEGORY_MODULES) {
+    if (keywords.some((kw) => categories.some((cat) => cat.includes(kw)))) {
+      modules.forEach((m) => keys.add(m));
+    }
+  }
+  return (Object.keys(LISTING_MODULES) as ModuleKey[]).filter((k) => keys.has(k)).map((k) => LISTING_MODULES[k]);
+}
+
 export const MerchantSidebar: React.FC = () => {
   const pathname = usePathname();
-  const [businessCategories, setBusinessCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
   const [businessName, setBusinessName] = useState('');
-  const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    fetchOwnerBusinesses();
+    let cancelled = false;
+    fetch('/api/merchant/me')
+      .then((res) => (res.ok ? res.json() : { businesses: [] }))
+      .then((json) => {
+        if (cancelled) return;
+        const businesses: any[] = json.businesses ?? [];
+        setCategories(
+          businesses
+            .flatMap((b) => [b.business_categories?.name, b.category_name])
+            .filter(Boolean)
+            .map((name: string) => name.toLowerCase())
+        );
+        setBusinessName(businesses[0]?.name ?? '');
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Nav items arrive after the merchant's categories resolve, so the entrance
-  // is keyed to `loading` rather than mount.
-  useGSAP(
-    () => {
-      if (loading || prefersReducedMotion()) return;
-
-      gsap.from('[data-nav-item]', {
-        opacity: 0,
-        x: -12,
-        duration: 0.35,
-        stagger: 0.02,
-        ease: 'liveEase',
-      });
-    },
-    { scope: ref, dependencies: [loading] }
-  );
-
-  const fetchOwnerBusinesses = async () => {
-    try {
-      const res = await fetch('/api/merchant/me');
-      const json = await res.json();
-      if (json.businesses && json.businesses.length > 0) {
-        // Collect all category names from all registered businesses
-        const cats: string[] = [];
-        json.businesses.forEach((b: any) => {
-          if (b.business_categories?.name) cats.push(b.business_categories.name.toLowerCase());
-          if (b.category_name) cats.push(b.category_name.toLowerCase());
-        });
-        setBusinessCategories(cats);
-        setBusinessName(json.businesses[0]?.name || '');
-      }
-    } catch (err) {
-      // Fall back to showing all modules if API fails
-      console.error('Failed to load merchant businesses', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Compute which extra module groups are relevant
-  const getRelevantModuleGroups = (): { groupLabel: string; items: NavItem[] }[] => {
-    if (businessCategories.length === 0) {
-      // No businesses registered — show all modules (admin/staff added someone)
-      return CATEGORY_MODULE_MAP.map((m) => ({ groupLabel: m.groupLabel, items: m.items }));
-    }
-
-    const groups: { groupLabel: string; items: NavItem[] }[] = [];
-    const addedHrefs = new Set<string>();
-
-    CATEGORY_MODULE_MAP.forEach((mapping) => {
-      const matched = mapping.keywords.some((kw) =>
-        businessCategories.some((cat) => cat.includes(kw))
-      );
-      if (matched) {
-        const uniqueItems = mapping.items.filter((item) => {
-          if (addedHrefs.has(item.href)) return false;
-          addedHrefs.add(item.href);
-          return true;
-        });
-        if (uniqueItems.length > 0) {
-          groups.push({ groupLabel: mapping.groupLabel, items: uniqueItems });
-        }
-      }
-    });
-
-    return groups;
-  };
-
-  const relevantGroups = getRelevantModuleGroups();
-
-  const renderLink = (item: NavItem) => {
-    const Icon = item.icon;
-    const isActive = pathname === item.href;
-    return (
-      <Link
-        key={item.href}
-        href={item.href}
-        aria-current={isActive ? 'page' : undefined}
-        data-nav-item
-        className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-1 focus-visible:outline-none ${
-          isActive
-            ? 'bg-[#2563EB] text-white shadow-md shadow-blue-500/20'
-            : 'text-[#4B5563] hover:bg-[#F8FAFC] hover:text-[#111827]'
-        }`}
-      >
-        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span className="truncate">{item.label}</span>
-      </Link>
-    );
-  };
+  const groups: NavGroup[] = [
+    OVERVIEW,
+    BUSINESS,
+    { label: 'Listings', items: listingModulesFor(categories) },
+    ACCOUNT,
+  ];
 
   return (
     <aside
-      ref={ref}
       aria-label="Merchant navigation"
-      className="flex min-h-screen w-64 shrink-0 flex-col justify-between space-y-6 border-r border-[#E5E7EB] bg-white p-4 shadow-xs"
+      className="flex h-screen w-60 shrink-0 flex-col border-r border-[#E5E7EB] bg-white"
     >
-      <div className="space-y-6">
-        {/* Brand Header */}
-        <div className="px-2 py-2 border-b border-[#E5E7EB] pb-4">
-          <LiveCalicutLogo showSubtitle={false} size="sm" />
-          <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-extrabold text-emerald-700 tracking-wide uppercase font-sans">
-            <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            <span>Verified Merchant OS</span>
-          </div>
-          {businessName && (
-            <p className="mt-2 text-[11px] font-bold text-[#6B7280] truncate">{businessName}</p>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="flex items-center gap-2 px-3 py-3 text-[#9CA3AF] text-xs">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Loading workspace...</span>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Always visible workspace section */}
-            <div className="space-y-1.5">
-              <h5 className="px-3 text-[10px] font-extrabold text-[#9CA3AF] tracking-widest uppercase font-sans">
-                WORKSPACE
-              </h5>
-              <nav className="space-y-0.5">
-                {ALWAYS_VISIBLE.map(renderLink)}
-              </nav>
-            </div>
-
-            {/* Dynamic business-type modules */}
-            {relevantGroups.length > 0 ? (
-              relevantGroups.map((group) => (
-                <div key={group.groupLabel} className="space-y-1.5">
-                  <h5 className="px-3 text-[10px] font-extrabold text-[#9CA3AF] tracking-widest uppercase font-sans">
-                    {group.groupLabel}
-                  </h5>
-                  <nav className="space-y-0.5">
-                    {group.items.map(renderLink)}
-                  </nav>
-                </div>
-              ))
-            ) : (
-              <div className="px-3 py-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700 font-semibold space-y-1">
-                <p className="font-bold">No business registered yet</p>
-                <p className="text-[11px] font-normal leading-relaxed">
-                  Your modules will appear here once admin approves your business listing.
-                </p>
-                <Link href="/merchant/profile" className="text-[#2563EB] font-bold text-[11px] hover:underline">
-                  Complete Profile →
-                </Link>
-              </div>
-            )}
-
-            {/* Engagement & Billing — always visible */}
-            <div className="space-y-1.5">
-              <h5 className="px-3 text-[10px] font-extrabold text-[#9CA3AF] tracking-widest uppercase font-sans">
-                ENGAGEMENT & BILLING
-              </h5>
-              <nav className="space-y-0.5">
-                {ALWAYS_BOTTOM.map(renderLink)}
-              </nav>
-            </div>
-          </div>
-        )}
+      <div className="shrink-0 border-b border-[#E5E7EB] px-4 py-4">
+        <LiveCalicutLogo showSubtitle={false} size="sm" />
+        <p className="mt-2 truncate text-[10px] font-bold tracking-wide text-[#6B7280] uppercase">
+          Merchant{businessName ? ` · ${businessName}` : ''}
+        </p>
       </div>
 
-      {/* Exit to Public Portal */}
-      <div className="pt-4 border-t border-[#E5E7EB]">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
+        {groups.map((group) => (
+          <div key={group.label} className="space-y-1">
+            <p className="px-2.5 text-[10px] font-bold tracking-wider text-[#9CA3AF] uppercase">{group.label}</p>
+            <nav className="space-y-0.5" aria-label={group.label}>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href === '/merchant'
+                    ? pathname === '/merchant'
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold transition-colors ${
+                      isActive ? 'bg-[#2563EB] text-white' : 'text-[#374151] hover:bg-[#F3F4F6] hover:text-[#111827]'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden="true" />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        ))}
+      </div>
+
+      <div className="shrink-0 border-t border-[#E5E7EB] p-3">
         <Link
           href="/"
-          className="flex items-center gap-2 px-3 py-2 text-xs text-[#6B7280] hover:text-[#111827] font-bold hover:bg-[#F8FAFC] rounded-xl transition-all"
+          className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
         >
-          <ArrowLeft className="w-4 h-4 text-[#2563EB]" />
-          <span>Exit to Public Portal</span>
+          <ArrowLeft className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
+          Exit to site
         </Link>
       </div>
     </aside>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowRight, X } from 'lucide-react';
 import { SITE_WHATSAPP_DISPLAY, siteWhatsAppHref } from '@/config/constants';
 
@@ -84,7 +85,11 @@ function NoticeTrack({ hidden }: { hidden?: boolean }) {
 }
 
 export const AnnouncementBanner: React.FC = () => {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(true);
+  // Dashboards are separate workspaces; the public-site ticker stays off them
+  const isWorkspace = pathname.startsWith('/admin') || pathname.startsWith('/merchant');
+  const shown = visible && !isWorkspace;
 
   useEffect(() => {
     try {
@@ -96,11 +101,11 @@ export const AnnouncementBanner: React.FC = () => {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--lc-announce', visible ? '2.5rem' : '0px');
+    root.style.setProperty('--lc-announce', shown ? '2.5rem' : '0px');
     return () => {
       root.style.removeProperty('--lc-announce');
     };
-  }, [visible]);
+  }, [shown]);
 
   const dismiss = () => {
     setVisible(false);
@@ -111,7 +116,7 @@ export const AnnouncementBanner: React.FC = () => {
     }
   };
 
-  if (!visible) return null;
+  if (!shown) return null;
 
   return (
     <div

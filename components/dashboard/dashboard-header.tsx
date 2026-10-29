@@ -152,7 +152,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {drawerOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
 
-        <LiveCalicutLogo showSubtitle={false} size="sm" className="hidden sm:inline-flex" />
+        <LiveCalicutLogo showSubtitle={false} size="sm" className="hidden sm:inline-flex lg:hidden" />
         <nav
           aria-label="Breadcrumb"
           className="flex min-w-0 items-center gap-2 text-xs font-semibold text-[#6B7280]"
