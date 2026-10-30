@@ -1,12 +1,13 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Phone, MessageSquare, Mail, Globe, Clock } from 'lucide-react';
+import { Phone, MessageSquare, Mail, Globe, MapPin } from 'lucide-react';
 
 interface ContactCardProps {
   phone?: string;
   whatsapp?: string;
   email?: string;
   website?: string;
+  address?: string;
 }
 
 export const ContactCard: React.FC<ContactCardProps> = ({
@@ -14,6 +15,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({
   whatsapp,
   email,
   website,
+  address,
 }) => {
   return (
     <Card className="p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
@@ -22,6 +24,15 @@ export const ContactCard: React.FC<ContactCardProps> = ({
       </h4>
 
       <div className="space-y-3 text-xs">
+        {address && (
+          <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200">
+            <MapPin className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] text-slate-400">Store Address</p>
+              <p className="font-semibold text-xs leading-relaxed">{address}</p>
+            </div>
+          </div>
+        )}
         {phone ? (
         <a
           href={`tel:${phone}`}

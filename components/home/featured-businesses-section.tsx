@@ -14,6 +14,7 @@ import {
   Building2,
   TrendingUp,
 } from 'lucide-react';
+import { getExactBusinessLocation } from '@/lib/business/location';
 
 export interface FeaturedBusinessItem {
   id: string;
@@ -163,7 +164,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
                     <div className="space-y-3 pt-3 border-t border-slate-100">
                       <div className="flex items-center gap-1.5 text-xs text-slate-700 truncate font-semibold">
                         <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                        <span className="truncate">{biz.location || 'Calicut'}</span>
+                        <span className="truncate">{getExactBusinessLocation(biz)}</span>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 pt-1">

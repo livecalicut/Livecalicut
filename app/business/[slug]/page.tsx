@@ -20,6 +20,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { businessImages, businessCover } from '@/lib/business/images';
+import { getExactBusinessLocation } from '@/lib/business/location';
 import { DetailSaveActions } from '@/components/auth/detail-save-actions';
 import { WriteReviewButton } from '@/components/business/write-review-button';
 
@@ -68,13 +69,7 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
     'Local Business';
 
   // Exact location resolver
-  const areaName = (business.areas as { name?: string } | null)?.name?.trim();
-  const location =
-    business.short_description ||
-    (areaName && !['calicut', 'kozhikode'].includes(areaName.toLowerCase()) ? areaName : null) ||
-    business.ward_location ||
-    business.address ||
-    'Calicut, Kerala';
+  const location = getExactBusinessLocation(business);
 
   const rating = Number(business.rating_avg ?? 0);
   const reviews = (reviewRows as unknown as ReviewRow[] | null) || [];
@@ -301,6 +296,12 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
             whatsapp={business.whatsapp || undefined}
             email={business.email || undefined}
             website={business.website || undefined}
+            address={
+              business.address ||
+              business.short_description ||
+              (business.areas as { name?: string } | null)?.name ||
+              location
+            }
           />
 
           <MapComponent

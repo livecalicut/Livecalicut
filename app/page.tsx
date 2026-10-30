@@ -11,36 +11,12 @@ import { StayUpdatedSection } from '@/components/home/stay-updated-section';
 import { createPublicClient } from '@/lib/supabase/server';
 
 import { businessCover } from '@/lib/business/images';
+import { getExactBusinessLocation } from '@/lib/business/location';
 
 export const revalidate = 60;
 
 function extractBusinessImage(biz: any): string | null {
   return businessCover(biz) || biz?.image_url || biz?.social_media?.cover_image || biz?.social_media?.logo || null;
-}
-
-function getExactBusinessLocation(biz: any): string {
-  // 1. If areas relation has a specific area name
-  const areaName = biz.areas?.name?.trim();
-  if (areaName && !['calicut', 'kozhikode', 'all locations'].includes(areaName.toLowerCase())) {
-    return areaName;
-  }
-  // 2. Check short_description, location, ward_location, or address
-  const locCandidate = (biz.short_description || biz.location || biz.ward_location || biz.address || '')
-    .toString()
-    .trim();
-  if (locCandidate) {
-    const parts = locCandidate.split(',').map((p: string) => p.trim()).filter(Boolean);
-    const specific = parts.find((p: string) => !['calicut', 'kozhikode', 'kerala', 'india'].includes(p.toLowerCase()));
-    if (specific) return specific;
-    if (parts[0] && !['calicut', 'kozhikode'].includes(parts[0].toLowerCase())) return parts[0];
-  }
-  // 3. Known specific merchant names fallback
-  const lowerName = (biz.name || '').toLowerCase();
-  if (lowerName.includes('sunshine ventures')) return 'Thondayad Bypass';
-  if (lowerName.includes('decolink')) return 'Nadakkavu';
-  if (lowerName.includes('ziacare')) return 'Mavoor Road';
-
-  return areaName || 'Calicut';
 }
 
 function withTimeout<T>(promise: PromiseLike<{ data: T | null; error: unknown }>, ms = 4000) {

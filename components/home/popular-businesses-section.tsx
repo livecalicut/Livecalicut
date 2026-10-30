@@ -15,6 +15,7 @@ import {
   Briefcase,
   PlusCircle,
 } from 'lucide-react';
+import { getExactBusinessLocation } from '@/lib/business/location';
 
 export interface PopularBusinessItem {
   id: string;
@@ -124,12 +125,10 @@ export const PopularBusinessesSection: React.FC<PopularBusinessesSectionProps> =
                       )}
 
                       {/* Exact Location */}
-                      {biz.location && (
-                        <div className="flex items-center gap-1 text-[11px] text-slate-700 truncate font-semibold">
-                          <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-                          <span className="truncate">{biz.location}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1 text-[11px] text-slate-700 truncate font-semibold">
+                        <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
+                        <span className="truncate">{getExactBusinessLocation(biz)}</span>
+                      </div>
                     </div>
                   </div>
                 </Link>

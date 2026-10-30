@@ -41,11 +41,12 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
     setIsFavorite(!isFavorite);
   };
 
-  // Safe exact location that is never blank
-  const resolvedLocation =
-    location && location.trim().length > 0 && location.trim() !== 'Calicut'
-      ? (location.toLowerCase().includes('calicut') ? location : `${location}, Calicut`)
-      : getExactBusinessLocation({ name, location });
+  // Safe exact location that is never blank, never "Door No", always clean Calicut locality
+  const resolvedLocation = getExactBusinessLocation({
+    name,
+    location,
+    address: location,
+  });
 
   return (
     <Link href={href} className="group block h-full">
