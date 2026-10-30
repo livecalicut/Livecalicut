@@ -279,9 +279,7 @@ export const HeroRedesign: React.FC<HeroRedesignProps> = ({
       >
         <p className="text-[11px] font-bold tracking-[0.22em] text-white/90 uppercase">Discover Calicut</p>
         <h1 className="mt-3 text-[2rem] leading-[1.08] font-extrabold tracking-tight sm:text-5xl lg:text-[3.35rem]">
-          Everything Calicut.
-          <br />
-          Connected in <span className="text-[#3B82F6]">One Place.</span>
+          Calicut - Unlocked in <span className="text-[#3B82F6]">One Tap</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-white/90 sm:text-base [@media(max-height:700px)]:hidden">
           Discover local businesses, jobs, homes, and events across Calicut — all in one place.

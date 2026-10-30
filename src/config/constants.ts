@@ -43,14 +43,25 @@ export const CALICUT_LOCATIONS = [ALL_LOCATIONS_LABEL] as const;
 
 export const BUSINESS_CATEGORIES = [
   { id: 'all', name: 'All Categories', icon: 'LayoutGrid' },
-  { id: 'restaurants', name: 'Dining & Cafes', icon: 'Utensils' },
-  { id: 'shopping', name: 'Textiles & Shopping', icon: 'ShoppingBag' },
-  { id: 'health', name: 'Hospitals & Clinics', icon: 'Activity' },
-  { id: 'services', name: 'Home & Auto Services', icon: 'Wrench' },
-  { id: 'tech', name: 'IT & Software Companies', icon: 'Laptop' },
-  { id: 'education', name: 'Colleges & Tuition', icon: 'GraduationCap' },
-  { id: 'real_estate', name: 'Properties & Rent', icon: 'Building2' },
-  { id: 'travel', name: 'Travel & Resorts', icon: 'Compass' },
+  { id: 'restaurants-cafes', name: 'Restaurants & Cafés', icon: 'Utensils' },
+  { id: 'tourism-destinations', name: 'Tourism & Destinations', icon: 'Palmtree' },
+  { id: 'lifestyle-wellness', name: 'Lifestyle & Wellness', icon: 'Sparkles' },
+  { id: 'shopping-entertainment', name: 'Shopping & Entertainment', icon: 'ShoppingBag' },
+  { id: 'arts-culture', name: 'Arts & Culture', icon: 'Palette' },
+  { id: 'business-directory', name: 'Business Directory', icon: 'Building2' },
+  { id: 'local-services', name: 'Local Services', icon: 'Wrench' },
+  { id: 'classifieds', name: 'Classifieds', icon: 'Tag' },
+  { id: 'properties', name: 'Properties', icon: 'Home' },
+  { id: 'featured-businesses', name: 'Featured Businesses', icon: 'Crown' },
+  { id: 'jobs-careers', name: 'Jobs & Careers', icon: 'Briefcase' },
+  { id: 'internships', name: 'Internships', icon: 'GraduationCap' },
+  { id: 'education-courses', name: 'Education & Courses', icon: 'BookOpen' },
+  { id: 'startups-creators', name: 'Startups & Creators', icon: 'Rocket' },
+  { id: 'community-stories', name: 'Community Stories', icon: 'Newspaper' },
+  { id: 'traffic-transport', name: 'Traffic & Transport', icon: 'Bus' },
+  { id: 'sports-activities', name: 'Sports & Activities', icon: 'Trophy' },
+  { id: 'local-initiatives', name: 'Local Initiatives', icon: 'HeartHandshake' },
+  { id: 'public-announcements', name: 'Public Announcements', icon: 'Megaphone' },
 ] as const;
 
 export const JOB_TYPES = [

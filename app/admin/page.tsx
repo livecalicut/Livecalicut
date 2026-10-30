@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { StatsCards } from '@/components/admin/stats-cards';
-import { Building2, Plus, Clock, Trophy, ArrowUpRight, ShieldAlert, BarChart3 } from 'lucide-react';
+import { Building2, Plus, Clock, Trophy, ArrowUpRight, ShieldAlert, BarChart3, FolderTree } from 'lucide-react';
 import { fetchDashboardDataAction } from './actions';
 
 export default async function AdminDashboardPage() {
@@ -35,6 +35,12 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/admin/categories"
+            className="flex h-10 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-bold text-emerald-800 shadow-xs transition-all hover:bg-emerald-100"
+          >
+            <FolderTree className="h-4 w-4 text-emerald-600" aria-hidden="true" /> Manage Categories
+          </Link>
           <Link
             href="/admin/businesses"
             className="flex h-10 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-xs font-bold text-[#111827] shadow-xs transition-all hover:border-[#2563EB]"

@@ -11,11 +11,9 @@ import {
   Phone,
   MessageCircle,
   Megaphone,
-  ShieldCheck,
   Building2,
   TrendingUp,
 } from 'lucide-react';
-import { siteWhatsAppHref } from '@/config/constants';
 
 export interface FeaturedBusinessItem {
   id: string;
@@ -73,7 +71,7 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
 
           <div className="flex items-center gap-3 shrink-0">
             <Link
-              href="/business/create"
+              href="/merchant"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs shadow-xs transition-all active:scale-95"
             >
               <Megaphone className="w-3.5 h-3.5" />
@@ -102,18 +100,17 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
                   key={biz.id}
                   className="group flex flex-col bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5"
                 >
-                  {/* Image & Badges */}
-                  <div className="relative w-full h-48 bg-slate-100 overflow-hidden">
+                  {/* Clean Logo Container (100% visible, centered, not cropped) */}
+                  <div className="relative w-full h-44 sm:h-48 bg-white border-b border-slate-100 flex items-center justify-center p-4 overflow-hidden">
                     <img
                       src={biz.image || '/heroes/city-market.jpg'}
                       alt={biz.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="max-h-full max-w-full object-contain mx-auto group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-[10px] tracking-wider uppercase shadow-md flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[10px] tracking-wider uppercase shadow-xs flex items-center gap-1">
                         <Crown className="w-3 h-3 fill-slate-950" /> Featured
                       </span>
                     </div>
@@ -121,47 +118,52 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
                     {/* Favorite Button */}
                     <button
                       onClick={(e) => toggleFav(biz.id, e)}
-                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xs flex items-center justify-center text-white transition-colors cursor-pointer"
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100/90 hover:bg-slate-200 flex items-center justify-center text-slate-700 transition-colors cursor-pointer shadow-xs"
                       aria-label="Favorite"
                     >
                       <Heart
-                        className={`w-4 h-4 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-white'}`}
+                        className={`w-4 h-4 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`}
                       />
                     </button>
-
-                    {/* Category pill on image */}
-                    <div className="absolute bottom-3 left-3">
-                      <span className="px-2.5 py-1 rounded-md bg-white/90 backdrop-blur-xs text-slate-900 font-bold text-[11px] shadow-xs">
-                        {biz.category}
-                      </span>
-                    </div>
                   </div>
 
                   {/* Card Body */}
                   <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between space-y-4">
                     <div>
+                      {/* Category Tag */}
+                      <span className="inline-block px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[11px] mb-2">
+                        {biz.category}
+                      </span>
+
                       <Link href={href}>
                         <h3 className="font-bold text-slate-900 text-base sm:text-[17px] group-hover:text-[#2563EB] transition-colors line-clamp-1 leading-snug">
                           {biz.name}
                         </h3>
                       </Link>
 
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-bold text-xs border border-amber-200">
-                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                          <span>{biz.rating ? biz.rating.toFixed(1) : '4.5'}</span>
+                      {/* Genuine Reviews Only - No fake default ratings */}
+                      {biz.reviewCount > 0 && biz.rating > 0 ? (
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-bold text-xs border border-amber-200">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                            <span>{biz.rating.toFixed(1)}</span>
+                          </div>
+                          <span className="text-xs text-slate-500 font-medium">
+                            ({biz.reviewCount} {biz.reviewCount === 1 ? 'review' : 'reviews'})
+                          </span>
                         </div>
-                        <span className="text-xs text-slate-400 font-medium">
-                          ({biz.reviewCount >= 1000 ? `${(biz.reviewCount / 1000).toFixed(1)}k` : biz.reviewCount || 1} reviews)
-                        </span>
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs text-slate-400 font-medium">No reviews yet</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Location & Quick Actions */}
+                    {/* Exact Location & Quick Actions */}
                     <div className="space-y-3 pt-3 border-t border-slate-100">
-                      <div className="flex items-center gap-1.5 text-xs text-slate-600 truncate">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-700 truncate font-semibold">
                         <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                        <span className="truncate font-medium">{biz.location || 'Calicut, Kerala'}</span>
+                        <span className="truncate">{biz.location || 'Calicut'}</span>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 pt-1">
@@ -248,63 +250,23 @@ export const FeaturedBusinessesSection: React.FC<FeaturedBusinessesSectionProps>
                     <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black uppercase tracking-wider">
                       {slot.badge}
                     </span>
-                    <h3 className="text-base font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">
-                      {slot.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {slot.desc}
-                    </p>
+                    <h3 className="font-extrabold text-slate-900 text-base">{slot.title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{slot.desc}</p>
                   </div>
 
                   <Link
-                    href="/business/create"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 group-hover:bg-[#2563EB] text-white font-bold text-xs shadow-md transition-all active:scale-95"
+                    href="/merchant"
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition-colors"
                   >
-                    <Megaphone className="w-4 h-4 text-amber-400" />
-                    <span>Get Featured Here</span>
+                    <span>Claim Prime Slot</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               );
             })}
           </div>
         )}
-
-        {/* Interactive Advertiser Strip */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 rounded-2xl p-4 sm:p-6 text-white flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg border border-slate-700/50">
-          <div className="flex items-center gap-3.5 text-center md:text-left">
-            <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-sm sm:text-base font-bold text-white">
-                Want your brand featured on LiveCalicut&apos;s home page &amp; search?
-              </h4>
-              <p className="text-xs text-slate-300 font-normal mt-0.5">
-                Targeted local visibility, high-intent customer leads &amp; WhatsApp inquiries for your outlet.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href="/merchant"
-              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-colors"
-            >
-              Merchant Plans
-            </Link>
-            <a
-              href={siteWhatsAppHref('Hi LiveCalicut, I would like to advertise my business on your portal')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition-all active:scale-95"
-            >
-              <MessageCircle className="w-4 h-4 fill-slate-950" />
-              <span>WhatsApp Us</span>
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   );
 };
-

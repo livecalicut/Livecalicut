@@ -78,7 +78,7 @@ const NAV: NavGroup[] = [
       { label: 'Live updates', href: '/admin/live-updates', icon: Radio, roles: EDITORS },
       { label: 'News', href: '/admin/news', icon: Newspaper, roles: EDITORS },
       { label: 'Events', href: '/admin/events', icon: Calendar, roles: EDITORS },
-      { label: 'Categories', href: '/admin/categories', icon: FolderTree, roles: ADMINS },
+      { label: 'Categories', href: '/admin/categories', icon: FolderTree, roles: EDITORS },
       { label: 'Cities', href: '/admin/cities', icon: MapPin, roles: SUPER },
       { label: 'Areas', href: '/admin/locations', icon: MapPin, roles: SUPER },
     ],

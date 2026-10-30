@@ -2,7 +2,19 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { TrendingUp, Star, MapPin, ArrowRight, Store, Building2, Utensils, Heart, Home, Briefcase, PlusCircle } from 'lucide-react';
+import {
+  TrendingUp,
+  Star,
+  MapPin,
+  ArrowRight,
+  Store,
+  Building2,
+  Utensils,
+  Heart,
+  Home,
+  Briefcase,
+  PlusCircle,
+} from 'lucide-react';
 
 export interface PopularBusinessItem {
   id: string;
@@ -73,12 +85,12 @@ export const PopularBusinessesSection: React.FC<PopularBusinessesSectionProps> =
                   href={href}
                   className="group flex flex-col bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 hover:-translate-y-1"
                 >
-                  {/* Image */}
-                  <div className="relative w-full h-32 sm:h-36 bg-slate-100 overflow-hidden">
+                  {/* Clean Logo Container (100% visible, centered, not cropped) */}
+                  <div className="relative w-full h-32 sm:h-36 bg-white border-b border-slate-100 flex items-center justify-center p-3 overflow-hidden">
                     <img
                       src={biz.image || '/heroes/city-market.jpg'}
                       alt={biz.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="max-h-full max-w-full object-contain mx-auto group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
 
@@ -94,19 +106,27 @@ export const PopularBusinessesSection: React.FC<PopularBusinessesSectionProps> =
                     </div>
 
                     <div className="space-y-1 pt-1 border-t border-slate-100">
-                      <div className="flex items-center gap-1 text-xs">
-                        <div className="flex items-center gap-0.5 text-amber-600 font-bold">
-                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                          <span>{biz.rating ? biz.rating.toFixed(1) : '4.4'}</span>
+                      {/* Genuine Reviews Only - No fake default ratings */}
+                      {biz.reviewCount > 0 && biz.rating > 0 ? (
+                        <div className="flex items-center gap-1 text-xs">
+                          <div className="flex items-center gap-0.5 text-amber-600 font-bold">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <span>{biz.rating.toFixed(1)}</span>
+                          </div>
+                          <span className="text-slate-400 text-[11px]">
+                            ({biz.reviewCount})
+                          </span>
                         </div>
-                        <span className="text-slate-400 text-[11px]">
-                          ({biz.reviewCount ?? 1})
-                        </span>
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs">
+                          <span className="text-slate-400 text-[11px] font-medium">No reviews yet</span>
+                        </div>
+                      )}
 
+                      {/* Exact Location */}
                       {biz.location && (
-                        <div className="flex items-center gap-1 text-[11px] text-slate-500 truncate">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <div className="flex items-center gap-1 text-[11px] text-slate-700 truncate font-semibold">
+                          <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
                           <span className="truncate">{biz.location}</span>
                         </div>
                       )}
@@ -138,12 +158,10 @@ export const PopularBusinessesSection: React.FC<PopularBusinessesSectionProps> =
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-[#2563EB] transition-colors">
+                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm group-hover:text-[#2563EB] transition-colors">
                       {cat.name}
-                    </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      {cat.count}
-                    </p>
+                    </h4>
+                    <p className="text-[11px] text-slate-400 font-medium mt-0.5">{cat.count}</p>
                   </div>
                 </Link>
               );

@@ -41,7 +41,7 @@ export const LiveCalicutLogo: React.FC<LiveCalicutLogoProps> = ({
             light ? 'text-white/80' : 'text-slate-500'
           }`}
         >
-          Calicut Digital Ecosystem
+          Calicut's Digital Ecosystem
         </span>
       ) : null}
     </Link>

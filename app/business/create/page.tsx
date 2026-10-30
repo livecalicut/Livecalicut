@@ -36,11 +36,28 @@ export default function CreateBusinessPage() {
   const isStaffOrAdmin = ['Super Admin', 'City Admin', 'Marketing Executive', 'Moderator'].includes(roleName);
 
   const businessTypes = [
-    'Restaurant', 'Cafe', 'Hotel', 'Hospital', 'Clinic', 'Pharmacy',
-    'School', 'College', 'Institute', 'Shopping', 'Retail Store', 'Electronics',
-    'Fashion', 'Salon', 'Gym', 'Tourism', 'Travel Agency', 'Automobile',
-    'Real Estate', 'IT Company', 'Freelancer', 'Service Provider', 'Government Office',
-    'NGO', 'Startup', 'Other'
+    'Restaurants & Cafés',
+    'Tourism & Destinations',
+    'Lifestyle & Wellness',
+    'Shopping & Entertainment',
+    'Arts & Culture',
+    'Business Directory',
+    'Local Services',
+    'Classifieds',
+    'Properties',
+    'Featured Businesses',
+    'Jobs & Careers',
+    'Internships',
+    'Education & Courses',
+    'Startups & Creators',
+    'Community Stories',
+    'Traffic & Transport',
+    'Sports & Activities',
+    'Local Initiatives',
+    'Public Announcements',
+    'Restaurant', 'Cafe', 'Hotel', 'Hospital', 'Clinic',
+    'Retail Store', 'Salon', 'Gym', 'Travel Agency', 'Automobile',
+    'Real Estate', 'IT Company', 'Service Provider', 'Startup', 'Other'
   ];
 
   const amenitiesList = [

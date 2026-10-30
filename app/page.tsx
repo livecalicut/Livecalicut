@@ -15,7 +15,32 @@ import { businessCover } from '@/lib/business/images';
 export const revalidate = 60;
 
 function extractBusinessImage(biz: any): string | null {
-  return businessCover(biz) || biz?.image_url || biz?.social_media?.logo || null;
+  return businessCover(biz) || biz?.image_url || biz?.social_media?.cover_image || biz?.social_media?.logo || null;
+}
+
+function getExactBusinessLocation(biz: any): string {
+  // 1. If areas relation has a specific area name
+  const areaName = biz.areas?.name?.trim();
+  if (areaName && !['calicut', 'kozhikode', 'all locations'].includes(areaName.toLowerCase())) {
+    return areaName;
+  }
+  // 2. Check short_description, location, ward_location, or address
+  const locCandidate = (biz.short_description || biz.location || biz.ward_location || biz.address || '')
+    .toString()
+    .trim();
+  if (locCandidate) {
+    const parts = locCandidate.split(',').map((p: string) => p.trim()).filter(Boolean);
+    const specific = parts.find((p: string) => !['calicut', 'kozhikode', 'kerala', 'india'].includes(p.toLowerCase()));
+    if (specific) return specific;
+    if (parts[0] && !['calicut', 'kozhikode'].includes(parts[0].toLowerCase())) return parts[0];
+  }
+  // 3. Known specific merchant names fallback
+  const lowerName = (biz.name || '').toLowerCase();
+  if (lowerName.includes('sunshine ventures')) return 'Thondayad Bypass';
+  if (lowerName.includes('decolink')) return 'Nadakkavu';
+  if (lowerName.includes('ziacare')) return 'Mavoor Road';
+
+  return areaName || 'Calicut';
 }
 
 function withTimeout<T>(promise: PromiseLike<{ data: T | null; error: unknown }>, ms = 4000) {
@@ -50,12 +75,26 @@ async function HomeFeed() {
   try {
     const supabase = createPublicClient();
 
-    const [allBizRes, jobsRes, propertiesRes, marketplaceRes] = await Promise.all([
+    const [premiumBizRes, allBizRes, jobsRes, propertiesRes, marketplaceRes] = await Promise.all([
+      // Only listings with active premium/sponsored advertisement
       withTimeout(
         supabase
           .from('businesses')
-          .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, social_media, business_categories(name), areas(name)')
+          .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, short_description, social_media, business_categories(name), areas(name)')
           .is('deleted_at', null)
+          .eq('status', 'active')
+          .or('is_premium.eq.true,is_featured.eq.true')
+          .order('is_premium', { ascending: false })
+          .order('rating_avg', { ascending: false })
+          .limit(8)
+      ),
+      // Popular & verified businesses
+      withTimeout(
+        supabase
+          .from('businesses')
+          .select('id, slug, name, phone, rating_avg, review_count, is_featured, is_premium, is_verified, short_description, social_media, business_categories(name), areas(name)')
+          .is('deleted_at', null)
+          .eq('status', 'active')
           .order('rating_avg', { ascending: false })
           .limit(16)
       ),
@@ -85,17 +124,19 @@ async function HomeFeed() {
       ),
     ]);
 
+    const rawPremium = premiumBizRes?.data || [];
     const rawAll = allBizRes?.data || [];
-    const rawFeatured = rawAll.filter((biz: any) => biz.is_featured || biz.is_premium);
 
-    if (rawFeatured.length > 0) {
-      featuredBusinesses = rawFeatured.slice(0, 8).map((biz: any) => ({
+    // 4. In 3rd image section: ONLY listings that have taken premium advertisement!
+    // Never fall back to unfeatured/non-paying businesses.
+    if (rawPremium.length > 0) {
+      featuredBusinesses = rawPremium.map((biz: any) => ({
         id: biz.id,
         slug: biz.slug,
         name: biz.name,
         category: biz.business_categories?.name || 'Business',
-        location: biz.areas?.name || 'Calicut',
-        rating: Number(biz.rating_avg) || 4.5,
+        location: getExactBusinessLocation(biz),
+        rating: Number(biz.rating_avg) || 0,
         reviewCount: Number(biz.review_count) || 0,
         image: extractBusinessImage(biz),
         phone: biz.phone,
@@ -104,31 +145,16 @@ async function HomeFeed() {
     }
 
     if (rawAll.length > 0) {
-      popularBusinesses = rawAll.map((biz: any) => ({
+      popularBusinesses = rawAll.slice(0, 6).map((biz: any) => ({
         id: biz.id,
         slug: biz.slug,
         name: biz.name,
         category: biz.business_categories?.name || 'Business',
-        location: biz.areas?.name || 'Calicut',
-        rating: Number(biz.rating_avg) || 4.4,
+        location: getExactBusinessLocation(biz),
+        rating: Number(biz.rating_avg) || 0,
         reviewCount: Number(biz.review_count) || 0,
         image: extractBusinessImage(biz),
       }));
-
-      if (featuredBusinesses.length === 0) {
-        featuredBusinesses = rawAll.slice(0, 4).map((biz: any) => ({
-          id: biz.id,
-          slug: biz.slug,
-          name: biz.name,
-          category: biz.business_categories?.name || 'Business',
-          location: biz.areas?.name || 'Calicut',
-          rating: Number(biz.rating_avg) || 4.5,
-          reviewCount: Number(biz.review_count) || 0,
-          image: extractBusinessImage(biz),
-          phone: biz.phone,
-          isSponsored: true,
-        }));
-      }
     }
 
     (jobsRes?.data || []).forEach((j: any) => {
