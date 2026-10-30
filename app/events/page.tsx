@@ -100,6 +100,8 @@ export default function EventsListingPage() {
               date={evt.start_date ? new Date(evt.start_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Upcoming'}
               venue={evt.venue || 'Calicut'}
               category={evt.event_categories?.name || evt.category || 'Event'}
+              image={evt.cover_image || evt.image_url}
+              href={`/events/${evt.slug || evt.id}`}
             />
           ))}
         </ResponsiveGrid>

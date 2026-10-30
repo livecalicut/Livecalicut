@@ -110,6 +110,8 @@ export default function NewsListingPage() {
                 excerpt={item.excerpt || ''}
                 category={item.category || 'General'}
                 timeAgo={item.published_at ? new Date(item.published_at).toLocaleDateString() : 'Recently'}
+                image={item.cover_image}
+                href={item.slug ? `/news/${item.slug}` : `/news/${item.id}`}
               />
             ))}
           </ResponsiveGrid>

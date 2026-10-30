@@ -5,36 +5,41 @@ import { cn } from '@/lib/utils';
 import { businessCover } from '@/lib/business/images';
 
 export const LOGO_FALLBACK = '/images/logo.png';
+export const PHOTO_FALLBACK = '/heroes/calicut-hero.jpg';
 
 interface CoverImageProps {
   src?: string | null;
   alt?: string;
   className?: string;
   imgClassName?: string;
+  fallbackSrc?: string;
   /** When true, logo fallback uses contain (centered). Cover images always use cover. */
   fallbackContain?: boolean;
 }
 
 /**
- * Cover media with object-cover. Falls back to LiveCalicut logo if missing/broken.
+ * Cover media with object-cover. Falls back gracefully without awkward blank shapes.
  */
 export function CoverImage({
   src,
   alt = '',
   className,
   imgClassName,
-  fallbackContain = true,
+  fallbackSrc,
+  fallbackContain = false,
 }: CoverImageProps) {
   const [failed, setFailed] = useState(false);
   const hasSrc = Boolean(src && String(src).trim());
   const showFallback = !hasSrc || failed;
-  const finalSrc = showFallback ? LOGO_FALLBACK : (src as string);
+  const defaultFallback = fallbackSrc || PHOTO_FALLBACK;
+  const finalSrc = showFallback ? defaultFallback : (src as string);
+  const isLogo = finalSrc === LOGO_FALLBACK;
 
   return (
     <div
       className={cn(
-        'relative h-full w-full overflow-hidden bg-[#F8FAFC]',
-        showFallback && 'flex items-center justify-center',
+        'relative h-full w-full overflow-hidden bg-slate-100',
+        isLogo && 'flex items-center justify-center bg-white p-4',
         className
       )}
     >
@@ -46,10 +51,10 @@ export function CoverImage({
         onError={() => setFailed(true)}
         className={cn(
           'h-full w-full transition-transform duration-300 group-hover:scale-105',
-          showFallback
+          isLogo
             ? fallbackContain
-              ? 'object-contain p-8 opacity-80'
-              : 'object-cover'
+              ? 'object-contain max-h-full max-w-full opacity-90'
+              : 'object-contain'
             : 'object-cover',
           imgClassName
         )}
