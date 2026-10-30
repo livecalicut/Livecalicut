@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import { businessCover, businessImages } from '@/lib/business/images';
+import { getExactBusinessLocation } from '@/lib/business/location';
 
 export class BusinessService {
   private static supabase = createClient();
@@ -16,28 +17,31 @@ export class BusinessService {
     } = {}
   ): Promise<{ data: any[]; total: number }> {
     const page = Math.max(1, filters.page ?? 1);
-    // Cap the page size so a caller cannot request the whole table.
     const limit = Math.min(100, Math.max(1, filters.limit ?? 20));
     const from = (page - 1) * limit;
 
-    // `!inner` lets the category slug be filtered in the same round trip
-    // instead of looking the category id up first.
-    const categoryJoin = filters.categorySlug
-      ? 'business_categories!inner(name, slug)'
-      : 'business_categories(name, slug)';
+    const catRaw = (filters.categorySlug || '').trim();
+    const catSlug = catRaw.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const isSpecialFeatured = catSlug === 'featured-businesses' || filters.isFeatured;
 
     let query = this.supabase
       .from('businesses')
-      .select(`*, ${categoryJoin}, areas(name, slug)`, { count: 'exact' })
+      .select('*, business_categories(id, name, slug), business_subcategories(id, name, slug), areas(name, slug)', { count: 'exact' })
       .is('deleted_at', null)
       .eq('status', 'active');
 
-    if (filters.categorySlug) query = query.eq('business_categories.slug', filters.categorySlug);
-    if (filters.isFeatured) query = query.eq('is_featured', true);
+    if (isSpecialFeatured) {
+      query = query.or('is_featured.eq.true,is_premium.eq.true');
+    } else if (catRaw) {
+      query = query.or(
+        `business_categories.slug.eq.${catSlug},business_categories.slug.eq.${catRaw},business_categories.name.ilike.%${catRaw}%,category.ilike.%${catRaw}%,business_subcategories.slug.eq.${catSlug}`
+      );
+    }
+
     if (filters.isVerified) query = query.eq('is_verified', true);
     if (filters.keyword) {
       const term = filters.keyword.replace(/[%,()]/g, '');
-      query = query.or(`name.ilike.%${term}%,short_description.ilike.%${term}%`);
+      query = query.or(`name.ilike.%${term}%,short_description.ilike.%${term}%,location.ilike.%${term}%`);
     }
 
     const { data, error, count } = await query
@@ -50,8 +54,8 @@ export class BusinessService {
     return {
       data: (data || []).map((b: any) => ({
         ...b,
-        category: b.business_categories?.name || b.category,
-        location: b.areas?.name || b.location,
+        category: b.business_categories?.name || b.category || 'Service Provider',
+        location: getExactBusinessLocation(b),
         area: b.areas?.name,
         rating: b.rating_avg ?? b.rating ?? 0,
         cover_image: businessCover(b),
@@ -64,13 +68,16 @@ export class BusinessService {
   static async getBusinessBySlug(slug: string) {
     const { data, error } = await this.supabase
       .from('businesses')
-      .select('*, business_categories(name, slug), areas(name, slug)')
+      .select('*, business_categories(name, slug), business_subcategories(name, slug), areas(name, slug)')
       .eq('slug', slug)
       .is('deleted_at', null)
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      location: getExactBusinessLocation(data),
+    };
   }
 
   static async getCategories() {
@@ -89,25 +96,25 @@ export class BusinessService {
     }
 
     return [
-      { id: '1', name: 'Restaurants & Cafés', slug: 'restaurants-cafes', icon_name: 'Utensils', display_order: 1 },
-      { id: '2', name: 'Tourism & Destinations', slug: 'tourism-destinations', icon_name: 'Palmtree', display_order: 2 },
-      { id: '3', name: 'Lifestyle & Wellness', slug: 'lifestyle-wellness', icon_name: 'Sparkles', display_order: 3 },
-      { id: '4', name: 'Shopping & Entertainment', slug: 'shopping-entertainment', icon_name: 'ShoppingBag', display_order: 4 },
-      { id: '5', name: 'Arts & Culture', slug: 'arts-culture', icon_name: 'Palette', display_order: 5 },
-      { id: '6', name: 'Business Directory', slug: 'business-directory', icon_name: 'Building2', display_order: 6 },
-      { id: '7', name: 'Local Services', slug: 'local-services', icon_name: 'Wrench', display_order: 7 },
-      { id: '8', name: 'Classifieds', slug: 'classifieds', icon_name: 'Tag', display_order: 8 },
-      { id: '9', name: 'Properties', slug: 'properties', icon_name: 'Home', display_order: 9 },
-      { id: '10', name: 'Featured Businesses', slug: 'featured-businesses', icon_name: 'Crown', display_order: 10 },
-      { id: '11', name: 'Jobs & Careers', slug: 'jobs-careers', icon_name: 'Briefcase', display_order: 11 },
-      { id: '12', name: 'Internships', slug: 'internships', icon_name: 'GraduationCap', display_order: 12 },
-      { id: '13', name: 'Education & Courses', slug: 'education-courses', icon_name: 'BookOpen', display_order: 13 },
-      { id: '14', name: 'Startups & Creators', slug: 'startups-creators', icon_name: 'Rocket', display_order: 14 },
-      { id: '15', name: 'Community Stories', slug: 'community-stories', icon_name: 'Newspaper', display_order: 15 },
-      { id: '16', name: 'Traffic & Transport', slug: 'traffic-transport', icon_name: 'Bus', display_order: 16 },
-      { id: '17', name: 'Sports & Activities', slug: 'sports-activities', icon_name: 'Trophy', display_order: 17 },
-      { id: '18', name: 'Local Initiatives', slug: 'local-initiatives', icon_name: 'HeartHandshake', display_order: 18 },
-      { id: '19', name: 'Public Announcements', slug: 'public-announcements', icon_name: 'Megaphone', display_order: 19 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', name: 'Restaurants & Cafés', slug: 'restaurants-cafes', icon_name: 'Utensils', display_order: 1 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380002', name: 'Tourism & Destinations', slug: 'tourism-destinations', icon_name: 'Palmtree', display_order: 2 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380003', name: 'Lifestyle & Wellness', slug: 'lifestyle-wellness', icon_name: 'Sparkles', display_order: 3 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380004', name: 'Shopping & Entertainment', slug: 'shopping-entertainment', icon_name: 'ShoppingBag', display_order: 4 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380005', name: 'Arts & Culture', slug: 'arts-culture', icon_name: 'Palette', display_order: 5 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380006', name: 'Business Directory', slug: 'business-directory', icon_name: 'Building2', display_order: 6 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380007', name: 'Local Services', slug: 'local-services', icon_name: 'Wrench', display_order: 7 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380008', name: 'Classifieds', slug: 'classifieds', icon_name: 'Tag', display_order: 8 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380009', name: 'Properties', slug: 'properties', icon_name: 'Home', display_order: 9 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380010', name: 'Featured Businesses', slug: 'featured-businesses', icon_name: 'Crown', display_order: 10 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380011', name: 'Jobs & Careers', slug: 'jobs-careers', icon_name: 'Briefcase', display_order: 11 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380012', name: 'Internships', slug: 'internships', icon_name: 'GraduationCap', display_order: 12 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380013', name: 'Education & Courses', slug: 'education-courses', icon_name: 'BookOpen', display_order: 13 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380014', name: 'Startups & Creators', slug: 'startups-creators', icon_name: 'Rocket', display_order: 14 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380015', name: 'Community Stories', slug: 'community-stories', icon_name: 'Newspaper', display_order: 15 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380016', name: 'Traffic & Transport', slug: 'traffic-transport', icon_name: 'Bus', display_order: 16 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380017', name: 'Sports & Activities', slug: 'sports-activities', icon_name: 'Trophy', display_order: 17 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380018', name: 'Local Initiatives', slug: 'local-initiatives', icon_name: 'HeartHandshake', display_order: 18 },
+      { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380019', name: 'Public Announcements', slug: 'public-announcements', icon_name: 'Megaphone', display_order: 19 },
     ];
   }
 
@@ -143,14 +150,14 @@ export class BusinessService {
 
     if (existing) {
       await this.supabase.from('bookmarks').delete().eq('id', existing.id);
-      return false; // Removed
+      return false;
     } else {
       await this.supabase.from('bookmarks').insert({
         user_id: userId,
         entity_type: 'business',
         entity_id: businessId,
       });
-      return true; // Added
+      return true;
     }
   }
 

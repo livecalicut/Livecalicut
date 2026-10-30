@@ -31,6 +31,14 @@ INSERT INTO public.business_categories (id, name, slug, icon_name, display_order
 ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380019', 'Public Announcements', 'public-announcements', 'Megaphone', 19, 'active', true)
 ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, is_active = true, status = 'active';
 
+INSERT INTO public.business_subcategories (id, category_id, name, slug, status, is_active) VALUES
+('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380101', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Malabar Traditional & Biryani Spots', 'malabar-biryani', 'active', true),
+('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380102', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Beachside Cafés & Coffee Shops', 'beach-cafes', 'active', true),
+('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380103', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Arabic, Mandi & Shawarma', 'arabic-mandi', 'active', true),
+('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380701', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380007', 'Interior Designers & Modular Living', 'interior-designers', 'active', true),
+('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380702', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380007', 'Sanitary & Hygiene Care Providers', 'sanitary-hygiene', 'active', true)
+ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, is_active = true, status = 'active';
+
 INSERT INTO public.job_categories (id, name, slug, icon_name, display_order, status, is_active) VALUES
 ('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', 'Jobs & Careers', 'jobs-careers', 'Briefcase', 1, 'active', true),
 ('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380002', 'Internships', 'internships', 'GraduationCap', 2, 'active', true),

@@ -9,12 +9,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category') || undefined;
     const keyword = searchParams.get('q') || undefined;
+    const featured = searchParams.get('featured') === 'true' ? true : undefined;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
 
     const { data, total } = await BusinessService.getBusinesses({
       categorySlug: category,
       keyword,
+      isFeatured: featured,
       page,
       limit,
     });

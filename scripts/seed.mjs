@@ -182,6 +182,20 @@ async function main() {
 
   await upsert(
     sb,
+    'business_subcategories',
+    [
+      { id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380101', category_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', name: 'Malabar Traditional & Biryani Spots', slug: 'malabar-biryani', status: 'active', is_active: true },
+      { id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380102', category_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', name: 'Beachside Cafés & Coffee Shops', slug: 'beach-cafes', status: 'active', is_active: true },
+      { id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380103', category_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380001', name: 'Arabic, Mandi & Shawarma', slug: 'arabic-mandi', status: 'active', is_active: true },
+      { id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380701', category_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380007', name: 'Interior Designers & Modular Living', slug: 'interior-designers', status: 'active', is_active: true },
+      { id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380702', category_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380007', name: 'Sanitary & Hygiene Care Providers', slug: 'sanitary-hygiene', status: 'active', is_active: true },
+    ],
+    'slug'
+  );
+  console.log('✓ business_subcategories');
+
+  await upsert(
+    sb,
     'job_categories',
     [
       {

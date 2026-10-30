@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
 
-type ModuleKey = 'businesses' | 'jobs' | 'news' | 'marketplace' | 'properties';
+type ModuleKey = 'businesses' | 'subcategories' | 'jobs' | 'news' | 'marketplace' | 'properties';
 
 interface ModuleConfig {
   key: ModuleKey;
@@ -31,7 +31,8 @@ interface ModuleConfig {
 }
 
 const MODULES: ModuleConfig[] = [
-  { key: 'businesses', label: 'Businesses & Services', table: 'business_categories', entity: 'business_category' },
+  { key: 'businesses', label: '19 Mega Menu Categories', table: 'business_categories', entity: 'business_category' },
+  { key: 'subcategories', label: '75+ Subcategories', table: 'business_subcategories', entity: 'business_subcategory' },
   { key: 'jobs', label: 'Jobs & Careers', table: 'job_categories', entity: 'job_category' },
   { key: 'news', label: 'News & Updates', table: 'news_categories', entity: 'news_category' },
   { key: 'marketplace', label: 'Marketplace', table: 'marketplace_categories', entity: 'marketplace_category' },
@@ -78,11 +79,13 @@ export default function AdminCategoriesPage() {
       const results = await Promise.all(
         MODULES.map(async (m) => {
           try {
-            const { data, error } = await supabase
-              .from(m.table)
-              .select('*')
-              .is('deleted_at', null)
-              .order('display_order', { ascending: true });
+            let query = supabase.from(m.table).select('*').is('deleted_at', null);
+            if (m.key === 'subcategories') {
+              query = query.order('name');
+            } else {
+              query = query.order('display_order', { ascending: true });
+            }
+            const { data, error } = await query;
 
             if (error) return { module: m, rows: [] };
             return { module: m, rows: data || [] };
@@ -134,7 +137,10 @@ export default function AdminCategoriesPage() {
         throw new Error(json.error || 'Sync failed');
       }
 
-      toast.success('Categories Synced!', 'All 19 Mega Menu genuine service categories updated in Supabase.');
+      toast.success(
+        'Categories & Subcategories Synced!',
+        `Synced ${json.categoryCount || 19} categories and ${json.subcategoryCount || 75}+ subcategories to Supabase.`
+      );
       await load();
     } catch (err: any) {
       toast.error('Sync Error', err.message || 'Could not sync categories to database');

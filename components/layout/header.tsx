@@ -46,16 +46,16 @@ const MEGA_MENU_GROUPS: MegaMenuGroup[] = [
     links: [
       { label: 'Restaurants & Cafés', href: '/restaurants' },
       { label: 'Tourism & Destinations', href: '/tourism' },
-      { label: 'Lifestyle & Wellness', href: '/business?category=lifestyle-wellness' },
-      { label: 'Shopping & Entertainment', href: '/business?category=shopping-entertainment' },
-      { label: 'Arts & Culture', href: '/places?category=arts-culture' },
+      { label: 'Lifestyle & Wellness', href: '/business/category/lifestyle-wellness' },
+      { label: 'Shopping & Entertainment', href: '/business/category/shopping-entertainment' },
+      { label: 'Arts & Culture', href: '/business/category/arts-culture' },
     ],
   },
   {
     title: 'Business & Marketplace',
     links: [
       { label: 'Business Directory', href: '/business' },
-      { label: 'Local Services', href: '/business?category=local-services' },
+      { label: 'Local Services', href: '/business/category/local-services' },
       { label: 'Classifieds', href: '/marketplace' },
       { label: 'Properties', href: '/properties' },
       { label: 'Featured Businesses', href: '/business?featured=true' },
@@ -66,9 +66,9 @@ const MEGA_MENU_GROUPS: MegaMenuGroup[] = [
     links: [
       { label: 'Jobs & Careers', href: '/jobs' },
       { label: 'Internships', href: '/jobs?type=internship' },
-      { label: 'Education & Courses', href: '/business?category=education-courses' },
-      { label: 'Startups & Creators', href: '/business?category=startups-creators' },
-      { label: 'Community Stories', href: '/news' },
+      { label: 'Education & Courses', href: '/business/category/education-courses' },
+      { label: 'Startups & Creators', href: '/business/category/startups-creators' },
+      { label: 'Community Stories', href: '/news?category=community-stories' },
     ],
   },
   {
@@ -76,7 +76,7 @@ const MEGA_MENU_GROUPS: MegaMenuGroup[] = [
     links: [
       { label: 'Traffic & Transport', href: '/places?category=traffic-transport' },
       { label: 'Sports & Activities', href: '/events?category=sports-activities' },
-      { label: 'Local Initiatives', href: '/about' },
+      { label: 'Local Initiatives', href: '/places?category=local-initiatives' },
       { label: 'Public Announcements', href: '/news?category=public-announcements' },
     ],
   },

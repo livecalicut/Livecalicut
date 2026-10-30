@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Phone, CheckCircle2, Heart } from 'lucide-react';
-import { CoverImage } from '@/components/shared/cover-image';
+import { getExactBusinessLocation } from '@/lib/business/location';
 
 interface BusinessCardProps {
   id: string;
@@ -41,12 +41,24 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
     setIsFavorite(!isFavorite);
   };
 
+  // Safe exact location that is never blank
+  const resolvedLocation =
+    location && location.trim().length > 0 && location.trim() !== 'Calicut'
+      ? (location.toLowerCase().includes('calicut') ? location : `${location}, Calicut`)
+      : getExactBusinessLocation({ name, location });
+
   return (
     <Link href={href} className="group block h-full">
-      <Card className="surface-card flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:shadow-md transition-all duration-200 hover:-translate-y-1">
-        {/* Cover Image Container */}
-        <div className="relative h-[180px] w-full shrink-0 overflow-hidden rounded-xl bg-slate-100">
-          <CoverImage src={image} alt={name} />
+      <Card className="surface-card flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+        {/* Clean Logo Container (100% visible, centered, not cropped, zero logo break) */}
+        <div className="relative h-44 sm:h-48 w-full shrink-0 overflow-hidden rounded-xl bg-white border border-slate-100 flex items-center justify-center p-4">
+          <img
+            src={image || '/heroes/city-market.jpg'}
+            alt={name}
+            loading="lazy"
+            className="max-h-full max-w-full object-contain mx-auto transition-transform duration-300 group-hover:scale-105"
+          />
+
           {isVerified && (
             <Badge
               variant="success"
@@ -59,32 +71,32 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
           {/* Favorite Toggle Button */}
           <button
             onClick={toggleFav}
-            className="absolute right-2.5 top-2.5 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xs flex items-center justify-center text-white transition-colors cursor-pointer"
+            className="absolute right-2.5 top-2.5 w-7 h-7 rounded-full bg-slate-100/90 hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shadow-xs"
             aria-label="Save business"
           >
             <Heart
               className={`w-3.5 h-3.5 ${
-                isFavorite ? 'fill-rose-500 text-rose-500' : 'text-white'
+                isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-600'
               }`}
             />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="flex flex-1 flex-col justify-between pt-3 space-y-2">
+        <div className="flex flex-1 flex-col justify-between pt-3 space-y-2.5">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB]">
-                {category}
+                {category || 'Service Provider'}
               </span>
-              {reviewCount > 0 ? (
-                <div className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">
-                  <Star className="h-3 w-3 fill-amber-500 text-amber-500" aria-hidden="true" />
-                  <span>{rating ? rating.toFixed(1) : '4.5'}</span>
-                  <span className="font-normal text-slate-400">({reviewCount})</span>
+              {reviewCount > 0 && rating > 0 ? (
+                <div className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-500" aria-hidden="true" />
+                  <span>{rating.toFixed(1)}</span>
+                  <span className="font-normal text-slate-500">({reviewCount})</span>
                 </div>
               ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
                   New
                 </span>
               )}
@@ -94,9 +106,10 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
               {name}
             </h4>
 
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <span className="truncate">{location}</span>
+            {/* Exact Location - Never Empty */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#2563EB]" />
+              <span className="truncate">{resolvedLocation}</span>
             </div>
           </div>
         </div>
@@ -109,7 +122,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
               <span>{phone}</span>
             </span>
           ) : (
-            <span className="text-[11px] text-slate-400">Verified Listing</span>
+            <span className="text-[11px] text-slate-400 font-medium">Verified Listing</span>
           )}
           <span className="font-bold text-[#2563EB] transition-transform group-hover:translate-x-0.5">
             View Store &rarr;
@@ -119,4 +132,3 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
     </Link>
   );
 };
-
