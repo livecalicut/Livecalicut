@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/server';
 
-export type SettingKey = 'system' | 'app' | 'seo' | 'email' | 'notification' | 'ai' | 'cms' | 'live_updates';
+export type SettingKey = 'system' | 'app' | 'seo' | 'email' | 'notification' | 'ai' | 'cms' | 'live_updates' | 'city_offers';
 
 /**
  * Server-only settings access. Writes need the service role (RLS blocks

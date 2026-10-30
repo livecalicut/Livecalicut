@@ -1,62 +1,23 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/page-header';
-import { Tag, Sparkles, Percent, ArrowRight, Store, Utensils, ShoppingBag, Clock } from 'lucide-react';
+import { EmptyState } from '@/components/shared/empty-state';
+import { OffersService, Offer } from '@/lib/services/offers.service';
+import {
+  Tag,
+  Sparkles,
+  ArrowRight,
+  Store,
+  Clock,
+  Building2,
+  Percent,
+} from 'lucide-react';
 
-const OFFERS = [
-  {
-    id: '1',
-    title: 'Flat 20% Off Malabar Feast & Biryani',
-    business: 'Paragon Restaurant',
-    location: 'CH Flyover, Kozhikode',
-    discount: '20% OFF',
-    code: 'MALABAR20',
-    validTill: 'Valid till 30 Nov 2026',
-    category: 'Dining & Cafés',
-    icon: Utensils,
-    href: '/restaurants',
-  },
-  {
-    id: '2',
-    title: 'Buy 2 Get 1 Free on Wedding Silks',
-    business: 'Kalyan Silks',
-    location: 'Palayam, Kozhikode',
-    discount: 'B2G1 FREE',
-    code: 'FESTIVE26',
-    validTill: 'Weekend Special',
-    category: 'Shopping & Retail',
-    icon: ShoppingBag,
-    href: '/business?category=shopping-entertainment',
-  },
-  {
-    id: '3',
-    title: 'Free Modular Kitchen Consultation',
-    business: 'Decolink Interio',
-    location: 'Nadakkavu, Calicut',
-    discount: 'FREE DESIGN',
-    code: 'DECO2026',
-    validTill: 'Limited Slots',
-    category: 'Local Services',
-    icon: Store,
-    href: '/business',
-  },
-  {
-    id: '4',
-    title: '30% Off on Full Body Health Checkup',
-    business: 'Aster MIMS Specialty Care',
-    location: 'Mini Bypass Road, Govindapuram',
-    discount: '30% OFF',
-    code: 'CARE30',
-    validTill: 'Valid this month',
-    category: 'Lifestyle & Wellness',
-    icon: Sparkles,
-    href: '/business?category=lifestyle-wellness',
-  },
-];
+export const revalidate = 60;
 
-export default function OffersPage() {
+export default async function OffersPage() {
+  const offers: Offer[] = await OffersService.getAllOffers({ activeOnly: true });
+
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <PageHeader
@@ -69,37 +30,51 @@ export default function OffersPage() {
         ]}
       />
 
-      {/* Featured Banner */}
+      {/* Featured Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 p-6 sm:p-10 text-white shadow-xl">
         <div className="relative z-10 max-w-2xl space-y-3">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" /> Calicut Super Saver Deals
+            <Sparkles className="w-3.5 h-3.5" /> Calicut Verified Merchant Deals
           </span>
           <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            Save Big at Your Favorite Local Outlets
+            Save Big at Verified Local Outlets
           </h2>
           <p className="text-xs sm:text-sm text-white/90">
-            Show these digital vouchers at the counter or mention the code during billing to avail exclusive discounts.
+            Show these digital vouchers at the counter or mention the promo code during billing to avail exclusive discounts directly from Calicut merchants.
           </p>
         </div>
       </div>
 
-      {/* Offers Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {OFFERS.map((offer) => {
-          const Icon = offer.icon;
-          return (
+      {/* Offers Grid or Clean Zero-Dummy Empty State */}
+      {offers.length === 0 ? (
+        <EmptyState
+          title="No Active Offers at the Moment"
+          description="Local merchants, clinics, and stores across Calicut regularly update their promotional deals and seasonal coupons here. Check back soon or list your store offer."
+          actionLabel="List Your Store Offer"
+          actionHref="/merchant"
+          hooks={[
+            {
+              href: '/business',
+              label: 'Explore Businesses',
+              description: 'Browse verified outlets in Calicut',
+              icon: Building2,
+            },
+          ]}
+        />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {offers.map((offer) => (
             <div
               key={offer.id}
               className="group flex flex-col justify-between bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
               <div className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 font-black text-xs">
-                    {offer.discount}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 font-black text-xs">
+                    <Percent className="w-3.5 h-3.5" /> {offer.discount}
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-                    <Icon className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-[#2563EB] flex items-center justify-center">
+                    <Store className="w-4 h-4" />
                   </div>
                 </div>
 
@@ -107,33 +82,44 @@ export default function OffersPage() {
                   <h3 className="font-bold text-slate-900 text-base group-hover:text-[#2563EB] transition-colors line-clamp-2">
                     {offer.title}
                   </h3>
-                  <p className="text-xs font-semibold text-slate-700 mt-1">{offer.business}</p>
+                  <p className="text-xs font-semibold text-slate-700 mt-1">{offer.business_name}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{offer.location}</p>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-center space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Promo Code</span>
-                  <p className="font-mono font-bold text-sm text-slate-800 tracking-widest">{offer.code}</p>
-                </div>
+                {offer.description && (
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    {offer.description}
+                  </p>
+                )}
+
+                {offer.code && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-center space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Promo Code
+                    </span>
+                    <p className="font-mono font-bold text-sm text-slate-800 tracking-widest">
+                      {offer.code}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1 text-slate-500 text-[11px]">
                   <Clock className="w-3 h-3 text-slate-400" />
-                  {offer.validTill}
+                  {offer.valid_till || 'Ongoing'}
                 </span>
                 <Link
-                  href={offer.href}
+                  href={offer.link || '/business'}
                   className="font-bold text-[#2563EB] hover:text-[#1D4ED8] inline-flex items-center gap-1"
                 >
-                  View Details <ArrowRight className="w-3.5 h-3.5" />
+                  View Store <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-
