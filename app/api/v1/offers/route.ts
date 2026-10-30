@@ -14,3 +14,4 @@ export async function GET() {
     return NextResponse.json({ success: false, error: err?.message || 'Failed to load offers' }, { status: 500 });
   }
 }
+

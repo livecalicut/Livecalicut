@@ -39,3 +39,4 @@ CREATE POLICY "Authenticated editors manage offers"
     ON public.offers
     FOR ALL
     USING (auth.role() = 'authenticated');
+

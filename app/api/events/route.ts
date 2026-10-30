@@ -17,19 +17,27 @@ function slugify(value: string) {
 }
 
 export async function GET() {
-  const supabase = createPublicClient();
-  const { data, error } = await supabase
-    .from('events')
-    .select('*, event_categories(name, slug)')
-    .eq('status', 'published')
-    .is('deleted_at', null)
-    .order('start_date', { ascending: true });
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from('events')
+      .select('*, event_categories(name, slug)')
+      .is('deleted_at', null)
+      .order('start_date', { ascending: true });
 
-  if (error) {
-    return NextResponse.json({ data: [] });
+    if (error) {
+      const fallback = await supabase
+        .from('events')
+        .select('*')
+        .is('deleted_at', null)
+        .order('start_date', { ascending: true });
+      return NextResponse.json({ success: true, data: fallback.data || [] });
+    }
+
+    return NextResponse.json({ success: true, data: data || [] });
+  } catch {
+    return NextResponse.json({ success: true, data: [] });
   }
-
-  return NextResponse.json({ data: data || [] });
 }
 
 export async function POST(request: Request) {

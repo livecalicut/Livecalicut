@@ -50,7 +50,7 @@ async function apiFetch<T>(
 
   const json = (await response.json()) as ApiResponse<T>;
 
-  if (!response.ok || !json.success) {
+  if (!response.ok || json.success === false) {
     const errorMessage =
       (typeof json.error === 'object' && json.error?.message) ||
       (typeof json.error === 'string' ? json.error : undefined) ||
@@ -59,7 +59,8 @@ async function apiFetch<T>(
     throw new ApiError(errorMessage, response.status, json.errors);
   }
 
-  return { data: json.data, meta: json.meta };
+  const resultData = (json.data !== undefined ? json.data : (json as unknown as T)) ?? ([] as unknown as T);
+  return { data: resultData, meta: json.meta };
 }
 
 function buildSearchParams(params: Record<string, unknown>): string {

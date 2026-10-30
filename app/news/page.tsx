@@ -52,13 +52,13 @@ export default function NewsListingPage() {
         breadcrumbs={[{ label: 'News Editorial' }]}
       />
 
-      {/* Breaking News Live Ticker */}
+      {/* News Desk Status */}
       <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 flex items-center gap-3 text-xs font-bold text-[#111827]">
         <span className="px-2.5 py-1 rounded-xl bg-[#2563EB] text-white flex items-center gap-1 shrink-0 font-sans uppercase text-[10px] tracking-wider font-extrabold">
-          <Zap className="w-3.5 h-3.5 fill-white" /> Breaking News
+          <Zap className="w-3.5 h-3.5 fill-white" /> News Desk
         </span>
         <p className="truncate text-[#111827]">
-          Calicut Beach Waterfront Renovation Phase 2 Approved by Calicut Municipal Corporation • 500+ Career Opportunities Listed
+          Verified municipal reports, cultural coverage &amp; community journalism across Calicut
         </p>
       </div>
 
