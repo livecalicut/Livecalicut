@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 
 export default function MarketplaceSearchPage() {
   return (
-    <div className="space-y-8 py-4">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 py-6 sm:py-10">
       <PageHeader
         title="Marketplace Search Results"
         description="Filter pre-owned items by category, price, condition & area."

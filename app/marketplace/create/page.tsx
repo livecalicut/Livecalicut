@@ -87,7 +87,7 @@ export default function CreateMarketplaceItemPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4">
+    <div className="max-w-2xl mx-auto space-y-8 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="Post Pre-owned Item for Sale"
         description="List your item in Calicut Buy & Sell marketplace for local buyers."

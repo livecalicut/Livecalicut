@@ -91,7 +91,7 @@ export default function CreatePropertyPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4">
+    <div className="max-w-2xl mx-auto space-y-8 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="Post Real Estate Property Listing"
         description="List your villa, apartment, commercial office or plot in Calicut."

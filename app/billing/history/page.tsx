@@ -17,7 +17,7 @@ export default function BillingHistoryPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
+    <div className="max-w-4xl mx-auto space-y-8 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="Billing History & GST Invoices"
         description="Download tax invoices and view complete subscription transaction logs."

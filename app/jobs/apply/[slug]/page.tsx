@@ -117,7 +117,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ slug: strin
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 py-4">
+    <div className="mx-auto max-w-2xl space-y-8 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="Submit Candidate Application"
         description="Apply directly to employer hiring desk in Calicut."

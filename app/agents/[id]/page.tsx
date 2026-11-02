@@ -6,7 +6,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
   const { id } = await params;
 
   return (
-    <div className="space-y-8 py-4">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 py-6 sm:py-10">
       <PageHeader
         title="Real Estate Broker Profile"
         description="Verified Real Estate Agent in Calicut."

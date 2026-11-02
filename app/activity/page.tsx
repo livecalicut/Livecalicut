@@ -3,7 +3,7 @@ import { Activity } from 'lucide-react';
 
 export default function ActivityTimelinePage() {
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
+    <div className="max-w-4xl mx-auto space-y-8 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="Live Ecosystem Activity Stream"
         description="Realtime feed of new business listings, candidate job applications and community reviews."

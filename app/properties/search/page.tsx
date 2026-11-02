@@ -8,7 +8,7 @@ import { Search, Bed, Bath, Maximize } from 'lucide-react';
 
 export default function PropertySearchPage() {
   return (
-    <div className="space-y-8 py-4">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 py-6 sm:py-10">
       <PageHeader
         title="Real Estate Search Results"
         description="Filter properties by price range, bedrooms, area & furnished status."

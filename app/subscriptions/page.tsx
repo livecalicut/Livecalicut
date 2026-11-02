@@ -41,7 +41,7 @@ export default function SubscriptionsPricingPage() {
   ];
 
   return (
-    <div className="space-y-8 py-4">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 py-6 sm:py-10">
       <PageHeader
         title="LiveCalicut Merchant Subscription Plans"
         description="Grow your Calicut business with verified badges, customer leads & featured search placements."

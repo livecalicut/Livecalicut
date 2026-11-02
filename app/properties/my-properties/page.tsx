@@ -18,7 +18,7 @@ export default function MyPropertiesPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
+    <div className="max-w-4xl mx-auto space-y-8 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="My Posted Properties"
         description="Manage your real estate listings, update pricing or mark as sold."

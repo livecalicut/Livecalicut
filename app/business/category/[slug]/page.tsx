@@ -9,7 +9,8 @@ import { createPublicClient } from '@/lib/supabase/server';
 import { getExactBusinessLocation } from '@/lib/business/location';
 import { businessCover } from '@/lib/business/images';
 import { Button } from '@/components/ui/button';
-import { GENUINE_MEGAMENU_CATEGORIES, GENUINE_MEGAMENU_SUBCATEGORIES } from '@/app/api/v1/admin/taxonomy/route';
+import { BusinessService } from '@/lib/services/business.service';
+import { GENUINE_MEGAMENU_CATEGORIES, GENUINE_MEGAMENU_SUBCATEGORIES } from '@/lib/business/taxonomy';
 
 export const revalidate = 60;
 
@@ -67,19 +68,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   // 3. Fetch Businesses matching this Category
   let businesses: any[] = [];
   try {
-    const { data: bizData } = await supabase
-      .from('businesses')
-      .select('id, slug, name, phone, rating_avg, review_count, is_verified, short_description, location, address, social_media, business_categories(name, slug), areas(name)')
-      .or(`category_id.eq.${category.id},business_categories.slug.eq.${slug},category.ilike.%${category.name}%`)
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .order('is_featured', { ascending: false })
-      .order('rating_avg', { ascending: false })
-      .limit(60);
-
-    if (bizData) businesses = bizData;
-  } catch {
-    // fallback
+    ({ data: businesses } = await BusinessService.getBusinesses({ categorySlug: slug, limit: 60 }));
+  } catch (err) {
+    console.error('Category businesses fetch failed:', err);
   }
 
   return (

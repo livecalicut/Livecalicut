@@ -9,7 +9,7 @@ export default async function AgencyProfilePage({ params }: { params: Promise<{ 
   const agencyName = slug ? slug.replace(/-/g, ' ').replace(/kozhikode/gi, 'calicut').toUpperCase() : 'CALICUT PRIME REAL ESTATE AGENCY';
 
   return (
-    <div className="space-y-8 py-4">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 py-6 sm:py-10">
       <PageHeader
         title={agencyName}
         description="Verified Real Estate Agency & Property Brokerage in Calicut."
