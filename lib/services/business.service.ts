@@ -2,6 +2,17 @@ import { createClient } from '@/lib/supabase/client';
 import { businessCover, businessImages } from '@/lib/business/images';
 import { getExactBusinessLocation } from '@/lib/business/location';
 
+// Directory filter slugs whose businesses are stored under differently named categories
+const CATEGORY_ALIASES: Record<string, string[]> = {
+  'restaurants-cafes': ['restaurant', 'dining-cafes'],
+  'shopping-entertainment': ['textiles-shopping'],
+  'lifestyle-wellness': ['hospitals-clinics'],
+  'tourism-destinations': ['hotels-resorts'],
+  'business-directory': ['it-cyberpark'],
+  'local-services': ['service-provider'],
+  'startups-creators': ['startup'],
+};
+
 export class BusinessService {
   private static supabase = createClient();
 
@@ -33,15 +44,35 @@ export class BusinessService {
     if (isSpecialFeatured) {
       query = query.or('is_featured.eq.true,is_premium.eq.true');
     } else if (catRaw) {
-      query = query.or(
-        `business_categories.slug.eq.${catSlug},business_categories.slug.eq.${catRaw},business_categories.name.ilike.%${catRaw}%,category.ilike.%${catRaw}%,business_subcategories.slug.eq.${catSlug}`
-      );
+      // PostgREST can't mix embedded-table columns into a top-level or(),
+      // so resolve the category to ids first and filter on our own columns.
+      const catTerm = catRaw.replace(/[%,()"*\\]/g, '');
+      const slugs = [catSlug, catTerm, ...(CATEGORY_ALIASES[catSlug] || [])];
+      const [{ data: cats }, { data: subs }] = await Promise.all([
+        this.supabase
+          .from('business_categories')
+          .select('id')
+          .or(`${slugs.map((s) => `slug.eq."${s}"`).join(',')},name.ilike."%${catTerm}%"`),
+        this.supabase
+          .from('business_subcategories')
+          .select('id')
+          .or(`slug.eq."${catSlug}",name.ilike."%${catTerm}%"`),
+      ]);
+      const catIds = (cats || []).map((c: any) => c.id);
+      const subIds = (subs || []).map((s: any) => s.id);
+      if (!catIds.length && !subIds.length) return { data: [], total: 0 };
+      const conditions: string[] = [];
+      if (catIds.length) conditions.push(`category_id.in.(${catIds.join(',')})`);
+      if (subIds.length) conditions.push(`subcategory_id.in.(${subIds.join(',')})`);
+      query = query.or(conditions.join(','));
     }
 
     if (filters.isVerified) query = query.eq('is_verified', true);
     if (filters.keyword) {
-      const term = filters.keyword.replace(/[%,()]/g, '');
-      query = query.or(`name.ilike.%${term}%,short_description.ilike.%${term}%,location.ilike.%${term}%`);
+      const term = filters.keyword.replace(/[%,()"*\\]/g, '').trim();
+      if (term) {
+        query = query.or(`name.ilike."%${term}%",short_description.ilike."%${term}%",description.ilike."%${term}%"`);
+      }
     }
 
     const { data, error, count } = await query

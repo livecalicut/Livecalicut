@@ -1,3 +1,4 @@
+import { isMissingTable } from '@/lib/api/errors';
 import { NextResponse } from 'next/server';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
     .order('created_at', { ascending: false })
     .range(from, from + limit - 1);
 
-  if (error) {
+  if (error && !isMissingTable(error)) {
     return ApiResponse.error('FETCH_ERROR', error.message, [], 500);
   }
 

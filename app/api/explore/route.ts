@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ExploreService } from '@/lib/services/explore.service';
+import { isMissingTable } from '@/lib/api/errors';
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
       },
     });
   } catch (err: any) {
-    console.error('Explore API error:', err);
+    if (!isMissingTable(err)) console.error('Explore API error:', err);
     return NextResponse.json({
       data: {
         places: [],

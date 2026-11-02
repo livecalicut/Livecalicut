@@ -36,3 +36,9 @@ export class NotFoundError extends AppError {
     super(message, 404, 'NOT_FOUND');
   }
 }
+
+// Optional modules whose table isn't provisioned in this database yet
+export function isMissingTable(err: unknown): boolean {
+  const code = (err as { code?: string } | null)?.code;
+  return code === 'PGRST205' || code === '42P01';
+}
