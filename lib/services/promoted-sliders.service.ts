@@ -3,7 +3,7 @@ import {
   PROMOTED_BUSINESSES_SET_1,
   PROMOTED_BUSINESSES_SET_2,
   PromotedCardItem,
-} from '@/components/home/promoted-businesses-carousel';
+} from '@/lib/constants/promoted-sliders';
 
 export interface PromotedSlider {
   id: string;

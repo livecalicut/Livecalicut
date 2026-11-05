@@ -3,7 +3,12 @@ import { HeroRedesign } from '@/components/home/hero-redesign';
 import { ExploreCategories } from '@/components/home/explore-categories';
 import { CitySpotlights } from '@/components/home/city-spotlights';
 import { FeaturedBusinessesSection, FeaturedBusinessItem } from '@/components/home/featured-businesses-section';
-import { PromotedBusinessesCarousel, PROMOTED_BUSINESSES_SET_1, PROMOTED_BUSINESSES_SET_2, PromotedCardItem } from '@/components/home/promoted-businesses-carousel';
+import { PromotedBusinessesCarousel } from '@/components/home/promoted-businesses-carousel';
+import {
+  PROMOTED_BUSINESSES_SET_1,
+  PROMOTED_BUSINESSES_SET_2,
+  type PromotedCardItem,
+} from '@/lib/constants/promoted-sliders';
 import { PromotedSlidersService } from '@/lib/services/promoted-sliders.service';
 import { PopularBusinessesSection, PopularBusinessItem } from '@/components/home/popular-businesses-section';
 import { LatestListingsSection, UnifiedListingItem } from '@/components/home/latest-listings-section';
