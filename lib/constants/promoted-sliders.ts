@@ -279,3 +279,4 @@ export const PROMOTED_BUSINESSES_SET_2: PromotedCardItem[] = [
     isAd: true,
   },
 ];
+
