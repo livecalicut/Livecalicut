@@ -69,8 +69,8 @@ export const INITIAL_PROMOTED_SLIDERS: PromotedSlider[] = [
 
 export class PromotedSlidersService {
   /**
-   * Fetch all promoted sliders.
-   * If stored data is empty, initial items are seeded to persistent settings.
+   * Fetch all promoted sliders safely with timeout and in-memory fallback.
+   * Completely read-only: NEVER performs DB writes during page reads or static builds.
    */
   static async getAllSliders(
     options: {
@@ -79,20 +79,15 @@ export class PromotedSlidersService {
     } = {}
   ): Promise<PromotedSlider[]> {
     try {
-      const stored = await SettingsService.getSetting('promoted_sliders');
-      let items: PromotedSlider[] = Array.isArray((stored as any)?.items)
-        ? ((stored as any).items as PromotedSlider[])
-        : [];
+      // Fast 2-second timeout to ensure static builds (SSG) & SSR never hang
+      const getSettingPromise = SettingsService.getSetting('promoted_sliders');
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+      const stored = await Promise.race([getSettingPromise, timeoutPromise]).catch(() => null);
 
-      // Auto-seed default sliders on first fetch so admin can edit them immediately
-      if (items.length === 0) {
-        items = INITIAL_PROMOTED_SLIDERS;
-        await SettingsService.updateSetting(
-          'promoted_sliders',
-          { items },
-          'Seeded initial promoted carousel sliders'
-        ).catch(() => {});
-      }
+      let items: PromotedSlider[] =
+        Array.isArray((stored as any)?.items) && (stored as any).items.length > 0
+          ? ((stored as any).items as PromotedSlider[])
+          : INITIAL_PROMOTED_SLIDERS;
 
       if (options.activeOnly) {
         items = items.filter((item) => item.is_active !== false);
@@ -104,8 +99,7 @@ export class PromotedSlidersService {
 
       return items.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     } catch (err) {
-      console.error('[PromotedSlidersService] getAllSliders error:', err);
-      // Fallback to in-memory initial sliders
+      console.warn('[PromotedSlidersService] getAllSliders fallback:', err);
       let fallback = INITIAL_PROMOTED_SLIDERS;
       if (options.activeOnly) {
         fallback = fallback.filter((item) => item.is_active !== false);
@@ -118,7 +112,7 @@ export class PromotedSlidersService {
   }
 
   /**
-   * Create a new promoted slider card
+   * Create a new promoted slider card (called exclusively from Admin panel)
    */
   static async createSlider(payload: Partial<PromotedSlider>): Promise<PromotedSlider> {
     const all = await this.getAllSliders({ activeOnly: false });
@@ -219,4 +213,3 @@ export class PromotedSlidersService {
     };
   }
 }
-

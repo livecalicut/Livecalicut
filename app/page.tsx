@@ -216,7 +216,7 @@ async function HomeFeed() {
   );
 }
 
-export default async function HomePage() {
+async function PromotedSection2Feed() {
   let section2Items: PromotedCardItem[] = PROMOTED_BUSINESSES_SET_2;
   try {
     const dynamicSection2 = await PromotedSlidersService.getAllSliders({
@@ -231,6 +231,18 @@ export default async function HomePage() {
   }
 
   return (
+    <PromotedBusinessesCarousel
+      title="Exclusive Calicut City Deals & Flash Offers"
+      subtitle="Verified merchant discounts, festival offers & brand partnerships curated for Kozhikode citizens"
+      badge="CITY DEALS & OFFERS"
+      items={section2Items}
+      sectionId="calicut-city-deals"
+    />
+  );
+}
+
+export default function HomePage() {
+  return (
     <div className="flex w-full flex-col bg-white">
       <HeroRedesign />
       <ExploreCategories />
@@ -240,13 +252,19 @@ export default async function HomePage() {
       </Suspense>
       <ExploreCalicutSection />
       {/* 2. After Explore Calicut Section: Promoted Businesses 2x2 Carousel Slider (Backend Dynamic) */}
-      <PromotedBusinessesCarousel
-        title="Exclusive Calicut City Deals & Flash Offers"
-        subtitle="Verified merchant discounts, festival offers & brand partnerships curated for Kozhikode citizens"
-        badge="CITY DEALS & OFFERS"
-        items={section2Items}
-        sectionId="calicut-city-deals"
-      />
+      <Suspense
+        fallback={
+          <PromotedBusinessesCarousel
+            title="Exclusive Calicut City Deals & Flash Offers"
+            subtitle="Verified merchant discounts, festival offers & brand partnerships curated for Kozhikode citizens"
+            badge="CITY DEALS & OFFERS"
+            items={PROMOTED_BUSINESSES_SET_2}
+            sectionId="calicut-city-deals"
+          />
+        }
+      >
+        <PromotedSection2Feed />
+      </Suspense>
       <AdvertiseSection />
       <StayUpdatedSection />
     </div>
