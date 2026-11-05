@@ -10,26 +10,21 @@ import {
   Eye,
   EyeOff,
   ExternalLink,
-  Sparkles,
   CheckCircle2,
   X,
   Layers,
   ArrowRight,
   Phone,
   Image as ImageIcon,
-  Sliders,
-  Sparkle,
   Settings2,
   FileText,
   RotateCcw,
-  Check,
 } from 'lucide-react';
 import {
   AdminPageHeader,
   DataTable,
   IconButton,
   Modal,
-  StatusBadge,
   primaryButtonClass,
   secondaryButtonClass,
   type Column,
@@ -49,7 +44,7 @@ const EMPTY_SLIDER: Partial<PromotedSlider> = {
   subtext: '',
   bottomStrip: '10% Instant Bank Discount on Cards',
   bankIconText: 'SPECIAL',
-  image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80',
+  image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=1600&auto=format&fit=crop&q=80',
   href: '/business',
   phone: '',
   badgeText: 'HOT DEAL',
@@ -74,7 +69,7 @@ export default function AdminPromotedSlidersPage() {
     show_creative_banner: true,
     banner_headline: 'Spotlight Your Brand Across Kozhikode',
     banner_subtext:
-      'Put your business directly in front of thousands of verified Kozhikode shoppers, diners & clients daily. Premium homepage visibility, high-intent category reach, and instant direct WhatsApp inquiries.',
+      'Put your business directly in front of 50,000+ verified Kozhikode shoppers, diners & clients daily. Prime full-width banner visibility with direct WhatsApp leads.',
     banner_badge: 'FEATURE YOUR BUSINESS',
     banner_cta_text: 'Promote Your Business',
     banner_cta_url: '/merchant',
@@ -124,7 +119,7 @@ export default function AdminPromotedSlidersPage() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Failed to update settings');
-      toast.success('Homepage section settings saved!');
+      toast.success('Homepage banner settings saved!');
     } catch (err: any) {
       toast.error('Failed to save settings', err.message);
     } finally {
@@ -151,7 +146,7 @@ export default function AdminPromotedSlidersPage() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Update failed');
-      toast.success(nextState ? 'Slider activated' : 'Slider deactivated');
+      toast.success(nextState ? 'Banner activated' : 'Banner deactivated');
     } catch (err: any) {
       setSliders(prev);
       toast.error('Failed to update status', err.message);
@@ -159,7 +154,7 @@ export default function AdminPromotedSlidersPage() {
   };
 
   const deleteSlider = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this promoted slider?')) return;
+    if (!confirm('Are you sure you want to remove this promotional banner?')) return;
     const prev = sliders;
     setSliders(sliders.filter((s) => s.id !== id));
 
@@ -169,17 +164,17 @@ export default function AdminPromotedSlidersPage() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
-      toast.success('Promoted slider deleted successfully');
+      toast.success('Promotional banner deleted successfully');
     } catch (err: any) {
       setSliders(prev);
-      toast.error('Failed to delete slider', err.message);
+      toast.error('Failed to delete banner', err.message);
     }
   };
 
   const clearAllSliders = async () => {
     if (
       !confirm(
-        'Are you sure you want to delete ALL slider cards? The homepage will immediately display the creative merchant copy banner.'
+        'Are you sure you want to delete ALL banners? The homepage will immediately display the creative spotlight banner.'
       )
     ) {
       return;
@@ -190,16 +185,16 @@ export default function AdminPromotedSlidersPage() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Clear failed');
       setSliders([]);
-      toast.success('All sliders removed! Creative copy banner is now active.');
+      toast.success('All banners removed! Creative banner copy is now active.');
     } catch (err: any) {
-      toast.error('Failed to clear sliders', err.message);
+      toast.error('Failed to clear banners', err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const seedSampleSliders = async () => {
-    if (!confirm('Seed demo slider cards? This will add 16 sample promotional cards to the database.')) {
+    if (!confirm('Seed demo full-width banners? This will add sample promotional banners to test the 2-second slider.')) {
       return;
     }
     setLoading(true);
@@ -208,9 +203,9 @@ export default function AdminPromotedSlidersPage() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Seed failed');
       setSliders(json.sliders || []);
-      toast.success('Sample sliders loaded successfully!');
+      toast.success('Sample promotional banners loaded successfully!');
     } catch (err: any) {
-      toast.error('Failed to seed sliders', err.message);
+      toast.error('Failed to seed banners', err.message);
     } finally {
       setLoading(false);
     }
@@ -219,8 +214,8 @@ export default function AdminPromotedSlidersPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
-    if (!editing.brandName?.trim() || !editing.headline?.trim()) {
-      toast.error('Validation Error', 'Brand name and headline are required.');
+    if (!editing.image?.trim()) {
+      toast.error('Validation Error', 'Banner image URL is required.');
       return;
     }
 
@@ -230,16 +225,20 @@ export default function AdminPromotedSlidersPage() {
       const res = await fetch('/api/v1/admin/promoted-sliders', {
         method: isNew ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editing),
+        body: JSON.stringify({
+          ...editing,
+          brandName: editing.brandName || 'PROMOTED BRAND',
+          headline: editing.headline || 'Special Festive Promotion',
+        }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Save failed');
 
-      toast.success(isNew ? 'Promoted slider created!' : 'Promoted slider updated!');
+      toast.success(isNew ? 'Promotional banner created!' : 'Promotional banner updated!');
       setEditing(null);
       loadSliders();
     } catch (err: any) {
-      toast.error('Could not save slider', err.message);
+      toast.error('Could not save banner', err.message);
     } finally {
       setSaving(false);
     }
@@ -253,14 +252,14 @@ export default function AdminPromotedSlidersPage() {
   const columns: Column<PromotedSlider>[] = [
     {
       key: 'brandName',
-      header: 'Promoted Card',
+      header: 'Full Banner Preview',
       sortValue: (s) => s.brandName,
       cell: (s) => (
         <div className="flex items-center gap-3 min-w-0">
-          <div className="relative w-12 h-12 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden shrink-0">
+          <div className="relative w-28 h-14 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden shrink-0 aspect-[16/8]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={s.image} alt={s.brandName} className="w-full h-full object-cover" />
-            <span className="absolute bottom-0 right-0 px-1 py-0.2 bg-black/80 text-[8px] font-black text-amber-400">
+            <span className="absolute bottom-0.5 right-0.5 px-1 py-0.2 bg-black/80 text-[8px] font-black text-amber-400 rounded">
               AD
             </span>
           </div>
@@ -276,7 +275,9 @@ export default function AdminPromotedSlidersPage() {
               )}
             </div>
             <p className="text-xs text-slate-600 truncate font-semibold">{s.headline}</p>
-            <p className="text-[11px] text-amber-600 font-bold truncate">{s.dealHighlight}</p>
+            {s.dealHighlight && (
+              <p className="text-[11px] text-amber-600 font-bold truncate">{s.dealHighlight}</p>
+            )}
           </div>
         </div>
       ),
@@ -299,12 +300,14 @@ export default function AdminPromotedSlidersPage() {
       ),
     },
     {
-      key: 'bottomStrip',
-      header: 'Deal / Bank Strip',
+      key: 'href',
+      header: 'Target Link',
       hideOnMobile: true,
       cell: (s) => (
         <div className="text-xs text-[#111827] max-w-xs truncate">
-          <span className="font-semibold text-slate-700">{s.bottomStrip}</span>
+          <Link href={s.href} target="_blank" className="text-blue-600 hover:underline font-semibold">
+            {s.href}
+          </Link>
         </div>
       ),
     },
@@ -331,13 +334,13 @@ export default function AdminPromotedSlidersPage() {
       header: 'Actions',
       cell: (s) => (
         <div className="flex items-center justify-end gap-1">
-          <IconButton label="Preview card" onClick={() => setViewing(s)}>
+          <IconButton label="Preview banner" onClick={() => setViewing(s)}>
             <Eye className="w-4 h-4" />
           </IconButton>
-          <IconButton label="Edit slider" onClick={() => setEditing(s)}>
+          <IconButton label="Edit banner" onClick={() => setEditing(s)}>
             <Edit2 className="w-4 h-4" />
           </IconButton>
-          <IconButton label="Delete slider" tone="danger" onClick={() => deleteSlider(s.id)}>
+          <IconButton label="Delete banner" tone="danger" onClick={() => deleteSlider(s.id)}>
             <Trash2 className="w-4 h-4" />
           </IconButton>
         </div>
@@ -348,8 +351,8 @@ export default function AdminPromotedSlidersPage() {
   return (
     <>
       <AdminPageHeader
-        title="Promoted Slider Carousels"
-        description="Add, edit, remove, and customize the 2-Row x 2-Column promotional banners shown on the homepage."
+        title="Promoted Banner Carousels"
+        description="Upload and manage full-width Flipkart/Amazon style advertising banners that automatically slide from right to left every 2 seconds."
         count={sliders.length}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
@@ -365,7 +368,7 @@ export default function AdminPromotedSlidersPage() {
               onClick={() => setEditing({ ...EMPTY_SLIDER })}
               className={primaryButtonClass}
             >
-              <Plus className="h-4 w-4" /> Add Promoted Slider
+              <Plus className="h-4 w-4" /> Add Full Banner
             </button>
           </div>
         }
@@ -380,15 +383,15 @@ export default function AdminPromotedSlidersPage() {
             </div>
             <div>
               <h3 className="text-sm font-black text-slate-900 leading-tight">
-                Homepage Showcase Controls & Creative Fallback Copy
+                Homepage Banner Carousel Controls (2-Sec Auto Slide)
               </h3>
               <p className="text-xs text-slate-500">
-                Control section visibility on live site and customize the creative marketing copy shown when no sliders are added.
+                Control banner visibility on live site and customize the creative fallback banner shown when no custom banners are added.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={() => {
                 setEditingCopy(settings);
@@ -397,7 +400,7 @@ export default function AdminPromotedSlidersPage() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
             >
               <FileText className="w-3.5 h-3.5 text-amber-600" />
-              <span>Edit Creative Copy</span>
+              <span>Edit Creative Banner Copy</span>
             </button>
 
             {sliders.length > 0 ? (
@@ -406,7 +409,7 @@ export default function AdminPromotedSlidersPage() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete All Sliders</span>
+                <span>Delete All Banners</span>
               </button>
             ) : (
               <button
@@ -414,7 +417,7 @@ export default function AdminPromotedSlidersPage() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-all"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Seed Sample Sliders</span>
+                <span>Seed Sample Banners</span>
               </button>
             )}
           </div>
@@ -425,10 +428,10 @@ export default function AdminPromotedSlidersPage() {
           {/* Master Section Toggle */}
           <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-900">Homepage Showcase Master Switch</p>
+              <p className="text-xs font-bold text-slate-900">Homepage Banner Carousel Master Switch</p>
               <p className="text-[11px] text-slate-500">
                 {settings.enabled
-                  ? 'Active on homepage (displays slider or creative copy)'
+                  ? 'Active on homepage (slides banners or creative banner every 2s)'
                   : 'Completely removed from homepage'}
               </p>
             </div>
@@ -448,11 +451,11 @@ export default function AdminPromotedSlidersPage() {
           {/* Fallback Creative Copy Toggle */}
           <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-900">Empty State: Creative Marketing Copy</p>
+              <p className="text-xs font-bold text-slate-900">Empty State: Creative Ad Banner</p>
               <p className="text-[11px] text-slate-500">
                 {settings.show_creative_banner
-                  ? 'Show creative ad copy banner when 0 sliders exist'
-                  : 'Hide section completely when 0 sliders exist'}
+                  ? 'Show creative full-width banner when 0 custom banners exist'
+                  : 'Hide section completely when 0 custom banners exist'}
               </p>
             </div>
             <button
@@ -464,7 +467,7 @@ export default function AdminPromotedSlidersPage() {
                   : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
               }`}
             >
-              {settings.show_creative_banner ? 'Show Copy' : 'Hide Section'}
+              {settings.show_creative_banner ? 'Show Creative Banner' : 'Hide Section'}
             </button>
           </div>
         </div>
@@ -474,7 +477,7 @@ export default function AdminPromotedSlidersPage() {
           <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 flex items-center gap-2.5 text-xs text-amber-900 font-semibold">
             <Flame className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              <strong>0 Promoted Sliders Added:</strong> The homepage is currently displaying the creative merchant spotlight banner (&quot;{settings.banner_headline}&quot;). Click &quot;Add Promoted Slider&quot; whenever you want to feature a brand card!
+              <strong>0 Custom Banners Added:</strong> The homepage is currently displaying the creative full-width spotlight banner (&quot;{settings.banner_headline}&quot;). Click &quot;Add Full Banner&quot; or &quot;Seed Sample Banners&quot; to test the 2-second slider!
             </span>
           </div>
         )}
@@ -486,7 +489,7 @@ export default function AdminPromotedSlidersPage() {
           Filter Section:
         </span>
         {[
-          { key: 'all', label: `All Sections (${sliders.length})` },
+          { key: 'all', label: `All Banners (${sliders.length})` },
           {
             key: 'featured',
             label: `After Featured Listings (${sliders.filter((s) => s.section === 'featured').length})`,
@@ -515,7 +518,7 @@ export default function AdminPromotedSlidersPage() {
         columns={columns}
         getRowId={(s: PromotedSlider) => s.id}
         loading={loading}
-        emptyMessage="No promoted sliders currently added. The homepage is displaying the creative merchant spotlight banner. Click 'Add Promoted Slider' to create a card anytime."
+        emptyMessage="No promotional banners currently added. The homepage is displaying the creative full-width spotlight banner. Click 'Add Full Banner' to upload a banner anytime."
         searchPlaceholder="Search by brand name, headline, or deal..."
         searchText={(s: PromotedSlider) => `${s.brandName} ${s.headline} ${s.dealHighlight} ${s.subtext} ${s.bottomStrip}`}
       />
@@ -527,7 +530,7 @@ export default function AdminPromotedSlidersPage() {
             <div>
               <h3 className="text-lg font-black text-slate-900">Edit Creative Fallback Banner Copy</h3>
               <p className="text-xs text-slate-500">
-                Customize the copy shown on the homepage when no individual merchant sliders are active.
+                Customize the copy shown in the full-width creative banner when no individual banners are added.
               </p>
             </div>
             <button
@@ -616,14 +619,14 @@ export default function AdminPromotedSlidersPage() {
                 Cancel
               </button>
               <button type="submit" disabled={savingSettings} className={primaryButtonClass}>
-                {savingSettings ? 'Saving...' : 'Save Creative Copy'}
+                {savingSettings ? 'Saving...' : 'Save Creative Banner'}
               </button>
             </div>
           </form>
         </div>
       </Modal>
 
-      {/* CREATE & EDIT MODAL */}
+      {/* CREATE & EDIT BANNER MODAL */}
       <Modal
         open={Boolean(editing)}
         onClose={() => setEditing(null)}
@@ -634,10 +637,10 @@ export default function AdminPromotedSlidersPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-lg font-black text-slate-900">
-                  {editing.id ? 'Edit Promoted Slider' : 'Add New Promoted Slider'}
+                  {editing.id ? 'Edit Full Promotional Banner' : 'Add New Full Promotional Banner'}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Configure brand, offer details, bank strips, and placement on the 2x2 homepage carousels.
+                  Upload wide Flipkart/Amazon style banner images that auto-slide right to left every 2 seconds.
                 </p>
               </div>
               <button
@@ -650,9 +653,38 @@ export default function AdminPromotedSlidersPage() {
 
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
+                    Banner Image URL (Full Graphic Banner) *
+                  </label>
+                  <input
+                    required
+                    value={editing.image || ''}
+                    onChange={(e) => setEditing({ ...editing, image: e.target.value })}
+                    placeholder="https://images.unsplash.com/... (Recommended: 1600x600 or 1200x500)"
+                    className={inputClass}
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Upload a wide banner image just like Flipkart / Amazon promo banners.
+                  </p>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Placement Section on Homepage *
+                    Target Link URL (When clicked) *
+                  </label>
+                  <input
+                    required
+                    value={editing.href || ''}
+                    onChange={(e) => setEditing({ ...editing, href: e.target.value })}
+                    placeholder="/business/paragon or WhatsApp link"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
+                    Placement Section *
                   </label>
                   <select
                     value={editing.section || 'featured'}
@@ -663,145 +695,40 @@ export default function AdminPromotedSlidersPage() {
                     <option value="featured">Section 1: After Featured Listings</option>
                     <option value="explore">Section 2: After Explore Calicut</option>
                   </select>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Choose which homepage carousel this banner will appear in.
-                  </p>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Brand / Business Name *
+                    Brand / Merchant Name (Alt text & Caption)
                   </label>
                   <input
-                    required
                     value={editing.brandName || ''}
                     onChange={(e) => setEditing({ ...editing, brandName: e.target.value })}
-                    placeholder="e.g. PARAGON RESTAURANT, HILITE MALL, ADIDAS"
+                    placeholder="e.g. PARAGON RESTAURANT, HILITE MALL"
                     className={inputClass}
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Brand Tagline Pill
-                  </label>
-                  <input
-                    value={editing.brandTag || ''}
-                    onChange={(e) => setEditing({ ...editing, brandTag: e.target.value })}
-                    placeholder="e.g. CALICUT ICON, PREMIER SHOPPING, SINCE 1949"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Badge Text (Top Right on Image)
+                    Badge Tag (e.g. BIG BANG, FESTIVE)
                   </label>
                   <input
                     value={editing.badgeText || ''}
                     onChange={(e) => setEditing({ ...editing, badgeText: e.target.value })}
-                    placeholder="e.g. BIG BANG SALE, FESTIVE OFFER, EXCLUSIVE"
+                    placeholder="e.g. BIG BANG SALE, FESTIVE OFFER"
                     className={inputClass}
                   />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Main Headline *
+                    Headline (Optional text overlay)
                   </label>
                   <input
-                    required
                     value={editing.headline || ''}
                     onChange={(e) => setEditing({ ...editing, headline: e.target.value })}
-                    placeholder="e.g. Classic Malabar Biriyani & Seafood Feast"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Deal / Price Highlight Tag *
-                  </label>
-                  <input
-                    required
-                    value={editing.dealHighlight || ''}
-                    onChange={(e) => setEditing({ ...editing, dealHighlight: e.target.value })}
-                    placeholder="e.g. Flat 20% Off, Min. 50% Off, From ₹18,999"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Bank / Icon Pill Text
-                  </label>
-                  <input
-                    value={editing.bankIconText || ''}
-                    onChange={(e) => setEditing({ ...editing, bankIconText: e.target.value })}
-                    placeholder="e.g. SBI / HDFC, NO-COST EMI, BEST RATE"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Bottom Deal / Bank Offer Strip Text *
-                  </label>
-                  <input
-                    required
-                    value={editing.bottomStrip || ''}
-                    onChange={(e) => setEditing({ ...editing, bottomStrip: e.target.value })}
-                    placeholder="e.g. 10% Instant Discount on UPI & Card Orders"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Subtext Description
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={editing.subtext || ''}
-                    onChange={(e) => setEditing({ ...editing, subtext: e.target.value })}
-                    placeholder="e.g. Authentic Dum Biriyani & Karimeen Pollichathu delivered hot across Calicut"
-                    className="w-full p-2.5 text-sm rounded-xl border border-[#E5E7EB] bg-white text-[#111827] focus:border-[#2563EB] focus:outline-none"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Image URL *
-                  </label>
-                  <input
-                    required
-                    value={editing.image || ''}
-                    onChange={(e) => setEditing({ ...editing, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/... or /heroes/city-market.jpg"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Click URL / Destination Link
-                  </label>
-                  <input
-                    value={editing.href || ''}
-                    onChange={(e) => setEditing({ ...editing, href: e.target.value })}
-                    placeholder="/business/paragon or /offers"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Phone Desk (Optional)
-                  </label>
-                  <input
-                    value={editing.phone || ''}
-                    onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-                    placeholder="+91 495 276 8888"
+                    placeholder="Leave empty if banner image already has headline graphic"
                     className={inputClass}
                   />
                 </div>
@@ -815,69 +742,31 @@ export default function AdminPromotedSlidersPage() {
                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
                   />
                   <label htmlFor="sliderActive" className="text-xs font-bold text-slate-800 cursor-pointer">
-                    Publish this card live on the homepage carousel immediately
+                    Publish this banner live in the 2-second carousel immediately
                   </label>
                 </div>
               </div>
 
-              {/* LIVE CARD PREVIEW (Luxury White Card) */}
+              {/* LIVE FULL BANNER PREVIEW (Flipkart Style) */}
               <div className="pt-2 border-t border-slate-200">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Live Card Preview (How it appears in 2x2 carousel):
+                  Live Banner Preview (Flipkart / Amazon Full-Width Style):
                 </p>
-                <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-md overflow-hidden max-w-xl relative">
-                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500" />
-                  <div className="p-4 flex items-stretch justify-between gap-3 text-slate-900">
-                    <div className="flex-1 space-y-1.5 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-[11px] text-amber-700 uppercase tracking-wider">
-                          {editing.brandName || 'BRAND NAME'}
-                        </span>
-                        {editing.brandTag && (
-                          <span className="px-1.5 py-0.2 rounded bg-amber-50 text-amber-900 border border-amber-200/60 text-[9px] font-bold">
-                            {editing.brandTag}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-2">
-                        {editing.headline || 'Headline of the promotion appears here'}
-                      </h4>
-                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-xs font-black text-amber-800">
-                        {editing.dealHighlight || 'Special Offer Highlight'}
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-1">
-                        {editing.subtext || 'Brief details and delivery / guarantee info'}
-                      </p>
-                    </div>
-                    <div className="relative w-28 h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={editing.image || '/heroes/city-market.jpg'}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                      {editing.badgeText && (
-                        <span className="absolute top-1 right-1 px-1 py-0.2 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[8px] uppercase">
-                          {editing.badgeText}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 px-3.5 py-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 truncate">
-                      {editing.bankIconText && (
-                        <span className="px-1 py-0.2 rounded bg-white text-slate-950 font-black text-[9px] uppercase border border-slate-200">
-                          {editing.bankIconText}
-                        </span>
-                      )}
-                      <span className="text-[11px] font-semibold text-slate-700 truncate">
-                        {editing.bottomStrip || '10% Instant Bank Discount'}
-                      </span>
-                    </div>
-                    <span className="px-1.5 py-0.2 rounded bg-slate-200/80 text-slate-500 font-black text-[9px] border border-slate-300/60">
-                      AD
+                <div className="relative w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-200/90 shadow-md aspect-[16/7] sm:aspect-[21/8] min-h-[160px] max-w-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={editing.image || 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=1600&auto=format&fit=crop&q=80'}
+                    alt=""
+                    className="w-full h-full object-cover object-center"
+                  />
+                  {editing.badgeText && (
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[9px] uppercase tracking-wider shadow">
+                      {editing.badgeText}
                     </span>
-                  </div>
+                  )}
+                  <span className="absolute bottom-2 right-2 px-1.5 py-0.2 rounded bg-black/70 text-white/90 font-black text-[9px] tracking-wider uppercase border border-white/20">
+                    AD
+                  </span>
                 </div>
               </div>
 
@@ -894,7 +783,7 @@ export default function AdminPromotedSlidersPage() {
                   disabled={saving}
                   className={primaryButtonClass}
                 >
-                  {saving ? 'Saving...' : editing.id ? 'Save Changes' : 'Create Promoted Slider'}
+                  {saving ? 'Saving...' : editing.id ? 'Save Changes' : 'Create Promotional Banner'}
                 </button>
               </div>
             </form>
@@ -906,12 +795,12 @@ export default function AdminPromotedSlidersPage() {
       <Modal
         open={Boolean(viewing)}
         onClose={() => setViewing(null)}
-        size="md"
+        size="lg"
       >
         {viewing && (
           <div className="bg-white p-6 rounded-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 className="text-base font-bold text-slate-900">Promoted Slider Preview</h3>
+              <h3 className="text-base font-bold text-slate-900">Promotional Banner Preview</h3>
               <button
                 onClick={() => setViewing(null)}
                 className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"
@@ -920,75 +809,35 @@ export default function AdminPromotedSlidersPage() {
               </button>
             </div>
 
-            <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-md overflow-hidden relative">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500" />
-              <div className="p-4 flex items-stretch justify-between gap-3 text-slate-900">
-                <div className="flex-1 space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-xs text-amber-700 uppercase tracking-wider">
-                      {viewing.brandName}
-                    </span>
-                    {viewing.brandTag && (
-                      <span className="px-1.5 py-0.2 rounded bg-amber-50 text-amber-900 border border-amber-200/60 text-[9px] font-bold">
-                        {viewing.brandTag}
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="text-base font-black text-slate-900">{viewing.headline}</h4>
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-xs font-black text-amber-800">
-                    {viewing.dealHighlight}
-                  </div>
-                  <p className="text-xs text-slate-500">{viewing.subtext}</p>
-                </div>
-                <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={viewing.image} alt="" className="w-full h-full object-cover" />
-                  {viewing.badgeText && (
-                    <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[9px] uppercase">
-                      {viewing.badgeText}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="bg-slate-50 px-4 py-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  {viewing.bankIconText && (
-                    <span className="px-1.5 py-0.2 rounded bg-white text-slate-950 font-black text-[9px] uppercase border border-slate-200">
-                      {viewing.bankIconText}
-                    </span>
-                  )}
-                  <span className="text-xs font-semibold text-slate-700">
-                    {viewing.bottomStrip}
-                  </span>
-                </div>
-                <span className="px-1.5 py-0.2 rounded bg-slate-200/80 text-slate-500 font-black text-[9px] border border-slate-300/60">
-                  AD
+            <div className="relative w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-200/90 shadow-md aspect-[16/7] sm:aspect-[21/8]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={viewing.image} alt="" className="w-full h-full object-cover" />
+              {viewing.badgeText && (
+                <span className="absolute top-3 right-3 px-2 py-0.5 rounded bg-amber-500 text-white font-black text-[10px] uppercase">
+                  {viewing.badgeText}
                 </span>
-              </div>
+              )}
+              <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/70 text-white font-black text-[10px] border border-white/20">
+                AD
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div>
+                <span className="font-bold text-slate-500 uppercase block">Brand Name</span>
+                <span className="font-bold text-slate-900">{viewing.brandName}</span>
+              </div>
               <div>
                 <span className="font-bold text-slate-500 uppercase block">Placement</span>
                 <span className="font-bold text-slate-900">
                   {viewing.section === 'featured' ? 'After Featured Listings' : 'After Explore Calicut'}
                 </span>
               </div>
-              <div>
-                <span className="font-bold text-slate-500 uppercase block">Status</span>
-                <span className="font-bold text-slate-900">
-                  {viewing.is_active ? 'Active & Live' : 'Inactive / Draft'}
-                </span>
-              </div>
-              <div>
+              <div className="col-span-2">
                 <span className="font-bold text-slate-500 uppercase block">Destination Link</span>
                 <Link href={viewing.href} target="_blank" className="text-blue-600 font-bold underline truncate block">
                   {viewing.href}
                 </Link>
-              </div>
-              <div>
-                <span className="font-bold text-slate-500 uppercase block">Contact Phone</span>
-                <span className="font-bold text-slate-900">{viewing.phone || 'None'}</span>
               </div>
             </div>
 
@@ -1002,7 +851,7 @@ export default function AdminPromotedSlidersPage() {
                 }}
                 className={primaryButtonClass}
               >
-                <Edit2 className="w-4 h-4" /> Edit this Slider
+                <Edit2 className="w-4 h-4" /> Edit this Banner
               </button>
             </div>
           </div>
