@@ -82,6 +82,9 @@ echo "[$(date -Is)] ensuring static assets and build are readable by nginx and n
 chmod -R a+rX "$APP_DIR/.next" 2>/dev/null || true
 chmod -R a+rX "$APP_DIR/public" 2>/dev/null || true
 
+echo "[$(date -Is)] initializing banner carousel settings"
+node scripts/seed-banners.mjs 2>/dev/null || true
+
 echo "[$(date -Is)] restarting pm2 ${PM2_NAME}"
 # Full clean restart of PM2 to purge stale next-server caches & zombie processes
 pm2 delete "$PM2_NAME" 2>/dev/null || true
