@@ -26,6 +26,29 @@ export interface PromotedSlider {
   updated_at?: string;
 }
 
+export interface PromotedSlidersSettings {
+  items: PromotedSlider[];
+  enabled: boolean;
+  show_creative_banner: boolean;
+  banner_headline: string;
+  banner_subtext: string;
+  banner_badge: string;
+  banner_cta_text: string;
+  banner_cta_url: string;
+}
+
+export const DEFAULT_PROMOTED_SLIDERS_SETTINGS: PromotedSlidersSettings = {
+  items: [],
+  enabled: true,
+  show_creative_banner: true,
+  banner_headline: 'Spotlight Your Brand Across Kozhikode',
+  banner_subtext:
+    'Put your business directly in front of thousands of Kozhikode shoppers, diners & clients daily. Premium homepage visibility, high-intent category reach, and instant direct WhatsApp inquiries.',
+  banner_badge: 'FEATURE YOUR BUSINESS',
+  banner_cta_text: 'Promote Your Business',
+  banner_cta_url: '/merchant',
+};
+
 export const INITIAL_PROMOTED_SLIDERS: PromotedSlider[] = [
   ...PROMOTED_BUSINESSES_SET_1.map((item, idx) => ({
     id: item.id,
@@ -69,8 +92,42 @@ export const INITIAL_PROMOTED_SLIDERS: PromotedSlider[] = [
 
 export class PromotedSlidersService {
   /**
-   * Fetch all promoted sliders safely with timeout and in-memory fallback.
-   * Completely read-only: NEVER performs DB writes during page reads or static builds.
+   * Fetch current promoted sliders configuration and items from settings.
+   * Completely safe with timeout. NEVER falls back to demo data if empty!
+   */
+  static async getSettings(): Promise<PromotedSlidersSettings> {
+    try {
+      const getSettingPromise = SettingsService.getSetting('promoted_sliders');
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+      const stored = (await Promise.race([getSettingPromise, timeoutPromise]).catch(() => null)) as any;
+
+      if (!stored || typeof stored !== 'object') {
+        return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS };
+      }
+
+      // If items is an array, respect it (even if empty []!).
+      const items: PromotedSlider[] = Array.isArray(stored.items) ? stored.items : [];
+      const enabled = stored.enabled !== false;
+      const show_creative_banner = stored.show_creative_banner !== false;
+
+      return {
+        items,
+        enabled,
+        show_creative_banner,
+        banner_headline: stored.banner_headline || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_headline,
+        banner_subtext: stored.banner_subtext || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_subtext,
+        banner_badge: stored.banner_badge || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
+        banner_cta_text: stored.banner_cta_text || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
+        banner_cta_url: stored.banner_cta_url || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
+      };
+    } catch (err) {
+      console.warn('[PromotedSlidersService] getSettings fallback:', err);
+      return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS };
+    }
+  }
+
+  /**
+   * Fetch all promoted sliders safely.
    */
   static async getAllSliders(
     options: {
@@ -78,44 +135,48 @@ export class PromotedSlidersService {
       section?: 'featured' | 'explore' | 'all';
     } = {}
   ): Promise<PromotedSlider[]> {
-    try {
-      // Fast 2-second timeout to ensure static builds (SSG) & SSR never hang
-      const getSettingPromise = SettingsService.getSetting('promoted_sliders');
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
-      const stored = await Promise.race([getSettingPromise, timeoutPromise]).catch(() => null);
-
-      let items: PromotedSlider[] =
-        Array.isArray((stored as any)?.items) && (stored as any).items.length > 0
-          ? ((stored as any).items as PromotedSlider[])
-          : INITIAL_PROMOTED_SLIDERS;
-
-      if (options.activeOnly) {
-        items = items.filter((item) => item.is_active !== false);
-      }
-
-      if (options.section && options.section !== 'all') {
-        items = items.filter((item) => item.section === options.section);
-      }
-
-      return items.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-    } catch (err) {
-      console.warn('[PromotedSlidersService] getAllSliders fallback:', err);
-      let fallback = INITIAL_PROMOTED_SLIDERS;
-      if (options.activeOnly) {
-        fallback = fallback.filter((item) => item.is_active !== false);
-      }
-      if (options.section && options.section !== 'all') {
-        fallback = fallback.filter((item) => item.section === options.section);
-      }
-      return fallback;
+    const settings = await this.getSettings();
+    if (settings.enabled === false && options.activeOnly) {
+      return [];
     }
+
+    let items = [...settings.items];
+
+    if (options.activeOnly) {
+      items = items.filter((item) => item.is_active !== false);
+    }
+
+    if (options.section && options.section !== 'all') {
+      items = items.filter((item) => item.section === options.section);
+    }
+
+    return items.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
   }
 
   /**
-   * Create a new promoted slider card (called exclusively from Admin panel)
+   * Update section-wide settings (e.g. enabled, show_creative_banner, banner copy)
+   */
+  static async updateSettings(updates: Partial<PromotedSlidersSettings>): Promise<PromotedSlidersSettings> {
+    const current = await this.getSettings();
+    const next: PromotedSlidersSettings = {
+      ...current,
+      ...updates,
+    };
+
+    await SettingsService.updateSetting(
+      'promoted_sliders',
+      next,
+      'Updated promoted sliders settings'
+    );
+
+    return next;
+  }
+
+  /**
+   * Create a new promoted slider card (called from Admin panel)
    */
   static async createSlider(payload: Partial<PromotedSlider>): Promise<PromotedSlider> {
-    const all = await this.getAllSliders({ activeOnly: false });
+    const settings = await this.getSettings();
     const now = new Date().toISOString();
 
     const newSlider: PromotedSlider = {
@@ -134,15 +195,15 @@ export class PromotedSlidersService {
       badgeText: payload.badgeText || 'SPECIAL OFFER',
       badgeColor: payload.badgeColor || 'amber',
       is_active: payload.is_active !== false,
-      display_order: payload.display_order ?? all.length + 1,
+      display_order: payload.display_order ?? settings.items.length + 1,
       created_at: now,
       updated_at: now,
     };
 
-    const next = [newSlider, ...all];
+    const nextItems = [newSlider, ...settings.items];
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { items: next },
+      { ...settings, items: nextItems },
       `Created promoted slider ${newSlider.id}`
     );
 
@@ -153,22 +214,24 @@ export class PromotedSlidersService {
    * Update an existing promoted slider card
    */
   static async updateSlider(id: string, updates: Partial<PromotedSlider>): Promise<PromotedSlider> {
-    const all = await this.getAllSliders({ activeOnly: false });
-    const idx = all.findIndex((item) => item.id === id);
+    const settings = await this.getSettings();
+    const idx = settings.items.findIndex((item) => item.id === id);
     if (idx === -1) {
       throw new Error(`Slider with ID ${id} not found`);
     }
 
     const updated: PromotedSlider = {
-      ...all[idx],
+      ...settings.items[idx],
       ...updates,
       updated_at: new Date().toISOString(),
     };
 
-    all[idx] = updated;
+    const nextItems = [...settings.items];
+    nextItems[idx] = updated;
+
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { items: all },
+      { ...settings, items: nextItems },
       `Updated promoted slider ${id}`
     );
 
@@ -179,16 +242,43 @@ export class PromotedSlidersService {
    * Delete a promoted slider card
    */
   static async deleteSlider(id: string): Promise<boolean> {
-    const all = await this.getAllSliders({ activeOnly: false });
-    const next = all.filter((item) => item.id !== id);
+    const settings = await this.getSettings();
+    const nextItems = settings.items.filter((item) => item.id !== id);
 
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { items: next },
+      { ...settings, items: nextItems },
       `Deleted promoted slider ${id}`
     );
 
     return true;
+  }
+
+  /**
+   * Clear all promoted sliders (empties the list)
+   */
+  static async clearAllSliders(): Promise<boolean> {
+    const settings = await this.getSettings();
+    await SettingsService.updateSetting(
+      'promoted_sliders',
+      { ...settings, items: [] },
+      'Cleared all promoted sliders'
+    );
+    return true;
+  }
+
+  /**
+   * Manually seed sample sliders (only when user clicks button in admin)
+   */
+  static async seedSampleSliders(): Promise<PromotedSlider[]> {
+    const settings = await this.getSettings();
+    const seeded = INITIAL_PROMOTED_SLIDERS;
+    await SettingsService.updateSetting(
+      'promoted_sliders',
+      { ...settings, items: seeded },
+      'Seeded demo promoted sliders'
+    );
+    return seeded;
   }
 
   /**

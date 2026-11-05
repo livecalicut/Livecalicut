@@ -8,15 +8,23 @@ import {
   ArrowRight,
   Tag,
   Flame,
+  Target,
+  Zap,
+  ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
 
-import {
-  type PromotedCardItem,
-  PROMOTED_BUSINESSES_SET_1,
-  PROMOTED_BUSINESSES_SET_2,
-} from '@/lib/constants/promoted-sliders';
+import { type PromotedCardItem } from '@/lib/constants/promoted-sliders';
 
 export type { PromotedCardItem };
+
+export interface CreativeCopyProps {
+  headline?: string;
+  subtext?: string;
+  badge?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+}
 
 interface PromotedBusinessesCarouselProps {
   title?: string;
@@ -25,14 +33,18 @@ interface PromotedBusinessesCarouselProps {
   items?: PromotedCardItem[];
   variant?: 'festive' | 'modern';
   sectionId?: string;
+  showCreativeBanner?: boolean;
+  creativeCopy?: CreativeCopyProps;
 }
 
 export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProps> = ({
   title = 'Sponsored Brand Spotlights & Mega Offers',
   subtitle = 'Discover verified promotional campaigns, festive discounts & premier enterprises in Calicut',
   badge = 'PROMOTED SPOTLIGHTS',
-  items = PROMOTED_BUSINESSES_SET_1,
+  items = [],
   sectionId,
+  showCreativeBanner = true,
+  creativeCopy,
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -97,6 +109,165 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
     }
     touchStartX.current = null;
   };
+
+  // If there are no slider items added in the backend:
+  if (items.length === 0) {
+    if (!showCreativeBanner) {
+      return null;
+    }
+
+    const headline = creativeCopy?.headline || 'Spotlight Your Brand Across Kozhikode';
+    const subtext =
+      creativeCopy?.subtext ||
+      'Put your business directly in front of thousands of verified Kozhikode shoppers, diners & clients daily. Premium homepage visibility, high-intent category reach, and instant direct WhatsApp inquiries.';
+    const badgeText = creativeCopy?.badge || 'FEATURE YOUR BUSINESS';
+    const ctaText = creativeCopy?.ctaText || 'Promote Your Business';
+    const ctaUrl = creativeCopy?.ctaUrl || '/merchant';
+
+    return (
+      <section
+        id={sectionId}
+        className="w-full bg-white text-slate-900 py-10 sm:py-14 relative overflow-hidden border-b border-slate-100"
+      >
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="relative rounded-3xl bg-gradient-to-br from-amber-50/60 via-white to-slate-50/80 border border-slate-200/90 p-6 sm:p-10 lg:p-12 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06)] overflow-hidden">
+            {/* Top Amber Accent Line */}
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              {/* Left Column: Creative Marketing Copy */}
+              <div className="lg:col-span-7 space-y-4 sm:space-y-5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] tracking-wider uppercase shadow-sm shadow-amber-500/20">
+                    <Flame className="w-3.5 h-3.5 fill-slate-950" />
+                    {badgeText}
+                  </span>
+                  <span className="text-xs font-bold text-amber-800">
+                    Exclusive Merchant Showcase
+                  </span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight font-sans leading-tight">
+                  {headline}
+                </h2>
+
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl">
+                  {subtext}
+                </p>
+
+                {/* 3 High-Impact Value Pillars */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center shrink-0">
+                      <Target className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-black text-slate-900 leading-tight">50,000+ Visitors</p>
+                      <p className="text-[10px] text-slate-500 font-medium truncate">Active local buyers</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center shrink-0">
+                      <Zap className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-black text-slate-900 leading-tight">Instant Leads</p>
+                      <p className="text-[10px] text-slate-500 font-medium truncate">Direct to WhatsApp</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-black text-slate-900 leading-tight">Prime Placement</p>
+                      <p className="text-[10px] text-slate-500 font-medium truncate">Top homepage slot</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <Link
+                    href={ctaUrl}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-sm shadow-md shadow-amber-500/25 hover:shadow-lg transition-all active:scale-95"
+                  >
+                    <span>{ctaText}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+
+                  <a
+                    href="https://wa.me/919539980990?text=Hi%20LiveCalicut,%20I%20would%20like%20to%20spotlight%20my%20business%20on%20LiveCalicut"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-sm shadow-2xs transition-all active:scale-95"
+                  >
+                    <MessageSquare className="w-4 h-4 text-emerald-600" />
+                    <span>WhatsApp City Desk</span>
+                  </a>
+
+                  <Link
+                    href="/advertise"
+                    className="text-xs font-bold text-amber-700 hover:text-amber-800 underline underline-offset-4 ml-1"
+                  >
+                    View All Ad Slots & Pricing
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right Column: Creative Luxury Visual Preview */}
+              <div className="lg:col-span-5 flex justify-center">
+                <div className="w-full max-w-sm rounded-2xl bg-white border border-slate-200/90 shadow-md p-4 space-y-3 relative overflow-hidden group">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[11px] font-black uppercase text-amber-700 tracking-wider">
+                        PREVIEW YOUR SPOTLIGHT
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-900">
+                      LIVE ON HOMEPAGE
+                    </span>
+                  </div>
+
+                  {/* Mock card preview */}
+                  <div className="relative rounded-xl overflow-hidden border border-slate-100 bg-slate-50 p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Your Brand Name</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-500 text-white rounded">
+                        HOT DEAL
+                      </span>
+                    </div>
+                    <h4 className="text-base font-black text-slate-900 leading-snug">
+                      Your Special Festival Offer Or Headline Appears Here
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Showcase discounts, contact buttons & custom photos to Calicut users.
+                    </p>
+                    <div className="pt-2 flex items-center justify-between border-t border-slate-200/60 text-[10px]">
+                      <span className="font-bold text-amber-700">⚡ Instant Customer Lead</span>
+                      <span className="px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded font-bold">AD</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/60 text-center">
+                    <p className="text-[11px] font-bold text-amber-900">
+                      Reserve this high-visibility slot today
+                    </p>
+                    <p className="text-[10px] text-amber-700">
+                      WhatsApp: <span className="font-bold">+91 95399 80990</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // Divide items into pages of 4 items each (2 rows x 2 columns)
   const pages: PromotedCardItem[][] = [];

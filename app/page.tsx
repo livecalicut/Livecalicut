@@ -191,14 +191,35 @@ async function HomeFeed() {
     console.error('[HomePage] Supabase fetch error handled safely:', err);
   }
 
-  let section1Items: PromotedCardItem[] = PROMOTED_BUSINESSES_SET_1;
+  let section1Items: PromotedCardItem[] = [];
+  let showSection1 = true;
+  let showCreativeBanner1 = true;
+  let creativeCopy = {
+    headline: 'Spotlight Your Brand Across Kozhikode',
+    subtext:
+      'Put your business directly in front of thousands of Kozhikode shoppers, diners & clients daily. Premium homepage visibility, high-intent category reach, and instant direct WhatsApp inquiries.',
+    badge: 'FEATURE YOUR BUSINESS',
+    ctaText: 'Promote Your Business',
+    ctaUrl: '/merchant',
+  };
+
   try {
-    const dynamicSection1 = await PromotedSlidersService.getAllSliders({
-      activeOnly: true,
-      section: 'featured',
-    });
-    if (dynamicSection1.length > 0) {
-      section1Items = dynamicSection1.map(PromotedSlidersService.toCardItem);
+    const settings = await PromotedSlidersService.getSettings();
+    showSection1 = settings.enabled !== false;
+    showCreativeBanner1 = settings.show_creative_banner !== false;
+    creativeCopy = {
+      headline: settings.banner_headline,
+      subtext: settings.banner_subtext,
+      badge: settings.banner_badge,
+      ctaText: settings.banner_cta_text,
+      ctaUrl: settings.banner_cta_url,
+    };
+
+    if (showSection1) {
+      const activeFeatured = settings.items
+        .filter((s) => s.is_active !== false && s.section === 'featured')
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+      section1Items = activeFeatured.map(PromotedSlidersService.toCardItem);
     }
   } catch (err) {
     console.warn('[HomePage] PromotedSlidersService section 1 fetch handled:', err);
@@ -207,14 +228,18 @@ async function HomeFeed() {
   return (
     <>
       <FeaturedBusinessesSection businesses={featuredBusinesses} />
-      {/* 1. After Features Listing Section: Promoted Businesses 2x2 Carousel Slider (Backend Dynamic) */}
-      <PromotedBusinessesCarousel
-        title="Sponsored Brand Spotlights & Mega Offers"
-        subtitle="Exclusive festive promotions, top verified dining & premier enterprises across Calicut"
-        badge="PROMOTED SPOTLIGHTS"
-        items={section1Items}
-        sectionId="promoted-partners"
-      />
+      {/* 1. After Features Listing Section: Promoted Businesses 2x2 Carousel Slider OR Creative Ad Copy */}
+      {showSection1 && (section1Items.length > 0 || showCreativeBanner1) && (
+        <PromotedBusinessesCarousel
+          title="Sponsored Brand Spotlights & Mega Offers"
+          subtitle="Exclusive festive promotions, top verified dining & premier enterprises across Calicut"
+          badge="PROMOTED SPOTLIGHTS"
+          items={section1Items}
+          sectionId="promoted-partners"
+          showCreativeBanner={showCreativeBanner1}
+          creativeCopy={creativeCopy}
+        />
+      )}
       <PopularBusinessesSection businesses={popularBusinesses} />
       <LatestListingsSection initialItems={latestListings} />
     </>
@@ -222,17 +247,26 @@ async function HomeFeed() {
 }
 
 async function PromotedSection2Feed() {
-  let section2Items: PromotedCardItem[] = PROMOTED_BUSINESSES_SET_2;
+  let section2Items: PromotedCardItem[] = [];
+  let showSection2 = false;
+
   try {
-    const dynamicSection2 = await PromotedSlidersService.getAllSliders({
-      activeOnly: true,
-      section: 'explore',
-    });
-    if (dynamicSection2.length > 0) {
-      section2Items = dynamicSection2.map(PromotedSlidersService.toCardItem);
+    const settings = await PromotedSlidersService.getSettings();
+    if (settings.enabled !== false) {
+      const activeExplore = settings.items
+        .filter((s) => s.is_active !== false && s.section === 'explore')
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+      if (activeExplore.length > 0) {
+        section2Items = activeExplore.map(PromotedSlidersService.toCardItem);
+        showSection2 = true;
+      }
     }
   } catch (err) {
     console.warn('[HomePage] PromotedSlidersService section 2 fetch handled:', err);
+  }
+
+  if (!showSection2 || section2Items.length === 0) {
+    return null;
   }
 
   return (
@@ -242,6 +276,7 @@ async function PromotedSection2Feed() {
       badge="CITY DEALS & OFFERS"
       items={section2Items}
       sectionId="calicut-city-deals"
+      showCreativeBanner={false}
     />
   );
 }
@@ -257,17 +292,7 @@ export default function HomePage() {
       </Suspense>
       <ExploreCalicutSection />
       {/* 2. After Explore Calicut Section: Promoted Businesses 2x2 Carousel Slider (Backend Dynamic) */}
-      <Suspense
-        fallback={
-          <PromotedBusinessesCarousel
-            title="Exclusive Calicut City Deals & Flash Offers"
-            subtitle="Verified merchant discounts, festival offers & brand partnerships curated for Kozhikode citizens"
-            badge="CITY DEALS & OFFERS"
-            items={PROMOTED_BUSINESSES_SET_2}
-            sectionId="calicut-city-deals"
-          />
-        }
-      >
+      <Suspense fallback={null}>
         <PromotedSection2Feed />
       </Suspense>
       <AdvertiseSection />

@@ -5,7 +5,7 @@ import { PromotedSlidersService } from '@/lib/services/promoted-sliders.service'
 
 /**
  * GET /api/v1/admin/promoted-sliders
- * Content Editors & Admins: Fetch all promoted sliders (including inactive)
+ * Content Editors & Admins: Fetch all promoted sliders and section settings
  */
 export async function GET(request: Request) {
   try {
@@ -15,12 +15,27 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const section = (url.searchParams.get('section') as any) || 'all';
 
-    const sliders = await PromotedSlidersService.getAllSliders({
-      activeOnly: false,
-      section,
-    });
+    const settings = await PromotedSlidersService.getSettings();
+    let sliders = [...settings.items];
 
-    return NextResponse.json({ success: true, sliders });
+    if (section && section !== 'all') {
+      sliders = sliders.filter((item) => item.section === section);
+    }
+    sliders.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+
+    return NextResponse.json({
+      success: true,
+      sliders,
+      settings: {
+        enabled: settings.enabled,
+        show_creative_banner: settings.show_creative_banner,
+        banner_headline: settings.banner_headline,
+        banner_subtext: settings.banner_subtext,
+        banner_badge: settings.banner_badge,
+        banner_cta_text: settings.banner_cta_text,
+        banner_cta_url: settings.banner_cta_url,
+      },
+    });
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err?.message || 'Failed to load sliders' },
@@ -31,12 +46,25 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/v1/admin/promoted-sliders
- * Create a new promoted slider card
+ * Create a new promoted slider card OR execute actions (seed, clear_all)
  */
 export async function POST(request: Request) {
   try {
     const auth = await requireRole([...CONTENT_EDITORS]);
     if (auth instanceof NextResponse) return auth;
+
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+
+    if (action === 'seed') {
+      const seeded = await PromotedSlidersService.seedSampleSliders();
+      return NextResponse.json({ success: true, sliders: seeded });
+    }
+
+    if (action === 'clear_all') {
+      await PromotedSlidersService.clearAllSliders();
+      return NextResponse.json({ success: true, sliders: [] });
+    }
 
     const body = await request.json().catch(() => null);
     if (!body || !body.brandName || !body.headline) {
@@ -51,6 +79,33 @@ export async function POST(request: Request) {
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err?.message || 'Failed to create slider' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/v1/admin/promoted-sliders
+ * Update section-level settings (enabled, show_creative_banner, creative copy)
+ */
+export async function PATCH(request: Request) {
+  try {
+    const auth = await requireRole([...CONTENT_EDITORS]);
+    if (auth instanceof NextResponse) return auth;
+
+    const body = await request.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, error: 'Settings payload required.' },
+        { status: 400 }
+      );
+    }
+
+    const updatedSettings = await PromotedSlidersService.updateSettings(body);
+    return NextResponse.json({ success: true, settings: updatedSettings });
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: err?.message || 'Failed to update settings' },
       { status: 500 }
     );
   }
@@ -110,4 +165,3 @@ export async function DELETE(request: Request) {
     );
   }
 }
-
