@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   Flame,
@@ -39,27 +38,52 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
   sectionId,
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Layout: Exactly 4 cards per page, structured as 2 Rows x 2 Columns
   const itemsPerPage = 4;
   const totalPages = Math.ceil(items.length / itemsPerPage);
 
+  // Restart auto carousel timer helper
+  const restartAutoPlay = useCallback(() => {
+    if (autoPlayTimerRef.current) {
+      clearInterval(autoPlayTimerRef.current);
+    }
+    if (totalPages > 1) {
+      autoPlayTimerRef.current = setInterval(() => {
+        setCurrentPage((prev) => (prev + 1) % totalPages);
+      }, 3500);
+    }
+  }, [totalPages]);
+
   const nextPage = useCallback(() => {
     setCurrentPage((prev) => (prev + 1) % Math.max(1, totalPages));
-  }, [totalPages]);
+    restartAutoPlay();
+  }, [totalPages, restartAutoPlay]);
 
   const prevPage = useCallback(() => {
     setCurrentPage((prev) => (prev - 1 + totalPages) % Math.max(1, totalPages));
-  }, [totalPages]);
+    restartAutoPlay();
+  }, [totalPages, restartAutoPlay]);
 
-  // Autoplay functionality: pauses when user is hovering
+  const goToPage = useCallback(
+    (index: number) => {
+      setCurrentPage(index);
+      restartAutoPlay();
+    },
+    [restartAutoPlay]
+  );
+
+  // Automatic Continuous Carousel effect (auto-slides every 3.5 seconds)
   useEffect(() => {
-    if (isHovered || totalPages <= 1) return;
-    const interval = setInterval(nextPage, 6000);
-    return () => clearInterval(interval);
-  }, [isHovered, totalPages, nextPage]);
+    restartAutoPlay();
+    return () => {
+      if (autoPlayTimerRef.current) {
+        clearInterval(autoPlayTimerRef.current);
+      }
+    };
+  }, [restartAutoPlay]);
 
   // Touch swipe support for mobile devices
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -87,8 +111,6 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
     <section
       id={sectionId}
       className="w-full bg-white py-12 sm:py-16 border-b border-slate-100 relative overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -100,10 +122,6 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-amber-800 font-extrabold text-[11px] tracking-wider uppercase shadow-2xs">
                 <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
                 {badge}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-500">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Verified Merchant Campaign
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight font-sans">
@@ -152,7 +170,7 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
         {/* Carousel Slide Container */}
         <div className="relative overflow-hidden w-full">
           <div
-            className="flex transition-transform duration-500 ease-out"
+            className="flex transition-transform duration-700 ease-in-out will-change-transform"
             style={{ transform: `translateX(-${currentPage * 100}%)` }}
           >
             {pages.map((slideItems, pageIndex) => (
@@ -180,7 +198,7 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
               return (
                 <button
                   key={idx}
-                  onClick={() => setCurrentPage(idx)}
+                  onClick={() => goToPage(idx)}
                   aria-label={`Go to slide ${idx + 1}`}
                   className={`transition-all duration-300 cursor-pointer ${
                     isActive
