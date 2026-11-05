@@ -35,6 +35,7 @@ export interface PromotedSlidersSettings {
   banner_badge: string;
   banner_cta_text: string;
   banner_cta_url: string;
+  version?: number;
 }
 
 export const DEFAULT_PROMOTED_SLIDERS_SETTINGS: PromotedSlidersSettings = {
@@ -47,6 +48,7 @@ export const DEFAULT_PROMOTED_SLIDERS_SETTINGS: PromotedSlidersSettings = {
   banner_badge: 'FEATURE YOUR BUSINESS',
   banner_cta_text: 'Promote Your Business',
   banner_cta_url: '/merchant',
+  version: 2,
 };
 
 export const INITIAL_PROMOTED_SLIDERS: PromotedSlider[] = [
@@ -93,7 +95,8 @@ export const INITIAL_PROMOTED_SLIDERS: PromotedSlider[] = [
 export class PromotedSlidersService {
   /**
    * Fetch current promoted sliders configuration and items from settings.
-   * Completely safe with timeout. NEVER falls back to demo data if empty!
+   * Auto-initializes v2 full-width 2-sec banner carousel on first run.
+   * Once initialized to v2, user manual deletions and toggles are strictly respected!
    */
   static async getSettings(): Promise<PromotedSlidersSettings> {
     try {
@@ -101,11 +104,31 @@ export class PromotedSlidersService {
       const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
       const stored = (await Promise.race([getSettingPromise, timeoutPromise]).catch(() => null)) as any;
 
-      if (!stored || typeof stored !== 'object') {
-        return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS };
+      // If missing or not yet upgraded to version 2, initialize with sample full banners & enabled=true
+      if (!stored || typeof stored !== 'object' || stored.version !== 2) {
+        const initialSettings: PromotedSlidersSettings = {
+          items: INITIAL_PROMOTED_SLIDERS,
+          enabled: true,
+          show_creative_banner: true,
+          banner_headline: stored?.banner_headline || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_headline,
+          banner_subtext: stored?.banner_subtext || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_subtext,
+          banner_badge: stored?.banner_badge || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
+          banner_cta_text: stored?.banner_cta_text || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
+          banner_cta_url: stored?.banner_cta_url || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
+          version: 2,
+        };
+
+        // Persist v2 initialization to Supabase asynchronously
+        SettingsService.updateSetting(
+          'promoted_sliders',
+          initialSettings,
+          'Auto-initialize v2 full-width 2-sec banner carousel'
+        ).catch(() => {});
+
+        return initialSettings;
       }
 
-      // If items is an array, respect it (even if empty []!).
+      // If version is 2, respect user-managed configuration (even if empty [] when deleted!)
       const items: PromotedSlider[] = Array.isArray(stored.items) ? stored.items : [];
       const enabled = stored.enabled !== false;
       const show_creative_banner = stored.show_creative_banner !== false;
@@ -119,10 +142,11 @@ export class PromotedSlidersService {
         banner_badge: stored.banner_badge || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
         banner_cta_text: stored.banner_cta_text || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
         banner_cta_url: stored.banner_cta_url || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
+        version: 2,
       };
     } catch (err) {
       console.warn('[PromotedSlidersService] getSettings fallback:', err);
-      return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS };
+      return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS, items: INITIAL_PROMOTED_SLIDERS };
     }
   }
 
@@ -161,6 +185,7 @@ export class PromotedSlidersService {
     const next: PromotedSlidersSettings = {
       ...current,
       ...updates,
+      version: 2,
     };
 
     await SettingsService.updateSetting(
@@ -203,7 +228,7 @@ export class PromotedSlidersService {
     const nextItems = [newSlider, ...settings.items];
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: nextItems },
+      { ...settings, items: nextItems, version: 2 },
       `Created promoted slider ${newSlider.id}`
     );
 
@@ -231,7 +256,7 @@ export class PromotedSlidersService {
 
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: nextItems },
+      { ...settings, items: nextItems, version: 2 },
       `Updated promoted slider ${id}`
     );
 
@@ -247,7 +272,7 @@ export class PromotedSlidersService {
 
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: nextItems },
+      { ...settings, items: nextItems, version: 2 },
       `Deleted promoted slider ${id}`
     );
 
@@ -261,7 +286,7 @@ export class PromotedSlidersService {
     const settings = await this.getSettings();
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: [] },
+      { ...settings, items: [], version: 2 },
       'Cleared all promoted sliders'
     );
     return true;
@@ -275,7 +300,7 @@ export class PromotedSlidersService {
     const seeded = INITIAL_PROMOTED_SLIDERS;
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: seeded },
+      { ...settings, items: seeded, version: 2 },
       'Seeded demo promoted sliders'
     );
     return seeded;

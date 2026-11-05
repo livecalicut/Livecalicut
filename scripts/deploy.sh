@@ -61,15 +61,14 @@ if [[ -f "$ENV_BACKUP" ]]; then
   chmod 600 "$APP_DIR/.env"
 fi
 
-# If deploy.sh was updated in this commit, update self and re-execute immediately
+# If deploy.sh was updated in this commit, update runtime copy
 REPO_SCRIPT="$APP_DIR/scripts/deploy.sh"
 SELF="/usr/local/bin/livecalicut-deploy"
-if [[ -f "$REPO_SCRIPT" && "$0" == "$SELF" ]] && ! cmp -s "$REPO_SCRIPT" "$SELF"; then
-  echo "[$(date -Is)] self-updating $SELF and re-executing"
-  cp "$REPO_SCRIPT" "${SELF}.new"
-  mv "${SELF}.new" "$SELF"
-  chmod 755 "$SELF"
-  exec "$SELF" "$@"
+if [[ -f "$REPO_SCRIPT" ]] && ! cmp -s "$REPO_SCRIPT" "$SELF" 2>/dev/null; then
+  echo "[$(date -Is)] updating $SELF"
+  cp "$REPO_SCRIPT" "${SELF}.new" 2>/dev/null || true
+  mv "${SELF}.new" "$SELF" 2>/dev/null || true
+  chmod 755 "$SELF" 2>/dev/null || true
 fi
 
 echo "[$(date -Is)] npm ci"
@@ -110,8 +109,8 @@ fi
 echo "$TARGET" > "$SHA_FILE"
 echo "[$(date -Is)] deployed ${TARGET:0:7}"
 
-if [[ -f "$REPO_SCRIPT" && "$0" == "$SELF" ]] && ! cmp -s "$REPO_SCRIPT" "$SELF"; then
-  cp "$REPO_SCRIPT" "${SELF}.new"
-  mv "${SELF}.new" "$SELF"
-  chmod 755 "$SELF"
+if [[ -f "$REPO_SCRIPT" ]] && ! cmp -s "$REPO_SCRIPT" "$SELF" 2>/dev/null; then
+  cp "$REPO_SCRIPT" "${SELF}.new" 2>/dev/null || true
+  mv "${SELF}.new" "$SELF" 2>/dev/null || true
+  chmod 755 "$SELF" 2>/dev/null || true
 fi

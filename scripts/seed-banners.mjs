@@ -97,6 +97,7 @@ async function main() {
     banner_badge: 'FEATURE YOUR BUSINESS',
     banner_cta_text: 'Promote Your Business',
     banner_cta_url: '/merchant',
+    version: 2,
   };
 
   const row = {
