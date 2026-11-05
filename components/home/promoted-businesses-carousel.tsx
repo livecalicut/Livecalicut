@@ -17,7 +17,6 @@ import {
 } from '@/lib/constants/promoted-sliders';
 
 export type { PromotedCardItem };
-export { PROMOTED_BUSINESSES_SET_1, PROMOTED_BUSINESSES_SET_2 };
 
 interface PromotedBusinessesCarouselProps {
   title?: string;

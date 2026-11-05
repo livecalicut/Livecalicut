@@ -61,18 +61,33 @@ if [[ -f "$ENV_BACKUP" ]]; then
   chmod 600 "$APP_DIR/.env"
 fi
 
+# If deploy.sh was updated in this commit, update self and re-execute immediately
+REPO_SCRIPT="$APP_DIR/scripts/deploy.sh"
+SELF="/usr/local/bin/livecalicut-deploy"
+if [[ -f "$REPO_SCRIPT" && "$0" == "$SELF" ]] && ! cmp -s "$REPO_SCRIPT" "$SELF"; then
+  echo "[$(date -Is)] self-updating $SELF and re-executing"
+  cp "$REPO_SCRIPT" "${SELF}.new"
+  mv "${SELF}.new" "$SELF"
+  chmod 755 "$SELF"
+  exec "$SELF" "$@"
+fi
+
 echo "[$(date -Is)] npm ci"
 npm ci
 
 echo "[$(date -Is)] next build"
 npm run build
 
+echo "[$(date -Is)] ensuring static assets and build are readable by nginx and node"
+chmod -R a+rX "$APP_DIR/.next" 2>/dev/null || true
+chmod -R a+rX "$APP_DIR/public" 2>/dev/null || true
+
 echo "[$(date -Is)] restarting pm2 ${PM2_NAME}"
-if pm2 pid "$PM2_NAME" | grep -Eq '^[0-9]+$'; then
-  pm2 restart "$PM2_NAME" --update-env
-else
-  pm2 start npm --name "$PM2_NAME" --cwd "$APP_DIR" -- start -- -H 127.0.0.1 -p 3000
-fi
+# Full clean restart of PM2 to purge stale next-server caches & zombie processes
+pm2 delete "$PM2_NAME" 2>/dev/null || true
+fuser -k 3000/tcp 2>/dev/null || true
+sleep 1
+pm2 start npm --name "$PM2_NAME" --cwd "$APP_DIR" -- start -- -H 127.0.0.1 -p 3000
 pm2 save
 
 ready=0
@@ -92,8 +107,6 @@ fi
 echo "$TARGET" > "$SHA_FILE"
 echo "[$(date -Is)] deployed ${TARGET:0:7}"
 
-REPO_SCRIPT="$APP_DIR/scripts/deploy.sh"
-SELF="/usr/local/bin/livecalicut-deploy"
 if [[ -f "$REPO_SCRIPT" && "$0" == "$SELF" ]] && ! cmp -s "$REPO_SCRIPT" "$SELF"; then
   cp "$REPO_SCRIPT" "${SELF}.new"
   mv "${SELF}.new" "$SELF"
