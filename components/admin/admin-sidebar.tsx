@@ -26,6 +26,7 @@ import {
   Compass,
   Radio,
   Tag,
+  Flame,
 } from 'lucide-react';
 
 interface NavItem {
@@ -76,8 +77,9 @@ const NAV: NavGroup[] = [
     roles: EDITORS,
     items: [
       { label: 'CMS', href: '/admin/cms', icon: LayoutTemplate, roles: ADMINS },
-      { label: 'Live updates', href: '/admin/live-updates', icon: Radio, roles: EDITORS },
+      { label: 'Promoted Sliders', href: '/admin/promoted-sliders', icon: Flame, roles: EDITORS },
       { label: 'Offers & Deals', href: '/admin/offers', icon: Tag, roles: EDITORS },
+      { label: 'Live updates', href: '/admin/live-updates', icon: Radio, roles: EDITORS },
       { label: 'News', href: '/admin/news', icon: Newspaper, roles: EDITORS },
       { label: 'Events', href: '/admin/events', icon: Calendar, roles: EDITORS },
       { label: 'Categories', href: '/admin/categories', icon: FolderTree, roles: EDITORS },

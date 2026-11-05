@@ -72,7 +72,8 @@ export default function CreateBusinessPage() {
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [location, setLocation] = useState('');
-  const [area, setArea] = useState('Mavoor Road');
+  const [area, setArea] = useState('');
+  const [city, setCity] = useState('Calicut');
   const [description, setDescription] = useState('');
   const [gstNumber, setGstNumber] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -125,12 +126,17 @@ export default function CreateBusinessPage() {
 
     try {
       setSubmitting(true);
+      const addressTokens = [location.trim(), area.trim(), city.trim()].filter(Boolean);
+      const resolvedAddress = Array.from(new Set(addressTokens)).join(', ');
+
       await businessApi.create({
         name,
         category: businessType,
         phone,
-        location: `${area}, ${location}`,
-        area,
+        location: resolvedAddress || location || area || 'Calicut',
+        address: resolvedAddress || location || area || 'Calicut',
+        area: area || city || 'Calicut',
+        city: city || 'Calicut',
         description,
         gallery: images,
         whatsapp: whatsapp || undefined,
@@ -345,18 +351,24 @@ export default function CreateBusinessPage() {
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
                     City / District *
                   </label>
-                  <Input readOnly value="Calicut" className="h-[44px] rounded-xl border-[#E5E7EB] bg-[#F8FAFC] text-[#6B7280] font-bold cursor-not-allowed" />
+                  <Input
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g., Calicut, Malappuram, Wayanad"
+                    className="h-[44px] rounded-xl border-[#E5E7EB] text-[#111827] font-semibold"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-1">
-                    Area / Spatial Ward *
+                    Area / Locality *
                   </label>
                   <Input
                     required
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
-                    placeholder="e.g., Mavoor Road Junction / SM Street"
+                    placeholder="e.g., Vengara, Mavoor Road, Palayam"
                     className="h-[44px] rounded-xl border-[#E5E7EB] text-[#111827]"
                   />
                 </div>
@@ -370,7 +382,7 @@ export default function CreateBusinessPage() {
                   required
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Near Railway Station, Mavoor Road, Calicut, Kerala 673001"
+                  placeholder="e.g., Near Bus Stand, Main Road"
                   className="h-[44px] rounded-xl border-[#E5E7EB] text-[#111827]"
                 />
               </div>

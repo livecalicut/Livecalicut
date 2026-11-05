@@ -50,7 +50,7 @@ export async function PUT(request: Request) {
         whatsapp: validated.whatsapp,
         email: validated.email,
         website: validated.website,
-        address: validated.address,
+        short_description: validated.address,
         updated_at: new Date().toISOString(),
       })
       .eq('owner_id', session.user.id)

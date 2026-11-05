@@ -3,6 +3,8 @@ import { HeroRedesign } from '@/components/home/hero-redesign';
 import { ExploreCategories } from '@/components/home/explore-categories';
 import { CitySpotlights } from '@/components/home/city-spotlights';
 import { FeaturedBusinessesSection, FeaturedBusinessItem } from '@/components/home/featured-businesses-section';
+import { PromotedBusinessesCarousel, PROMOTED_BUSINESSES_SET_1, PROMOTED_BUSINESSES_SET_2, PromotedCardItem } from '@/components/home/promoted-businesses-carousel';
+import { PromotedSlidersService } from '@/lib/services/promoted-sliders.service';
 import { PopularBusinessesSection, PopularBusinessItem } from '@/components/home/popular-businesses-section';
 import { LatestListingsSection, UnifiedListingItem } from '@/components/home/latest-listings-section';
 import { ExploreCalicutSection } from '@/components/home/explore-kozhikode-section';
@@ -184,16 +186,50 @@ async function HomeFeed() {
     console.error('[HomePage] Supabase fetch error handled safely:', err);
   }
 
+  let section1Items: PromotedCardItem[] = PROMOTED_BUSINESSES_SET_1;
+  try {
+    const dynamicSection1 = await PromotedSlidersService.getAllSliders({
+      activeOnly: true,
+      section: 'featured',
+    });
+    if (dynamicSection1.length > 0) {
+      section1Items = dynamicSection1.map(PromotedSlidersService.toCardItem);
+    }
+  } catch (err) {
+    console.warn('[HomePage] PromotedSlidersService section 1 fetch handled:', err);
+  }
+
   return (
     <>
       <FeaturedBusinessesSection businesses={featuredBusinesses} />
+      {/* 1. After Features Listing Section: Promoted Businesses 2x2 Carousel Slider (Backend Dynamic) */}
+      <PromotedBusinessesCarousel
+        title="Sponsored Brand Spotlights & Mega Offers"
+        subtitle="Exclusive festive promotions, top verified dining & premier enterprises across Calicut"
+        badge="PROMOTED SPOTLIGHTS"
+        items={section1Items}
+        sectionId="promoted-partners"
+      />
       <PopularBusinessesSection businesses={popularBusinesses} />
       <LatestListingsSection initialItems={latestListings} />
     </>
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  let section2Items: PromotedCardItem[] = PROMOTED_BUSINESSES_SET_2;
+  try {
+    const dynamicSection2 = await PromotedSlidersService.getAllSliders({
+      activeOnly: true,
+      section: 'explore',
+    });
+    if (dynamicSection2.length > 0) {
+      section2Items = dynamicSection2.map(PromotedSlidersService.toCardItem);
+    }
+  } catch (err) {
+    console.warn('[HomePage] PromotedSlidersService section 2 fetch handled:', err);
+  }
+
   return (
     <div className="flex w-full flex-col bg-white">
       <HeroRedesign />
@@ -203,6 +239,14 @@ export default function HomePage() {
         <HomeFeed />
       </Suspense>
       <ExploreCalicutSection />
+      {/* 2. After Explore Calicut Section: Promoted Businesses 2x2 Carousel Slider (Backend Dynamic) */}
+      <PromotedBusinessesCarousel
+        title="Exclusive Calicut City Deals & Flash Offers"
+        subtitle="Verified merchant discounts, festival offers & brand partnerships curated for Kozhikode citizens"
+        badge="CITY DEALS & OFFERS"
+        items={section2Items}
+        sectionId="calicut-city-deals"
+      />
       <AdvertiseSection />
       <StayUpdatedSection />
     </div>

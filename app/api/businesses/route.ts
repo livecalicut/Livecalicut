@@ -190,6 +190,9 @@ export async function POST(request: Request) {
         short_description: location,
         // No image/hours columns in production: photos, hours and amenities live here
         social_media: {
+          ...(location ? { address: location, location } : {}),
+          ...(body.area ? { area: String(body.area) } : {}),
+          ...(body.city ? { city: String(body.city) } : {}),
           ...(gallery[0] ? { cover_image: gallery[0], gallery } : {}),
           ...(text(body.opening_hours) ? { opening_hours: text(body.opening_hours) } : {}),
           ...(amenities.length ? { amenities } : {}),
