@@ -25,7 +25,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'businesses') {
       const { data: businesses } = await this.supabase
         .from('businesses')
-        .select('id, name, slug, short_description, description, rating_avg, social_media, cover_image, business_categories(name), areas(name)')
+        .select('id, name, slug, short_description, description, rating_avg, social_media, business_categories(name), areas(name)')
         .ilike('name', term)
         .eq('status', 'active')
         .is('deleted_at', null)
@@ -44,7 +44,6 @@ export class GlobalSearchService {
             businessCover(b) ||
             b.social_media?.cover_image ||
             b.social_media?.logo ||
-            b.cover_image ||
             undefined,
           metaBadge: `Rating ${b.rating_avg}`,
         });

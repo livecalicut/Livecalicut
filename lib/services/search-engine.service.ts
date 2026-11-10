@@ -163,7 +163,7 @@ export class SearchEngineService {
         const ids = grouped.businesses.map((b) => b.entity_id);
         const { data: bData } = await supabase
           .from('businesses')
-          .select('id, slug, social_media, cover_image')
+          .select('id, slug, social_media')
           .in('id', ids);
 
         if (bData) {
@@ -173,7 +173,6 @@ export class SearchEngineService {
               businessCover(b) ||
               b.social_media?.cover_image ||
               b.social_media?.logo ||
-              b.cover_image ||
               null;
             imgMap.set(b.id, cover);
             if (b.slug) imgMap.set(b.slug, cover);
@@ -222,7 +221,7 @@ export class SearchEngineService {
           let q = supabase
             .from('businesses')
             .select(
-              'id, name, slug, short_description, description, is_featured, is_verified, rating_avg, social_media, cover_image, business_categories(name), areas(name)'
+              'id, name, slug, short_description, description, is_featured, is_verified, rating_avg, social_media, business_categories(name), areas(name)'
             )
             .ilike('name', term)
             .eq('status', 'active')
@@ -256,7 +255,6 @@ export class SearchEngineService {
                 businessCover(b) ||
                 b.social_media?.cover_image ||
                 b.social_media?.logo ||
-                b.cover_image ||
                 null,
             })
           );
