@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { businessCover } from '@/lib/business/images';
 
 export interface SearchResultItem {
   id: string;
@@ -24,7 +25,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'businesses') {
       const { data: businesses } = await this.supabase
         .from('businesses')
-        .select('id, name, slug, short_description, description, rating_avg, business_categories(name), areas(name)')
+        .select('id, name, slug, short_description, description, rating_avg, social_media, cover_image, business_categories(name), areas(name)')
         .ilike('name', term)
         .eq('status', 'active')
         .is('deleted_at', null)
@@ -35,10 +36,16 @@ export class GlobalSearchService {
           id: b.id,
           module: 'businesses',
           title: b.name,
-          summary: b.short_description || b.description.substring(0, 100),
+          summary: b.short_description || (b.description ? b.description.substring(0, 100) : ''),
           category: b.business_categories?.name || 'Commercial Outlets',
           location: b.areas?.name || 'Calicut',
           url: `/business/${b.slug}`,
+          thumbnail:
+            businessCover(b) ||
+            b.social_media?.cover_image ||
+            b.social_media?.logo ||
+            b.cover_image ||
+            undefined,
           metaBadge: `Rating ${b.rating_avg}`,
         });
       });
@@ -48,7 +55,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'news') {
       const { data: newsList } = await this.supabase
         .from('news')
-        .select('id, title, slug, summary, news_categories(name)')
+        .select('id, title, slug, summary, featured_image, gallery, news_categories(name)')
         .ilike('title', term)
         .eq('status', 'published')
         .is('deleted_at', null)
@@ -63,6 +70,7 @@ export class GlobalSearchService {
           category: n.news_categories?.name || 'Local News',
           location: 'Calicut',
           url: `/news/${n.slug}`,
+          thumbnail: n.featured_image || (Array.isArray(n.gallery) ? n.gallery[0] : undefined),
         });
       });
     }
@@ -71,7 +79,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'events') {
       const { data: eventsList } = await this.supabase
         .from('events')
-        .select('id, title, slug, venue, start_date, event_categories(name)')
+        .select('id, title, slug, venue, start_date, banner, gallery, event_categories(name)')
         .ilike('title', term)
         .eq('status', 'published')
         .is('deleted_at', null)
@@ -86,6 +94,7 @@ export class GlobalSearchService {
           category: e.event_categories?.name || 'Events',
           location: e.venue,
           url: `/events/${e.slug}`,
+          thumbnail: e.banner || (Array.isArray(e.gallery) ? e.gallery[0] : undefined),
           metaBadge: new Date(e.start_date).toLocaleDateString(),
         });
       });
@@ -95,7 +104,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'jobs') {
       const { data: jobsList } = await this.supabase
         .from('jobs')
-        .select('id, title, slug, salary, employment_type, companies(name)')
+        .select('id, title, slug, salary, employment_type, companies(name, logo)')
         .ilike('title', term)
         .eq('status', 'published')
         .is('deleted_at', null)
@@ -110,6 +119,7 @@ export class GlobalSearchService {
           category: j.employment_type.toUpperCase(),
           location: j.location || 'Calicut, Kerala',
           url: `/jobs/${j.slug}`,
+          thumbnail: j.companies?.logo || undefined,
           metaBadge: j.salary,
         });
       });
@@ -119,7 +129,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'marketplace') {
       const { data: itemsList } = await this.supabase
         .from('marketplace_items')
-        .select('id, title, slug, price, condition, marketplace_categories(name)')
+        .select('id, title, slug, price, condition, cover_image, gallery, marketplace_categories(name)')
         .ilike('title', term)
         .eq('status', 'active')
         .is('deleted_at', null)
@@ -134,6 +144,7 @@ export class GlobalSearchService {
           category: m.marketplace_categories?.name || 'Classifieds',
           location: 'Calicut',
           url: `/marketplace/${m.slug}`,
+          thumbnail: m.cover_image || (Array.isArray(m.gallery) ? m.gallery[0] : undefined),
           metaBadge: `₹${m.price}`,
         });
       });
@@ -143,7 +154,7 @@ export class GlobalSearchService {
     if (moduleFilter === 'all' || moduleFilter === 'properties') {
       const { data: propsList } = await this.supabase
         .from('properties')
-        .select('id, title, slug, price, listing_type, bedrooms, property_categories(name)')
+        .select('id, title, slug, price, listing_type, bedrooms, cover_image, gallery, property_categories(name)')
         .ilike('title', term)
         .eq('status', 'published')
         .is('deleted_at', null)
@@ -158,6 +169,7 @@ export class GlobalSearchService {
           category: p.property_categories?.name || 'Real Estate',
           location: 'Calicut',
           url: `/properties/${p.slug}`,
+          thumbnail: p.cover_image || (Array.isArray(p.gallery) ? p.gallery[0] : undefined),
           metaBadge: `₹${p.price}`,
         });
       });

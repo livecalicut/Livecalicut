@@ -259,6 +259,7 @@ function SearchPageInner() {
                       rating={doc.ranking_score || 0}
                       reviewCount={0}
                       isVerified={doc.is_verified}
+                      image={doc.image || null}
                     />
                   );
                 }
@@ -272,6 +273,7 @@ function SearchPageInner() {
                       location={doc.area || ''}
                       jobType={doc.category || ''}
                       salary=""
+                      image={doc.image || null}
                     />
                   );
                 }
@@ -291,17 +293,31 @@ function SearchPageInner() {
                   <Link
                     key={doc.id}
                     href={href}
-                    className="surface-card flex h-full flex-col justify-between space-y-2 p-5 transition hover:border-[#2563EB]"
+                    className="surface-card group flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:shadow-md transition-all duration-300 hover:-translate-y-1"
                   >
-                    <span className="text-[11px] font-bold tracking-wider text-[#2563EB] uppercase">
-                      {doc.module}
-                    </span>
-                    <h4 className="line-clamp-2 font-sans text-[18px] font-bold text-[#111827]">
-                      {doc.title}
-                    </h4>
-                    {doc.description && (
-                      <p className="line-clamp-2 text-[14px] text-[#6B7280]">{doc.description}</p>
+                    {doc.image && (
+                      <div className="relative h-44 sm:h-48 w-full shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100 mb-2">
+                        <img
+                          src={doc.image}
+                          alt={doc.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
                     )}
+                    <div className="space-y-1.5 flex-1">
+                      <span className="text-[11px] font-bold tracking-wider text-[#2563EB] uppercase">
+                        {doc.module}
+                      </span>
+                      <h4 className="line-clamp-2 font-sans text-[16px] sm:text-[18px] font-bold text-[#111827]">
+                        {doc.title}
+                      </h4>
+                      {doc.description && (
+                        <p className="line-clamp-2 text-[13px] sm:text-[14px] text-[#6B7280]">
+                          {doc.description}
+                        </p>
+                      )}
+                    </div>
                     {doc.area && (
                       <p className="border-t border-[#E5E7EB] pt-2 text-xs font-medium text-[#6B7280]">
                         {doc.area}

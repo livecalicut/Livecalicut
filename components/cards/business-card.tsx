@@ -33,6 +33,12 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
   image,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [imgSrc, setImgSrc] = useState(image || '/heroes/city-market.jpg');
+
+  React.useEffect(() => {
+    setImgSrc(image || '/heroes/city-market.jpg');
+  }, [image]);
+
   const href = slug ? `/business/${slug}` : id ? `/business/${id}` : '/business';
 
   const toggleFav = (e: React.MouseEvent) => {
@@ -54,9 +60,10 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
         {/* Clean Logo Container (100% visible, centered, not cropped, zero logo break) */}
         <div className="relative h-44 sm:h-48 w-full shrink-0 overflow-hidden rounded-xl bg-white border border-slate-100 flex items-center justify-center p-4">
           <img
-            src={image || '/heroes/city-market.jpg'}
+            src={imgSrc}
             alt={name}
             loading="lazy"
+            onError={() => setImgSrc('/heroes/city-market.jpg')}
             className="max-h-full max-w-full object-contain mx-auto transition-transform duration-300 group-hover:scale-105"
           />
 

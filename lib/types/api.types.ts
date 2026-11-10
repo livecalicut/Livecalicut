@@ -158,6 +158,7 @@ export interface SearchDocument {
   is_verified: boolean;
   published_at?: string;
   slug?: string;
+  image?: string | null;
 }
 
 export interface SearchGroupedResults {

@@ -33,6 +33,16 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ item }) => {
           <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-600 transition-colors" />
         </div>
 
+        {item.thumbnail && (
+          <div className="relative h-32 w-full overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-2 border border-slate-100 dark:border-slate-800">
+            <img
+              src={item.thumbnail}
+              alt={item.title}
+              className="max-h-full max-w-full object-contain"
+            />
+          </div>
+        )}
+
         <h4 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 transition-colors line-clamp-1">
           {item.title}
         </h4>

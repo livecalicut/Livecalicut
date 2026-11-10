@@ -116,20 +116,20 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
       </div>
 
       {/* Ultra-Premium Hero Banner */}
-      <div className="relative w-full rounded-3xl overflow-hidden shadow-xl border border-slate-200/90 bg-slate-900">
+      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200/90 bg-slate-900 min-h-[340px] sm:min-h-[320px] lg:h-96 flex flex-col justify-end">
         {/* Banner Backdrop Photo */}
-        <div className="relative w-full h-64 sm:h-80 lg:h-96 bg-slate-950 overflow-hidden">
+        <div className="absolute inset-0 bg-slate-950 overflow-hidden">
           <img
             src={bannerImage}
             alt={`${business.name} banner`}
             className="w-full h-full object-cover object-center scale-100 filter brightness-90"
           />
           {/* Rich Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 sm:via-slate-950/60 to-slate-950/30" />
         </div>
 
         {/* Floating Actions on Top Right of Banner */}
-        <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 flex items-center gap-2">
           <DetailSaveActions
             kind="business"
             entityId={business.id}
@@ -140,11 +140,11 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
           />
         </div>
 
-        {/* Banner Info Content (Anchored Bottom) */}
-        <div className="absolute bottom-0 inset-x-0 p-5 sm:p-8 z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 min-w-0">
+        {/* Banner Info Content (Anchored Bottom with top breathing room so Save/Share never collides) */}
+        <div className="relative z-10 p-4 sm:p-6 lg:p-8 pt-14 sm:pt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 sm:gap-4 min-w-0">
             {/* Logo Avatar Box (100% visible, centered, not cropped) */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white shadow-2xl p-2.5 border-2 border-white flex items-center justify-center shrink-0 overflow-hidden">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-2xl bg-white shadow-2xl p-2 border-2 border-white flex items-center justify-center shrink-0 overflow-hidden">
               <img
                 src={logoImage}
                 alt={business.name}
@@ -154,33 +154,33 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
 
             {/* Title & Badges */}
             <div className="space-y-1.5 text-white min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-white font-extrabold text-[11px] uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-white font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider">
                   {category}
                 </span>
                 {business.is_verified && <VerifiedBadge />}
                 {(business.is_featured || business.is_premium) && <PremiumBadge />}
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
                 {business.name}
               </h1>
 
               <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/90">
-                <MapPin className="w-4 h-4 text-rose-400 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 shrink-0" />
                 <span className="truncate">{location}</span>
               </div>
             </div>
           </div>
 
           {/* Quick CTA Desk (Call & WhatsApp) */}
-          <div className="flex items-center gap-2.5 shrink-0 pt-2 sm:pt-0">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2 sm:gap-2.5 shrink-0 pt-1 sm:pt-0 w-full sm:w-auto">
             {cleanPhone && (
               <a
                 href={`tel:${cleanPhone}`}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs shadow-lg transition-all active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs shadow-lg transition-all active:scale-95 text-center"
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>Call Desk</span>
               </a>
             )}
@@ -190,9 +190,9 @@ export default async function BusinessDetailsPage({ params }: { params: Promise<
                 href={`https://wa.me/91${cleanPhone}?text=Hi%20${encodeURIComponent(business.name)},%20I%20saw%20your%20listing%20on%20LiveCalicut`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-xs shadow-lg transition-all active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-xl bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-xs shadow-lg transition-all active:scale-95 text-center"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>WhatsApp</span>
               </a>
             )}

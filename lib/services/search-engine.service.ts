@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+import { businessCover } from '@/lib/business/images';
 
 export interface SearchDocument {
   id: string;
@@ -15,6 +16,7 @@ export interface SearchDocument {
   is_verified: boolean;
   published_at?: string;
   slug?: string;
+  image?: string | null;
 }
 
 export interface SearchGroupedResults {
@@ -153,7 +155,39 @@ export class SearchEngineService {
     if (error) throw error;
 
     this.recordPopularQuery(params.q, params.city || 'calicut').catch(() => {});
-    return this.groupByModule((data || []) as SearchDocument[], count || 0);
+    const grouped = this.groupByModule((data || []) as SearchDocument[], count || 0);
+
+    // Enrich businesses with manually uploaded cover/logo
+    if (grouped.businesses.length > 0) {
+      try {
+        const ids = grouped.businesses.map((b) => b.entity_id);
+        const { data: bData } = await supabase
+          .from('businesses')
+          .select('id, slug, social_media, cover_image')
+          .in('id', ids);
+
+        if (bData) {
+          const imgMap = new Map<string, string | null>();
+          for (const b of bData) {
+            const cover =
+              businessCover(b) ||
+              b.social_media?.cover_image ||
+              b.social_media?.logo ||
+              b.cover_image ||
+              null;
+            imgMap.set(b.id, cover);
+            if (b.slug) imgMap.set(b.slug, cover);
+          }
+          for (const b of grouped.businesses) {
+            b.image = imgMap.get(b.entity_id) || imgMap.get(b.slug || '') || null;
+          }
+        }
+      } catch (e) {
+        console.warn('[SearchEngineService.searchIndexed] business enrich failed:', e);
+      }
+    }
+
+    return grouped;
   }
 
   private static async searchLiveTables(
@@ -188,7 +222,7 @@ export class SearchEngineService {
           let q = supabase
             .from('businesses')
             .select(
-              'id, name, slug, short_description, description, is_featured, is_verified, rating_avg, business_categories(name), areas(name)'
+              'id, name, slug, short_description, description, is_featured, is_verified, rating_avg, social_media, cover_image, business_categories(name), areas(name)'
             )
             .ilike('name', term)
             .eq('status', 'active')
@@ -218,6 +252,12 @@ export class SearchEngineService {
               is_featured: !!b.is_featured,
               is_verified: !!b.is_verified,
               ranking_score: Number(b.rating_avg) || 0,
+              image:
+                businessCover(b) ||
+                b.social_media?.cover_image ||
+                b.social_media?.logo ||
+                b.cover_image ||
+                null,
             })
           );
         })
@@ -230,7 +270,7 @@ export class SearchEngineService {
           const { data, error } = await supabase
             .from('jobs')
             .select(
-              'id, title, slug, salary, employment_type, is_featured, companies(name), areas(name)'
+              'id, title, slug, salary, employment_type, is_featured, companies(name, logo), areas(name)'
             )
             .ilike('title', term)
             .eq('status', 'published')
@@ -254,6 +294,7 @@ export class SearchEngineService {
               category: j.employment_type,
               area: j.areas?.name || 'Calicut',
               is_featured: !!j.is_featured,
+              image: j.companies?.logo || null,
             })
           );
         })
@@ -266,7 +307,7 @@ export class SearchEngineService {
           const { data, error } = await supabase
             .from('marketplace_items')
             .select(
-              'id, title, slug, price, condition, marketplace_categories(name), areas(name)'
+              'id, title, slug, price, condition, cover_image, gallery, marketplace_categories(name), areas(name)'
             )
             .ilike('title', term)
             .eq('status', 'active')
@@ -288,6 +329,7 @@ export class SearchEngineService {
               description: m.price != null ? `₹${m.price}` : m.condition || '',
               category: m.marketplace_categories?.name,
               area: m.areas?.name,
+              image: m.cover_image || (Array.isArray(m.gallery) ? m.gallery[0] : null) || null,
             })
           );
         })
@@ -300,7 +342,7 @@ export class SearchEngineService {
           const { data, error } = await supabase
             .from('properties')
             .select(
-              'id, title, slug, price, listing_type, bedrooms, property_categories(name), areas(name)'
+              'id, title, slug, price, listing_type, bedrooms, cover_image, gallery, property_categories(name), areas(name)'
             )
             .ilike('title', term)
             .in('status', ['published', 'active'])
@@ -328,6 +370,7 @@ export class SearchEngineService {
                 .join(' · '),
               category: p.property_categories?.name,
               area: p.areas?.name,
+              image: p.cover_image || (Array.isArray(p.gallery) ? p.gallery[0] : null) || null,
             })
           );
         })
@@ -339,7 +382,7 @@ export class SearchEngineService {
         run(async () => {
           const { data, error } = await supabase
             .from('events')
-            .select('id, title, slug, venue, start_date, event_categories(name), areas(name)')
+            .select('id, title, slug, venue, start_date, banner, gallery, event_categories(name), areas(name)')
             .ilike('title', term)
             .in('status', ['published', 'active'])
             .is('deleted_at', null)
@@ -365,6 +408,7 @@ export class SearchEngineService {
               category: e.event_categories?.name,
               area: e.areas?.name || e.venue,
               published_at: e.start_date,
+              image: e.banner || (Array.isArray(e.gallery) ? e.gallery[0] : null) || null,
             })
           );
         })
@@ -376,7 +420,7 @@ export class SearchEngineService {
         run(async () => {
           const { data, error } = await supabase
             .from('news')
-            .select('id, title, slug, summary, published_at, news_categories(name)')
+            .select('id, title, slug, summary, published_at, featured_image, gallery, news_categories(name)')
             .ilike('title', term)
             .eq('status', 'published')
             .is('deleted_at', null)
@@ -394,6 +438,7 @@ export class SearchEngineService {
               category: n.news_categories?.name,
               area: 'Calicut',
               published_at: n.published_at,
+              image: n.featured_image || (Array.isArray(n.gallery) ? n.gallery[0] : null) || null,
             })
           );
         })
