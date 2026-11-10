@@ -18,7 +18,12 @@ export async function GET(request: Request) {
     .eq('status', 'active');
 
   if (isFeatured) query = query.eq('is_featured', true);
-  if (keyword) query = query.ilike('name', `%${keyword}%`);
+  if (keyword) {
+    const cleanKw = keyword.replace(/[%(),"]/g, ' ').trim();
+    if (cleanKw) {
+      query = query.or(`name.ilike."%${cleanKw}%",short_description.ilike."%${cleanKw}%",description.ilike."%${cleanKw}%"`);
+    }
+  }
 
   const { data, error } = await query;
   if (error) {

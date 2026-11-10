@@ -18,15 +18,35 @@ export class GlobalSearchService {
 
   static async searchAll(queryText: string, moduleFilter: string = 'all'): Promise<SearchResultItem[]> {
     if (!queryText || queryText.trim().length === 0) return [];
-    const term = `%${queryText.trim()}%`;
+    const cleanSafe = queryText.trim().replace(/[%(),"]/g, ' ').replace(/\s+/g, ' ').trim();
+    const term = `%${cleanSafe || queryText.trim()}%`;
     const results: SearchResultItem[] = [];
 
-    // 1. Search Businesses
+    // 1. Search Businesses across Name, Description, Short Description (Address), and Categories
     if (moduleFilter === 'all' || moduleFilter === 'businesses') {
+      let matchedCatIds: string[] = [];
+      try {
+        const { data: cats } = await this.supabase
+          .from('business_categories')
+          .select('id')
+          .ilike('name', term)
+          .limit(10);
+        matchedCatIds = (cats || []).map((c: any) => c.id).filter(Boolean);
+      } catch {}
+
+      const conds = [
+        `name.ilike."${term}"`,
+        `short_description.ilike."${term}"`,
+        `description.ilike."${term}"`,
+      ];
+      if (matchedCatIds.length > 0) {
+        conds.push(`category_id.in.(${matchedCatIds.join(',')})`);
+      }
+
       const { data: businesses } = await this.supabase
         .from('businesses')
         .select('id, name, slug, short_description, description, rating_avg, social_media, business_categories(name), areas(name)')
-        .ilike('name', term)
+        .or(conds.join(','))
         .eq('status', 'active')
         .is('deleted_at', null)
         .limit(6);
@@ -55,7 +75,7 @@ export class GlobalSearchService {
       const { data: newsList } = await this.supabase
         .from('news')
         .select('id, title, slug, summary, featured_image, gallery, news_categories(name)')
-        .ilike('title', term)
+        .or(`title.ilike."${term}",summary.ilike."${term}"`)
         .eq('status', 'published')
         .is('deleted_at', null)
         .limit(6);
@@ -79,7 +99,7 @@ export class GlobalSearchService {
       const { data: eventsList } = await this.supabase
         .from('events')
         .select('id, title, slug, venue, start_date, banner, gallery, event_categories(name)')
-        .ilike('title', term)
+        .or(`title.ilike."${term}",venue.ilike."${term}"`)
         .eq('status', 'published')
         .is('deleted_at', null)
         .limit(6);
@@ -104,7 +124,7 @@ export class GlobalSearchService {
       const { data: jobsList } = await this.supabase
         .from('jobs')
         .select('id, title, slug, salary, employment_type, companies(name, logo)')
-        .ilike('title', term)
+        .or(`title.ilike."${term}",employment_type.ilike."${term}"`)
         .eq('status', 'published')
         .is('deleted_at', null)
         .limit(6);
@@ -129,7 +149,7 @@ export class GlobalSearchService {
       const { data: itemsList } = await this.supabase
         .from('marketplace_items')
         .select('id, title, slug, price, condition, cover_image, gallery, marketplace_categories(name)')
-        .ilike('title', term)
+        .or(`title.ilike."${term}",description.ilike."${term}"`)
         .eq('status', 'active')
         .is('deleted_at', null)
         .limit(6);
@@ -154,7 +174,7 @@ export class GlobalSearchService {
       const { data: propsList } = await this.supabase
         .from('properties')
         .select('id, title, slug, price, listing_type, bedrooms, cover_image, gallery, property_categories(name)')
-        .ilike('title', term)
+        .or(`title.ilike."${term}",listing_type.ilike."${term}"`)
         .eq('status', 'published')
         .is('deleted_at', null)
         .limit(6);

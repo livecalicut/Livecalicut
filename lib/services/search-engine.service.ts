@@ -88,6 +88,11 @@ export class SearchEngineService {
     const q = params.q.trim();
     if (!q) return emptyResults();
 
+    // 1. Search live tables first so description keywords, categories, and latest listings match in real-time
+    const live = await this.searchLiveTables(params, supabase);
+    if (live.total > 0) return live;
+
+    // 2. Fall back to search_documents index if available
     try {
       const indexed = await this.searchIndexed(params, supabase);
       if (indexed.total > 0) return indexed;
@@ -95,7 +100,7 @@ export class SearchEngineService {
       // Index may be missing on greenfield DBs
     }
 
-    return this.searchLiveTables(params, supabase);
+    return live;
   }
 
   private static async searchIndexed(
@@ -193,7 +198,8 @@ export class SearchEngineService {
     params: SearchParams,
     supabase: SupabaseClient
   ): Promise<SearchGroupedResults> {
-    const safe = params.q.trim().replace(/[%(),]/g, ' ').replace(/\s+/g, ' ').trim();
+    const rawSafe = params.q.trim().replace(/[%(),"]/g, ' ').replace(/\s+/g, ' ').trim();
+    const safe = rawSafe || params.q.trim();
     const term = `%${safe}%`;
     const area = params.area?.trim();
     const module = params.module || 'all';
@@ -218,12 +224,56 @@ export class SearchEngineService {
     if (want('business')) {
       tasks.push(
         run(async () => {
+          // 1. Resolve matching category IDs (e.g., search "textile", "restaurant", "clinic", "tailor")
+          let matchedCatIds: string[] = [];
+          try {
+            const { data: catRows } = await supabase
+              .from('business_categories')
+              .select('id')
+              .ilike('name', term)
+              .limit(15);
+            matchedCatIds = (catRows || []).map((c: any) => c.id).filter(Boolean);
+          } catch {}
+
+          // 2. Resolve matching area IDs (e.g., search "chevayoor", "mavoor", "beach")
+          let matchedAreaIds: string[] = [];
+          try {
+            const { data: areaRows } = await supabase
+              .from('areas')
+              .select('id')
+              .ilike('name', term)
+              .limit(15);
+            matchedAreaIds = (areaRows || []).map((a: any) => a.id).filter(Boolean);
+          } catch {}
+
+          // 3. Build comprehensive OR conditions: name, short_description (address/keywords), description
+          const conditions: string[] = [
+            `name.ilike."${term}"`,
+            `short_description.ilike."${term}"`,
+            `description.ilike."${term}"`,
+          ];
+
+          // Multi-word support: also match individual keywords (length >= 3)
+          const words = safe.split(/\s+/).filter((w) => w.length >= 3 && w.toLowerCase() !== safe.toLowerCase());
+          for (const w of words.slice(0, 3)) {
+            conditions.push(`name.ilike."%${w}%"`);
+            conditions.push(`short_description.ilike."%${w}%"`);
+            conditions.push(`description.ilike."%${w}%"`);
+          }
+
+          if (matchedCatIds.length > 0) {
+            conditions.push(`category_id.in.(${matchedCatIds.join(',')})`);
+          }
+          if (matchedAreaIds.length > 0) {
+            conditions.push(`area_id.in.(${matchedAreaIds.join(',')})`);
+          }
+
           let q = supabase
             .from('businesses')
             .select(
               'id, name, slug, short_description, description, is_featured, is_verified, rating_avg, social_media, business_categories(name), areas(name)'
             )
-            .ilike('name', term)
+            .or(conditions.join(','))
             .eq('status', 'active')
             .is('deleted_at', null)
             .limit(perModule);
@@ -237,6 +287,17 @@ export class SearchEngineService {
           const rows = (data || []).filter((b: any) =>
             area ? String(b.areas?.name || '').toLowerCase().includes(area.toLowerCase()) : true
           );
+
+          // Sort by relevance: name match gets highest score, then rating
+          rows.sort((a: any, b: any) => {
+            const aName = (a.name || '').toLowerCase();
+            const bName = (b.name || '').toLowerCase();
+            const sLower = safe.toLowerCase();
+            const aNameScore = aName === sLower ? 3 : aName.includes(sLower) ? 2 : words.some((w) => aName.includes(w.toLowerCase())) ? 1 : 0;
+            const bNameScore = bName === sLower ? 3 : bName.includes(sLower) ? 2 : words.some((w) => bName.includes(w.toLowerCase())) ? 1 : 0;
+            if (aNameScore !== bNameScore) return bNameScore - aNameScore;
+            return (b.rating_avg || 0) - (a.rating_avg || 0);
+          });
 
           results.businesses = rows.map((b: any) =>
             doc({
@@ -270,7 +331,7 @@ export class SearchEngineService {
             .select(
               'id, title, slug, salary, employment_type, is_featured, companies(name, logo), areas(name)'
             )
-            .ilike('title', term)
+            .or(`title.ilike."${term}",description.ilike."${term}",employment_type.ilike."${term}"`)
             .eq('status', 'published')
             .is('deleted_at', null)
             .limit(perModule);
@@ -307,7 +368,7 @@ export class SearchEngineService {
             .select(
               'id, title, slug, price, condition, cover_image, gallery, marketplace_categories(name), areas(name)'
             )
-            .ilike('title', term)
+            .or(`title.ilike."${term}",description.ilike."${term}"`)
             .eq('status', 'active')
             .is('deleted_at', null)
             .limit(perModule);
@@ -342,7 +403,7 @@ export class SearchEngineService {
             .select(
               'id, title, slug, price, listing_type, bedrooms, cover_image, gallery, property_categories(name), areas(name)'
             )
-            .ilike('title', term)
+            .or(`title.ilike."${term}",description.ilike."${term}",address.ilike."${term}"`)
             .in('status', ['published', 'active'])
             .is('deleted_at', null)
             .limit(perModule);
@@ -381,7 +442,7 @@ export class SearchEngineService {
           const { data, error } = await supabase
             .from('events')
             .select('id, title, slug, venue, start_date, banner, gallery, event_categories(name), areas(name)')
-            .ilike('title', term)
+            .or(`title.ilike."${term}",description.ilike."${term}",venue.ilike."${term}"`)
             .in('status', ['published', 'active'])
             .is('deleted_at', null)
             .limit(perModule);
@@ -419,7 +480,7 @@ export class SearchEngineService {
           const { data, error } = await supabase
             .from('news')
             .select('id, title, slug, summary, published_at, featured_image, gallery, news_categories(name)')
-            .ilike('title', term)
+            .or(`title.ilike."${term}",summary.ilike."${term}"`)
             .eq('status', 'published')
             .is('deleted_at', null)
             .limit(perModule);
