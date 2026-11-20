@@ -40,9 +40,16 @@ const createFields: EntityField[] = [
       { value: 'expansion', label: 'Expansion prepared (inactive)' },
     ],
   },
+  { name: 'latitude', label: 'Latitude (e.g. 11.2588)', type: 'number' },
+  { name: 'longitude', label: 'Longitude (e.g. 75.7804)', type: 'number' },
 ];
 
-const createDefaults = { state: 'Kerala', status: 'active' };
+const createDefaults = {
+  state: 'Kerala',
+  status: 'active',
+  latitude: 11.2588,
+  longitude: 75.7804,
+};
 
 const statusLabel = (c: City) => (c.is_active ? 'Active' : 'Inactive');
 
@@ -108,7 +115,12 @@ export default function AdminCitiesPage() {
     const res = await fetch('/api/v1/admin/taxonomy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resource: 'city', ...values }),
+      body: JSON.stringify({
+        resource: 'city',
+        ...values,
+        latitude: Number(values.latitude) || 11.2588,
+        longitude: Number(values.longitude) || 75.7804,
+      }),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json.error || 'Could not add city');

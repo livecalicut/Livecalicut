@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import { ADMIN_ENTITIES, foldJsonFields, jsonColumnsOf, sanitizeEntityValues } from '@/lib/admin/entities';
@@ -75,6 +76,11 @@ export async function POST(request: Request) {
         metadata: { fields: Object.keys(result.values) },
       })
       .then(() => undefined, () => undefined);
+
+    // Revalidate paths for instant visibility
+    revalidatePath('/', 'layout');
+    revalidatePath('/businesses');
+    revalidatePath('/admin/businesses');
 
     return NextResponse.json({ success: true, data });
   } catch (err: unknown) {

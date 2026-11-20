@@ -2,6 +2,7 @@
 // Single source of truth for what admins may edit per entity. The update API
 // uses it as an allow-list (and for type coercion); the admin edit forms use
 // it to render inputs. Only columns that exist in production are listed.
+import { GENUINE_MEGAMENU_CATEGORIES, GENUINE_MEGAMENU_SUBCATEGORIES } from '@/lib/business/taxonomy';
 
 export type FieldType =
   | 'text'
@@ -60,6 +61,24 @@ export const ADMIN_ENTITIES: Record<string, EntityConfig> = {
     roles: LISTING_EDITORS,
     fields: [
       { name: 'name', label: 'Business name', type: 'text', required: true, wide: true },
+      {
+        name: 'category_id',
+        label: 'Category',
+        type: 'select',
+        required: true,
+        wide: true,
+        options: GENUINE_MEGAMENU_CATEGORIES.map((c) => ({ value: c.id, label: c.name })),
+      },
+      {
+        name: 'subcategory_id',
+        label: 'Subcategory',
+        type: 'select',
+        wide: true,
+        options: [
+          { value: '', label: 'None / General' },
+          ...GENUINE_MEGAMENU_SUBCATEGORIES.map((s) => ({ value: s.id, label: s.name })),
+        ],
+      },
       { name: 'short_description', label: 'Short description', type: 'text', wide: true },
       { name: 'description', label: 'Description', type: 'textarea', wide: true },
       { name: 'phone', label: 'Phone', type: 'text' },
@@ -336,8 +355,16 @@ export function sanitizeEntityValues(
         break;
       }
       case 'select':
-        if (empty) break;
+        if (empty) {
+          if (!field.required) values[field.name] = null;
+          break;
+        }
         if (!field.options?.some((o) => o.value === input)) {
+          // If it's a foreign key ID (e.g. category_id, subcategory_id, area_id), allow valid UUIDs
+          if (field.name.endsWith('_id') && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input))) {
+            values[field.name] = input;
+            break;
+          }
           return { error: `${field.label} has an invalid value` };
         }
         values[field.name] = input;

@@ -72,10 +72,14 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
 
   // Base items normalization: ensure at least 6 items for smooth 3-column looping
   const baseItems = useMemo(() => {
-    if (!items || items.length === 0) return [];
-    let list = [...items];
+    if (!items || !Array.isArray(items)) return [];
+    const valid = items.filter(
+      (x): x is PromotedCardItem => Boolean(x && typeof x === 'object' && (x.image || x.headline || x.brandName))
+    );
+    if (valid.length === 0) return [];
+    let list = [...valid];
     while (list.length < 6) {
-      list = [...list, ...items];
+      list = [...list, ...valid];
     }
     return list;
   }, [items]);
@@ -390,6 +394,7 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
             }}
           >
             {displayItems.map((banner, index) => {
+              if (!banner) return null;
               const isFullGraphic = !banner.headline && !banner.dealHighlight;
 
               return (
@@ -403,78 +408,96 @@ export const PromotedBusinessesCarousel: React.FC<PromotedBusinessesCarouselProp
                   >
                     {/* Background Banner Image with Subtle Zoom on Hover */}
                     <img
-                      src={banner.image}
+                      src={banner.image || '/heroes/city-market.jpg'}
                       alt={banner.headline || banner.brandName || 'Promoted banner'}
                       className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-700 ease-out select-none"
                       loading={index < 6 ? 'eager' : 'lazy'}
                     />
 
-                    {/* Dark Multi-layer Gradient for Crisp Typography */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/15 pointer-events-none" />
+                    {/* Dark Multi-layer Gradient only when typography is present */}
+                    {!isFullGraphic ? (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/15 pointer-events-none" />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                    )}
 
                     {/* Top Festive Lights Garland / Ambient Glow */}
                     <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-400/40 via-amber-300/70 to-amber-400/40 pointer-events-none" />
 
                     {/* Top Row: Brand Pill & Floating Badge */}
-                    <div className="absolute top-3 inset-x-3 sm:top-4 sm:inset-x-4 flex items-center justify-between gap-2 z-10">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] tracking-wider uppercase truncate shadow-xs">
-                          {banner.brandName}
-                        </span>
-                        {banner.brandTag && (
-                          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-200 text-[8px] font-bold border border-amber-300/20 truncate">
-                            {banner.brandTag}
+                    {(banner.brandName || banner.badgeText) && (
+                      <div className="absolute top-3 inset-x-3 sm:top-4 sm:inset-x-4 flex items-center justify-between gap-2 z-10">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {banner.brandName && (
+                            <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] tracking-wider uppercase truncate shadow-xs">
+                              {banner.brandName}
+                            </span>
+                          )}
+                          {banner.brandTag && (
+                            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-200 text-[8px] font-bold border border-amber-300/20 truncate">
+                              {banner.brandTag}
+                            </span>
+                          )}
+                        </div>
+
+                        {banner.badgeText && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider shadow-sm shrink-0">
+                            {banner.badgeText}
                           </span>
                         )}
                       </div>
-
-                      {banner.badgeText && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider shadow-sm shrink-0">
-                          {banner.badgeText}
-                        </span>
-                      )}
-                    </div>
+                    )}
 
                     {/* Bottom Content Area */}
-                    <div className="absolute bottom-0 inset-x-0 p-3.5 sm:p-4 lg:p-5 flex flex-col justify-end gap-1.5 z-10 text-white">
-                      {/* Headline */}
-                      <h3 className="text-sm sm:text-base lg:text-lg font-black text-white leading-snug line-clamp-2 drop-shadow-sm group-hover/card:text-amber-200 transition-colors">
-                        {banner.headline}
-                      </h3>
+                    {!isFullGraphic ? (
+                      <div className="absolute bottom-0 inset-x-0 p-3.5 sm:p-4 lg:p-5 flex flex-col justify-end gap-1.5 z-10 text-white">
+                        {/* Headline */}
+                        {banner.headline && (
+                          <h3 className="text-sm sm:text-base lg:text-lg font-black text-white leading-snug line-clamp-2 drop-shadow-sm group-hover/card:text-amber-200 transition-colors">
+                            {banner.headline}
+                          </h3>
+                        )}
 
-                      {/* Deal Highlight Badge */}
-                      {banner.dealHighlight && (
-                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[11px] sm:text-xs shadow-xs w-fit">
-                          <Tag className="w-3 h-3 shrink-0" />
-                          <span className="truncate">{banner.dealHighlight}</span>
-                        </div>
-                      )}
+                        {/* Deal Highlight Badge */}
+                        {banner.dealHighlight && (
+                          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[11px] sm:text-xs shadow-xs w-fit">
+                            <Tag className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{banner.dealHighlight}</span>
+                          </div>
+                        )}
 
-                      {/* Subtext */}
-                      {banner.subtext && (
-                        <p className="text-[11px] sm:text-xs text-slate-300 font-medium line-clamp-1">
-                          {banner.subtext}
-                        </p>
-                      )}
+                        {/* Subtext */}
+                        {banner.subtext && (
+                          <p className="text-[11px] sm:text-xs text-slate-300 font-medium line-clamp-1">
+                            {banner.subtext}
+                          </p>
+                        )}
 
-                      {/* Bottom Strip: Bank offer & AD badge */}
-                      <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-white/15 mt-0.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          {banner.bankIconText && (
-                            <span className="px-1.5 py-0.2 rounded bg-white text-slate-950 font-black text-[8px] uppercase shrink-0">
-                              {banner.bankIconText}
+                        {/* Bottom Strip: Bank offer & AD badge */}
+                        <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-white/15 mt-0.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {banner.bankIconText && (
+                              <span className="px-1.5 py-0.2 rounded bg-white text-slate-950 font-black text-[8px] uppercase shrink-0">
+                                {banner.bankIconText}
+                              </span>
+                            )}
+                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-300 truncate">
+                              {banner.bottomStrip || 'Limited Time Special Deal'}
                             </span>
-                          )}
-                          <span className="text-[10px] sm:text-[11px] font-medium text-slate-300 truncate">
-                            {banner.bottomStrip || 'Limited Time Special Deal'}
+                          </div>
+
+                          <span className="px-1.5 py-0.2 bg-black/70 backdrop-blur-xs text-amber-400 text-[8px] font-black rounded border border-white/20 shrink-0">
+                            AD
                           </span>
                         </div>
-
-                        <span className="px-1.5 py-0.2 bg-black/70 backdrop-blur-xs text-amber-400 text-[8px] font-black rounded border border-white/20 shrink-0">
+                      </div>
+                    ) : (
+                      <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
+                        <span className="px-2 py-0.5 bg-black/70 backdrop-blur-xs text-amber-400 text-[9px] font-black rounded-md border border-white/20 shadow-md select-none">
                           AD
                         </span>
                       </div>
-                    </div>
+                    )}
                   </Link>
                 </div>
               );

@@ -107,7 +107,9 @@ export class PromotedSlidersService {
 
       // If stored setting exists in DB, respect user-managed values strictly
       if (stored && typeof stored === 'object' && ('items' in stored || 'enabled' in stored || 'version' in stored)) {
-        const items: PromotedSlider[] = Array.isArray(stored.items) ? stored.items : [];
+        const items: PromotedSlider[] = Array.isArray(stored.items)
+          ? stored.items.filter((x: any) => Boolean(x && typeof x === 'object'))
+          : [];
         const enabled = stored.enabled === false ? false : true;
         const show_creative_banner = stored.show_creative_banner === false ? false : true;
 

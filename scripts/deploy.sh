@@ -74,15 +74,27 @@ fi
 echo "[$(date -Is)] npm ci"
 npm ci
 
+echo "[$(date -Is)] preserving current static assets for zero-downtime chunk availability"
+if [[ -d "$APP_DIR/.next/static" ]]; then
+  mkdir -p "$APP_DIR/.next_static_backup"
+  cp -r "$APP_DIR/.next/static/." "$APP_DIR/.next_static_backup/" 2>/dev/null || true
+fi
+
 echo "[$(date -Is)] next build"
 npm run build
+
+echo "[$(date -Is)] merging static assets to prevent client chunk 404s"
+if [[ -d "$APP_DIR/.next_static_backup" ]]; then
+  cp -rn "$APP_DIR/.next_static_backup/." "$APP_DIR/.next/static/" 2>/dev/null || true
+  rm -rf "$APP_DIR/.next_static_backup"
+fi
 
 echo "[$(date -Is)] ensuring static assets and build are readable by nginx and node"
 chmod -R a+rX "$APP_DIR/.next" 2>/dev/null || true
 chmod -R a+rX "$APP_DIR/public" 2>/dev/null || true
 
-echo "[$(date -Is)] initializing banner carousel settings"
-node scripts/seed-banners.mjs 2>/dev/null || true
+# Do not seed or overwrite user banner carousel settings on deploy
+# node scripts/seed-banners.mjs 2>/dev/null || true
 
 echo "[$(date -Is)] restarting pm2 ${PM2_NAME}"
 # Full clean restart of PM2 to purge stale next-server caches & zombie processes

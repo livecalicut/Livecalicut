@@ -109,9 +109,8 @@ async function main() {
   const { data: existing } = await supabase.from('settings').select('id').eq('key', 'promoted_sliders').maybeSingle();
 
   if (existing) {
-    const { error } = await supabase.from('settings').update(row).eq('id', existing.id);
-    if (error) console.error('[seed-banners] Update error:', error);
-    else console.log('[seed-banners] Successfully updated promoted_sliders with 4 full banners & enabled=true');
+    console.log('[seed-banners] promoted_sliders already configured in database. Preserving user custom settings.');
+    return;
   } else {
     const { error } = await supabase.from('settings').insert({ key: 'promoted_sliders', ...row });
     if (error) console.error('[seed-banners] Insert error:', error);
