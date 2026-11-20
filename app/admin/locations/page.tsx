@@ -39,7 +39,7 @@ const columns: Column<AreaRow>[] = [
 
 export default function AdminLocationsPage() {
   const { hasRole } = useAuthStore();
-  const canManage = hasRole('Super Admin');
+  const canManage = hasRole(['Super Admin', 'City Admin']);
   const queryClient = useQueryClient();
 
   const [rows, setRows] = useState<AreaRow[]>([]);

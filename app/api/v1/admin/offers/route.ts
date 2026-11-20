@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { CONTENT_EDITORS } from '@/lib/rbac/roles';
 import { OffersService, Offer } from '@/lib/services/offers.service';
@@ -37,6 +38,9 @@ export async function POST(request: Request) {
     }
 
     const offer = await OffersService.createOffer(body);
+    revalidatePath('/', 'layout');
+    revalidatePath('/offers');
+    revalidatePath('/admin/offers');
     return NextResponse.json({ success: true, offer });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err?.message || 'Failed to create offer' }, { status: 500 });
@@ -62,6 +66,9 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'Offer not found' }, { status: 404 });
     }
 
+    revalidatePath('/', 'layout');
+    revalidatePath('/offers');
+    revalidatePath('/admin/offers');
     return NextResponse.json({ success: true, offer: updated });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err?.message || 'Failed to update offer' }, { status: 500 });
@@ -84,6 +91,9 @@ export async function DELETE(request: Request) {
     }
 
     const success = await OffersService.deleteOffer(id);
+    revalidatePath('/', 'layout');
+    revalidatePath('/offers');
+    revalidatePath('/admin/offers');
     return NextResponse.json({ success });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err?.message || 'Failed to delete offer' }, { status: 500 });

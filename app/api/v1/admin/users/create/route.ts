@@ -56,15 +56,28 @@ export async function POST(req: Request) {
     }
     const userId = authData.user.id;
 
-    // Link new profile to the creating staff member (creator hierarchy)
-    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+    // Check if creator's profile exists to satisfy foreign key constraint safely
+    const profilePayload: Record<string, unknown> = {
       id: userId,
       full_name: fullName,
       email: email,
       account_status: 'active',
-      created_by: auth.user.id,
-    });
+      status: 'active',
+    };
 
+    if (auth.user?.id) {
+      const { data: creatorProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', auth.user.id)
+        .maybeSingle();
+
+      if (creatorProfile) {
+        profilePayload.created_by = auth.user.id;
+      }
+    }
+
+    const { error: profileError } = await supabaseAdmin.from('profiles').upsert(profilePayload);
     if (profileError) {
       console.warn('Profile upsert warning:', profileError);
     }
@@ -73,10 +86,16 @@ export async function POST(req: Request) {
       .from('roles')
       .select('id')
       .eq('name', roleName)
-      .single();
+      .maybeSingle();
 
-    if (roleLookupError) throw roleLookupError;
+    if (roleLookupError || !roleData) {
+      throw new Error(`Role "${roleName}" was not found in the database`);
+    }
 
+    // Delete any default roles auto-assigned by database triggers (e.g. handle_new_user)
+    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+
+    // Assign the designated role cleanly
     const { error: roleAssignError } = await supabaseAdmin
       .from('user_roles')
       .insert({ user_id: userId, role_id: roleData.id });

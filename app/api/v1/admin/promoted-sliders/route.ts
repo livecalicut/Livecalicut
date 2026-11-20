@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { CONTENT_EDITORS } from '@/lib/rbac/roles';
 import { PromotedSlidersService } from '@/lib/services/promoted-sliders.service';
@@ -58,11 +59,17 @@ export async function POST(request: Request) {
 
     if (action === 'seed') {
       const seeded = await PromotedSlidersService.seedSampleSliders();
+      revalidatePath('/', 'layout');
+      revalidatePath('/', 'page');
+      revalidatePath('/admin/promoted-sliders');
       return NextResponse.json({ success: true, sliders: seeded });
     }
 
     if (action === 'clear_all') {
       await PromotedSlidersService.clearAllSliders();
+      revalidatePath('/', 'layout');
+      revalidatePath('/', 'page');
+      revalidatePath('/admin/promoted-sliders');
       return NextResponse.json({ success: true, sliders: [] });
     }
 
@@ -75,6 +82,9 @@ export async function POST(request: Request) {
     }
 
     const slider = await PromotedSlidersService.createSlider(body);
+    revalidatePath('/', 'layout');
+    revalidatePath('/', 'page');
+    revalidatePath('/admin/promoted-sliders');
     return NextResponse.json({ success: true, slider });
   } catch (err: any) {
     return NextResponse.json(
@@ -102,6 +112,9 @@ export async function PATCH(request: Request) {
     }
 
     const updatedSettings = await PromotedSlidersService.updateSettings(body);
+    revalidatePath('/', 'layout');
+    revalidatePath('/', 'page');
+    revalidatePath('/admin/promoted-sliders');
     return NextResponse.json({ success: true, settings: updatedSettings });
   } catch (err: any) {
     return NextResponse.json(
@@ -129,6 +142,9 @@ export async function PUT(request: Request) {
     }
 
     const updated = await PromotedSlidersService.updateSlider(body.id, body);
+    revalidatePath('/', 'layout');
+    revalidatePath('/', 'page');
+    revalidatePath('/admin/promoted-sliders');
     return NextResponse.json({ success: true, slider: updated });
   } catch (err: any) {
     return NextResponse.json(
@@ -157,6 +173,9 @@ export async function DELETE(request: Request) {
     }
 
     const success = await PromotedSlidersService.deleteSlider(id);
+    revalidatePath('/', 'layout');
+    revalidatePath('/', 'page');
+    revalidatePath('/admin/promoted-sliders');
     return NextResponse.json({ success });
   } catch (err: any) {
     return NextResponse.json(

@@ -66,6 +66,7 @@ export default function AdminCategoriesPage() {
   // Form state
   const [formName, setFormName] = useState('');
   const [formModule, setFormModule] = useState<ModuleKey>('businesses');
+  const [formParentCat, setFormParentCat] = useState('');
   const [formIcon, setFormIcon] = useState('Folder');
   const [formOrder, setFormOrder] = useState('1');
   const [formActive, setFormActive] = useState(true);
@@ -158,16 +159,22 @@ export default function AdminCategoriesPage() {
 
     try {
       setSaving(true);
+      const payload: Record<string, unknown> = {
+        resource: formModule === 'subcategories' ? 'subcategory' : 'category',
+        module: formModule,
+        name: formName.trim(),
+        icon_name: formIcon.trim(),
+        display_order: parseInt(formOrder, 10) || 1,
+      };
+
+      if (formModule === 'subcategories' && formParentCat) {
+        payload.category_id = formParentCat;
+      }
+
       const res = await fetch('/api/v1/admin/taxonomy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resource: 'category',
-          module: formModule,
-          name: formName.trim(),
-          icon_name: formIcon.trim(),
-          display_order: parseInt(formOrder, 10) || 1,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
@@ -489,6 +496,28 @@ export default function AdminCategoriesPage() {
                   ))}
                 </select>
               </div>
+
+              {formModule === 'subcategories' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Parent Business Category *
+                  </label>
+                  <select
+                    value={formParentCat}
+                    onChange={(e) => setFormParentCat(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800"
+                  >
+                    <option value="">Select Parent Category (Auto-picks first if blank)</option>
+                    {rows
+                      .filter((r) => r.module === 'businesses')
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">

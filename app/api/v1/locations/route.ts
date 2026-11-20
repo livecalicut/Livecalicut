@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { ApiResponse } from '@/lib/api/response';
 import { createPublicClient, createAdminClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
@@ -105,12 +106,12 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/v1/locations
- * Super Admin only — create area from Admin → Areas
+ * Super Admin & City Admin — create area from Admin → Areas
  * Body: { name, city_id?, pincode?, latitude?, longitude? }
  */
 export async function POST(request: Request) {
   try {
-    const auth = await requireRole(['Super Admin']);
+    const auth = await requireRole(['Super Admin', 'City Admin']);
     if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
@@ -173,6 +174,8 @@ export async function POST(request: Request) {
       return ApiResponse.error('CREATE_ERROR', error.message, [], 400);
     }
 
+    revalidatePath('/', 'layout');
+    revalidatePath('/admin/locations');
     return ApiResponse.success(data, 'Location created', {}, 201);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to create location';

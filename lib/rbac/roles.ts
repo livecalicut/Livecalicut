@@ -45,13 +45,13 @@ export function isCreatorScoped(role: string): boolean {
 /** Roles a given actor is allowed to assign when creating staff. */
 export function assignableRolesFor(actorRole: string): string[] {
   if (actorRole === 'Super Admin') {
-    return ['City Admin', 'Moderator', 'Marketing Executive'];
+    return ['City Admin', 'Moderator', 'Marketing Executive', 'Merchant', 'User'];
   }
   if (actorRole === 'City Admin') {
-    return ['Moderator', 'Marketing Executive'];
+    return ['Moderator', 'Marketing Executive', 'Merchant', 'User'];
   }
   if (actorRole === 'Marketing Executive') {
-    return ['Moderator'];
+    return ['Moderator', 'Merchant', 'User'];
   }
   return [];
 }

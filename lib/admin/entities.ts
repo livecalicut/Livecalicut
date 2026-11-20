@@ -214,7 +214,7 @@ export const ADMIN_ENTITIES: Record<string, EntityConfig> = {
   area: {
     table: 'areas',
     label: 'Area',
-    roles: SUPER,
+    roles: CITY_AND_SUPER,
     fields: [
       { name: 'name', label: 'Area name', type: 'text', required: true, wide: true },
       { name: 'pincode', label: 'Pincode', type: 'text' },
@@ -226,7 +226,7 @@ export const ADMIN_ENTITIES: Record<string, EntityConfig> = {
   city: {
     table: 'cities',
     label: 'City',
-    roles: SUPER,
+    roles: CITY_AND_SUPER,
     fields: [
       { name: 'name', label: 'City name', type: 'text', required: true },
       { name: 'state', label: 'State', type: 'text' },

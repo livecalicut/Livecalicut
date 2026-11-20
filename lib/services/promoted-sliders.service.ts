@@ -93,60 +93,64 @@ export const INITIAL_PROMOTED_SLIDERS: PromotedSlider[] = [
 ];
 
 export class PromotedSlidersService {
+  private static cachedSettings: PromotedSlidersSettings | null = null;
+
   /**
    * Fetch current promoted sliders configuration and items from settings.
-   * Auto-initializes v2 full-width 2-sec banner carousel on first run.
-   * Once initialized to v2, user manual deletions and toggles are strictly respected!
+   * User manual deletions, additions, and disabled toggles are strictly respected!
    */
   static async getSettings(): Promise<PromotedSlidersSettings> {
     try {
       const getSettingPromise = SettingsService.getSetting('promoted_sliders');
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
       const stored = (await Promise.race([getSettingPromise, timeoutPromise]).catch(() => null)) as any;
 
-      // If missing or not yet upgraded to version 2, initialize with sample full banners & enabled=true
-      if (!stored || typeof stored !== 'object' || stored.version !== 2) {
-        const initialSettings: PromotedSlidersSettings = {
-          items: INITIAL_PROMOTED_SLIDERS,
-          enabled: true,
-          show_creative_banner: true,
-          banner_headline: stored?.banner_headline || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_headline,
-          banner_subtext: stored?.banner_subtext || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_subtext,
-          banner_badge: stored?.banner_badge || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
-          banner_cta_text: stored?.banner_cta_text || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
-          banner_cta_url: stored?.banner_cta_url || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
+      // If stored setting exists in DB, respect user-managed values strictly
+      if (stored && typeof stored === 'object' && ('items' in stored || 'enabled' in stored || 'version' in stored)) {
+        const items: PromotedSlider[] = Array.isArray(stored.items) ? stored.items : [];
+        const enabled = stored.enabled === false ? false : true;
+        const show_creative_banner = stored.show_creative_banner === false ? false : true;
+
+        const resolved: PromotedSlidersSettings = {
+          items,
+          enabled,
+          show_creative_banner,
+          banner_headline: stored.banner_headline || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_headline,
+          banner_subtext: stored.banner_subtext || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_subtext,
+          banner_badge: stored.banner_badge || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
+          banner_cta_text: stored.banner_cta_text || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
+          banner_cta_url: stored.banner_cta_url || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
           version: 2,
         };
 
-        // Persist v2 initialization to Supabase asynchronously
-        SettingsService.updateSetting(
-          'promoted_sliders',
-          initialSettings,
-          'Auto-initialize v2 full-width 2-sec banner carousel'
-        ).catch(() => {});
-
-        return initialSettings;
+        this.cachedSettings = resolved;
+        return resolved;
       }
 
-      // If version is 2, respect user-managed configuration (even if empty [] when deleted!)
-      const items: PromotedSlider[] = Array.isArray(stored.items) ? stored.items : [];
-      const enabled = stored.enabled !== false;
-      const show_creative_banner = stored.show_creative_banner !== false;
+      // If we already have a cached version from recent edits, return it
+      if (this.cachedSettings) {
+        return this.cachedSettings;
+      }
 
-      return {
-        items,
-        enabled,
-        show_creative_banner,
-        banner_headline: stored.banner_headline || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_headline,
-        banner_subtext: stored.banner_subtext || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_subtext,
-        banner_badge: stored.banner_badge || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
-        banner_cta_text: stored.banner_cta_text || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
-        banner_cta_url: stored.banner_cta_url || DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
+      // Initial clean state: if no record in database yet
+      const initialSettings: PromotedSlidersSettings = {
+        items: INITIAL_PROMOTED_SLIDERS,
+        enabled: true,
+        show_creative_banner: true,
+        banner_headline: DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_headline,
+        banner_subtext: DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_subtext,
+        banner_badge: DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_badge,
+        banner_cta_text: DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_text,
+        banner_cta_url: DEFAULT_PROMOTED_SLIDERS_SETTINGS.banner_cta_url,
         version: 2,
       };
+
+      this.cachedSettings = initialSettings;
+      return initialSettings;
     } catch (err) {
       console.warn('[PromotedSlidersService] getSettings fallback:', err);
-      return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS, items: INITIAL_PROMOTED_SLIDERS };
+      if (this.cachedSettings) return this.cachedSettings;
+      return { ...DEFAULT_PROMOTED_SLIDERS_SETTINGS, items: [], enabled: false };
     }
   }
 
@@ -194,6 +198,7 @@ export class PromotedSlidersService {
       'Updated promoted sliders settings'
     );
 
+    this.cachedSettings = next;
     return next;
   }
 
@@ -226,12 +231,14 @@ export class PromotedSlidersService {
     };
 
     const nextItems = [newSlider, ...settings.items];
+    const nextSettings = { ...settings, items: nextItems, version: 2 };
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: nextItems, version: 2 },
+      nextSettings,
       `Created promoted slider ${newSlider.id}`
     );
 
+    this.cachedSettings = nextSettings;
     return newSlider;
   }
 
@@ -254,12 +261,14 @@ export class PromotedSlidersService {
     const nextItems = [...settings.items];
     nextItems[idx] = updated;
 
+    const nextSettings = { ...settings, items: nextItems, version: 2 };
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: nextItems, version: 2 },
+      nextSettings,
       `Updated promoted slider ${id}`
     );
 
+    this.cachedSettings = nextSettings;
     return updated;
   }
 
@@ -270,12 +279,14 @@ export class PromotedSlidersService {
     const settings = await this.getSettings();
     const nextItems = settings.items.filter((item) => item.id !== id);
 
+    const nextSettings = { ...settings, items: nextItems, version: 2 };
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: nextItems, version: 2 },
+      nextSettings,
       `Deleted promoted slider ${id}`
     );
 
+    this.cachedSettings = nextSettings;
     return true;
   }
 
@@ -284,11 +295,13 @@ export class PromotedSlidersService {
    */
   static async clearAllSliders(): Promise<boolean> {
     const settings = await this.getSettings();
+    const nextSettings = { ...settings, items: [], version: 2 };
     await SettingsService.updateSetting(
       'promoted_sliders',
-      { ...settings, items: [], version: 2 },
+      nextSettings,
       'Cleared all promoted sliders'
     );
+    this.cachedSettings = nextSettings;
     return true;
   }
 

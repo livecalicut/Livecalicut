@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { ApiResponse } from '@/lib/api/response';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/supabase/require-auth';
 
 export const dynamic = 'force-dynamic';
@@ -48,17 +49,35 @@ export async function POST(request: Request) {
     }
 
     const slug = slugify(name);
-    const { data, error } = await auth.supabase
+    const admin = await createAdminClient();
+    const lat = Number(body.latitude) || 11.2588;
+    const lng = Number(body.longitude) || 75.7804;
+
+    const fullPayload: Record<string, unknown> = {
+      name,
+      slug,
+      state,
+      latitude: lat,
+      longitude: lng,
+      status: 'active',
+      is_active: true,
+    };
+
+    let { data, error } = await admin
       .from('cities')
-      .insert({
-        name,
-        slug,
-        state,
-        status: 'active',
-        is_active: true,
-      })
+      .insert(fullPayload)
       .select('id, name, slug, state, is_active')
-      .single();
+      .maybeSingle();
+
+    if (error && /column.*does not exist/i.test(error.message)) {
+      const retry = await admin
+        .from('cities')
+        .insert({ name, slug, state, is_active: true })
+        .select('id, name, slug, state, is_active')
+        .maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       if (error.code === '23505') {
@@ -67,6 +86,8 @@ export async function POST(request: Request) {
       return ApiResponse.error('CREATE_ERROR', error.message, [], 400);
     }
 
+    revalidatePath('/', 'layout');
+    revalidatePath('/admin/cities');
     return ApiResponse.success(data, 'City created', {}, 201);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to create city';

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/supabase/require-auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import { GENUINE_MEGAMENU_CATEGORIES, GENUINE_MEGAMENU_SUBCATEGORIES } from '@/lib/business/taxonomy';
@@ -148,32 +149,62 @@ export async function POST(request: Request) {
     }
 
     // 2. Add New Subcategory
-    if (resource === 'subcategory') {
+    if (resource === 'subcategory' || (resource === 'category' && body.module === 'subcategories')) {
       const name = String(body.name || '').trim();
-      const categoryId = String(body.category_id || '').trim();
+      let categoryId = String(body.category_id || '').trim();
 
-      if (!name || !categoryId) {
-        return NextResponse.json({ error: 'Subcategory name and parent category are required' }, { status: 400 });
+      if (!name) {
+        return NextResponse.json({ error: 'Subcategory name is required' }, { status: 400 });
       }
 
       const admin = await createAdminClient();
-      const { data, error } = await admin
+
+      if (!categoryId) {
+        // Fallback to first available business category if none selected
+        const { data: firstCat } = await admin
+          .from('business_categories')
+          .select('id')
+          .order('display_order', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        categoryId = firstCat?.id || '';
+      }
+
+      if (!categoryId) {
+        return NextResponse.json({ error: 'Parent category is required' }, { status: 400 });
+      }
+
+      // Safe insert with column fallbacks
+      let insertPayload: Record<string, unknown> = {
+        name,
+        slug: slugify(name),
+        category_id: categoryId,
+        is_active: true,
+      };
+
+      let { data, error } = await admin
         .from('business_subcategories')
-        .insert({
-          name,
-          slug: slugify(name),
-          category_id: categoryId,
-          status: 'active',
-          is_active: true,
-          created_by: auth.user.id,
-        })
+        .insert({ ...insertPayload, status: 'active' })
         .select('id, name, slug, category_id')
-        .single();
+        .maybeSingle();
+
+      if (error && /column.*does not exist|status/i.test(error.message)) {
+        const retry = await admin
+          .from('business_subcategories')
+          .insert(insertPayload)
+          .select('id, name, slug, category_id')
+          .maybeSingle();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error) {
         const message = error.code === '23505' ? 'That subcategory already exists' : error.message;
         return NextResponse.json({ error: message }, { status: 400 });
       }
+
+      revalidatePath('/', 'layout');
+      revalidatePath('/admin/categories');
       return NextResponse.json({ success: true, data });
     }
 
@@ -193,12 +224,10 @@ export async function POST(request: Request) {
       }
 
       const admin = await createAdminClient();
-      const payload: Record<string, unknown> = {
+      let payload: Record<string, unknown> = {
         name,
         slug: slugify(name),
-        status: 'active',
         is_active: true,
-        created_by: auth.user.id,
       };
 
       if (table === 'business_categories') {
@@ -206,16 +235,31 @@ export async function POST(request: Request) {
         payload.display_order = displayOrder;
       }
 
-      const { data, error } = await admin
+      // Try with status first
+      let { data, error } = await admin
         .from(table)
-        .insert(payload)
+        .insert({ ...payload, status: 'active' })
         .select('id, name, slug')
-        .single();
+        .maybeSingle();
+
+      // If status column doesn't exist on that table, retry with base payload
+      if (error && /column.*does not exist/i.test(error.message)) {
+        const retry = await admin
+          .from(table)
+          .insert(payload)
+          .select('id, name, slug')
+          .maybeSingle();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error) {
         const message = error.code === '23505' ? 'That category already exists' : error.message;
         return NextResponse.json({ error: message }, { status: 400 });
       }
+
+      revalidatePath('/', 'layout');
+      revalidatePath('/admin/categories');
       return NextResponse.json({ success: true, data });
     }
 
@@ -223,29 +267,55 @@ export async function POST(request: Request) {
     if (resource === 'city') {
       const name = String(body.name || '').trim();
       const state = String(body.state || 'Kerala').trim() || 'Kerala';
-      const active = body.status !== 'expansion';
+      const active = body.status !== 'expansion' && body.is_active !== false;
+      const lat = Number(body.latitude) || 11.2588;
+      const lng = Number(body.longitude) || 75.7804;
+
       if (!name) {
         return NextResponse.json({ error: 'City name is required' }, { status: 400 });
       }
 
       const admin = await createAdminClient();
-      const { data, error } = await admin
+      const fullPayload: Record<string, unknown> = {
+        name,
+        slug: slugify(name),
+        state,
+        latitude: lat,
+        longitude: lng,
+        status: active ? 'active' : 'inactive',
+        is_active: active,
+      };
+
+      let { data, error } = await admin
         .from('cities')
-        .insert({
+        .insert(fullPayload)
+        .select('id, name, slug')
+        .maybeSingle();
+
+      // If latitude/longitude or status column is missing in a different migration, retry safely
+      if (error && /column.*does not exist/i.test(error.message)) {
+        const minimalPayload: Record<string, unknown> = {
           name,
           slug: slugify(name),
           state,
-          status: active ? 'active' : 'inactive',
           is_active: active,
-          created_by: auth.user.id,
-        })
-        .select('id, name, slug')
-        .single();
+        };
+        const retry = await admin
+          .from('cities')
+          .insert(minimalPayload)
+          .select('id, name, slug')
+          .maybeSingle();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error) {
         const message = error.code === '23505' ? 'That city already exists' : error.message;
         return NextResponse.json({ error: message }, { status: 400 });
       }
+
+      revalidatePath('/', 'layout');
+      revalidatePath('/admin/cities');
       return NextResponse.json({ success: true, data });
     }
 
@@ -279,7 +349,6 @@ export async function PATCH(request: Request) {
     const updatePayload: Record<string, unknown> = {
       name,
       slug: slugify(name),
-      updated_by: auth.user.id,
     };
 
     if (body.icon_name) updatePayload.icon_name = String(body.icon_name).trim();
@@ -289,14 +358,29 @@ export async function PATCH(request: Request) {
       updatePayload.status = body.is_active ? 'active' : 'inactive';
     }
 
-    const { data, error } = await admin
+    let { data, error } = await admin
       .from(table)
       .update(updatePayload)
       .eq('id', id)
       .select('id, name, slug')
-      .single();
+      .maybeSingle();
+
+    if (error && /column.*does not exist|status|updated_by/i.test(error.message)) {
+      delete updatePayload.status;
+      const retry = await admin
+        .from(table)
+        .update(updatePayload)
+        .eq('id', id)
+        .select('id, name, slug')
+        .maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    revalidatePath('/', 'layout');
+    revalidatePath('/admin/categories');
     return NextResponse.json({ success: true, data });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Could not update record';
