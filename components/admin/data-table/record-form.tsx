@@ -194,7 +194,7 @@ function FieldInput({
             onChange={(e) => onChange(e.target.value)}
             className={inputClass}
           >
-            {!field.required && <option value="">—</option>}
+            <option value="">Select {field.label.toLowerCase()}...</option>
             {field.options?.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}

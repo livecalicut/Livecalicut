@@ -9,6 +9,8 @@ export const merchantProfileSchema = z.object({
   website: z.string().url().optional().or(z.literal('')),
   address: z.string().optional(),
   openingHours: z.string().optional(),
+  categoryId: z.string().optional().or(z.literal('')),
+  subcategoryId: z.string().optional().or(z.literal('')),
 });
 
 export const updateMerchantProfileSchema = merchantProfileSchema;

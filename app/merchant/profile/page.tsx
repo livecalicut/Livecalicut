@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Store, Save, CheckCircle2, MapPin, Clock, Phone, MessageCircle, Globe, Camera } from 'lucide-react';
+import { Store, Save, CheckCircle2, MapPin, Clock, Phone, MessageCircle, Globe, Camera, FolderTree } from 'lucide-react';
+import { GENUINE_MEGAMENU_CATEGORIES, GENUINE_MEGAMENU_SUBCATEGORIES } from '@/lib/business/taxonomy';
 
 export default function MerchantProfilePage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -15,6 +16,8 @@ export default function MerchantProfilePage() {
   const [ward, setWard] = useState('Ward 12 - Mavoor Road Junction, Calicut');
   const [hours, setHours] = useState('07:00 AM - 11:30 PM (Mon - Sun)');
   const [desc, setDesc] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [subcategoryId, setSubcategoryId] = useState('');
 
   React.useEffect(() => {
     fetch('/api/merchant/profile')
@@ -29,6 +32,8 @@ export default function MerchantProfilePage() {
           if (loc) setWard(loc);
           if (b.description) setDesc(b.description);
           if (b.social_media?.opening_hours) setHours(b.social_media.opening_hours);
+          if (b.category_id) setCategoryId(b.category_id);
+          if (b.subcategory_id) setSubcategoryId(b.subcategory_id);
         }
       })
       .catch(() => {});
@@ -48,6 +53,8 @@ export default function MerchantProfilePage() {
           address: ward,
           description: desc || bName,
           openingHours: hours,
+          categoryId: categoryId || undefined,
+          subcategoryId: subcategoryId || undefined,
         }),
       });
       setSavedSuccess(true);
@@ -92,6 +99,44 @@ export default function MerchantProfilePage() {
                 className="pl-10 h-[44px] rounded-xl border-[#E5E7EB] text-[#111827] font-bold"
                 required
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-[#111827] uppercase tracking-wider block mb-1">
+                Directory Category *
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full h-[44px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 text-sm text-[#111827] font-semibold focus:border-[#2563EB] focus:bg-white focus:outline-none"
+              >
+                <option value="">Select category...</option>
+                {GENUINE_MEGAMENU_CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#111827] uppercase tracking-wider block mb-1">
+                Subcategory / Vertical
+              </label>
+              <select
+                value={subcategoryId}
+                onChange={(e) => setSubcategoryId(e.target.value)}
+                className="w-full h-[44px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 text-sm text-[#111827] focus:border-[#2563EB] focus:bg-white focus:outline-none"
+              >
+                <option value="">None / General</option>
+                {GENUINE_MEGAMENU_SUBCATEGORIES.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

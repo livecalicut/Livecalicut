@@ -83,8 +83,8 @@ const NAV: NavGroup[] = [
       { label: 'News', href: '/admin/news', icon: Newspaper, roles: EDITORS },
       { label: 'Events', href: '/admin/events', icon: Calendar, roles: EDITORS },
       { label: 'Categories', href: '/admin/categories', icon: FolderTree, roles: EDITORS },
-      { label: 'Cities', href: '/admin/cities', icon: MapPin, roles: SUPER },
-      { label: 'Areas', href: '/admin/locations', icon: MapPin, roles: SUPER },
+      { label: 'Cities', href: '/admin/cities', icon: MapPin, roles: ADMINS },
+      { label: 'Areas', href: '/admin/locations', icon: MapPin, roles: ADMINS },
     ],
   },
   {
