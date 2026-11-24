@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Plus, Star, XCircle } from 'lucide-react';
 import { fetchAdminBusinessesAction } from './actions';
@@ -16,6 +16,7 @@ import {
 import { adminApi } from '@/lib/admin/client';
 import { toast } from '@/lib/toast';
 import { businessImages } from '@/lib/business/images';
+import { ADMIN_ENTITIES, type EntityField } from '@/lib/admin/entities';
 
 type Business = {
   id: string;
@@ -113,6 +114,10 @@ const filters: TableFilter<Business>[] = [
 export default function AdminBusinessesPage() {
   const [rows, setRows] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [subcategories, setSubcategories] = useState<{ id: string; name: string; category_id?: string }[]>([]);
+  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
+  const [areas, setAreas] = useState<{ id: string; name: string; city_id?: string }[]>([]);
 
   const load = useCallback(async () => {
     const res = await fetchAdminBusinessesAction();
@@ -125,7 +130,91 @@ export default function AdminBusinessesPage() {
 
   useEffect(() => {
     load();
+
+    fetch('/api/businesses/categories')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.data)) {
+          setCategories(d.data.map((c: any) => ({ id: c.id, name: c.name })));
+          const allSubs = d.data.flatMap((c: any) =>
+            (c.business_subcategories || []).map((s: any) => ({
+              id: s.id,
+              name: s.name,
+              category_id: c.id,
+            }))
+          );
+          if (allSubs.length > 0) setSubcategories(allSubs);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/v1/cities')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.data)) {
+          setCities(d.data.map((c: any) => ({ id: c.id, name: c.name })));
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/v1/locations?all=1')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.data)) {
+          setAreas(d.data.map((a: any) => ({ id: a.id, name: a.name, city_id: a.city_id })));
+        }
+      })
+      .catch(() => {});
   }, [load]);
+
+  const businessFields = useMemo<EntityField[]>(() => {
+    const base = ADMIN_ENTITIES.business.fields;
+    return base.map((field) => {
+      if (field.name === 'category_id') {
+        const catOptions =
+          categories.length > 0
+            ? categories.map((c) => ({ value: c.id, label: c.name }))
+            : field.options || [];
+        return {
+          ...field,
+          options: catOptions,
+        };
+      }
+      if (field.name === 'subcategory_id') {
+        const subOptions = [
+          { value: '', label: 'None / General' },
+          ...(subcategories.length > 0
+            ? subcategories.map((s) => ({ value: s.id, label: s.name }))
+            : (field.options || []).filter((o) => o.value !== '')),
+        ];
+        return {
+          ...field,
+          options: subOptions,
+        };
+      }
+      if (field.name === 'city_id') {
+        const cityOptions =
+          cities.length > 0
+            ? cities.map((c) => ({ value: c.id, label: c.name }))
+            : [{ value: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', label: 'Calicut' }];
+        return {
+          ...field,
+          options: cityOptions,
+        };
+      }
+      if (field.name === 'area_id') {
+        const areaOptions = [
+          { value: '', label: 'None / General City Area' },
+          ...areas.map((a) => ({ value: a.id, label: a.name })),
+        ];
+        return {
+          ...field,
+          options: areaOptions,
+        };
+      }
+      return field;
+    });
+  }, [categories, subcategories, cities, areas]);
 
   const moderate = async (b: Business, action: 'approve' | 'reject' | 'feature' | 'unfeature') => {
     try {
@@ -152,6 +241,7 @@ export default function AdminBusinessesPage() {
 
       <AdminEntityTable<Business>
         entityType="business"
+        fields={businessFields}
         rows={rows}
         loading={loading}
         reload={load}
@@ -166,6 +256,7 @@ export default function AdminBusinessesPage() {
         subtitleOf={(b) => <StatusBadge status={b.status} />}
         extraViewFields={(b) => [
           { label: 'Category', value: b.business_categories?.name },
+          { label: 'City', value: b.cities?.name || 'Calicut' },
           { label: 'Area', value: b.areas?.name },
           { label: 'Address', value: b.short_description, wide: true },
           {

@@ -18,6 +18,12 @@ export default function MerchantProfilePage() {
   const [desc, setDesc] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [subcategoryId, setSubcategoryId] = useState('');
+  const [cityId, setCityId] = useState('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+  const [areaId, setAreaId] = useState('');
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(GENUINE_MEGAMENU_CATEGORIES);
+  const [subcategories, setSubcategories] = useState<{ id: string; name: string; category_id?: string }[]>(GENUINE_MEGAMENU_SUBCATEGORIES);
+  const [cities, setCities] = useState<{ id: string; name: string }[]>([{ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Calicut' }]);
+  const [areas, setAreas] = useState<{ id: string; name: string; city_id?: string }[]>([]);
 
   React.useEffect(() => {
     fetch('/api/merchant/profile')
@@ -34,6 +40,43 @@ export default function MerchantProfilePage() {
           if (b.social_media?.opening_hours) setHours(b.social_media.opening_hours);
           if (b.category_id) setCategoryId(b.category_id);
           if (b.subcategory_id) setSubcategoryId(b.subcategory_id);
+          if (b.city_id) setCityId(b.city_id);
+          if (b.area_id) setAreaId(b.area_id);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/businesses/categories')
+      .then((res) => res.json())
+      .then((d) => {
+        if (Array.isArray(d?.data) && d.data.length > 0) {
+          setCategories(d.data.map((c: any) => ({ id: c.id, name: c.name })));
+          const allSubs = d.data.flatMap((c: any) =>
+            (c.business_subcategories || []).map((s: any) => ({
+              id: s.id,
+              name: s.name,
+              category_id: c.id,
+            }))
+          );
+          if (allSubs.length > 0) setSubcategories(allSubs);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/v1/cities')
+      .then((res) => res.json())
+      .then((d) => {
+        if (Array.isArray(d?.data) && d.data.length > 0) {
+          setCities(d.data.map((c: any) => ({ id: c.id, name: c.name })));
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/v1/locations?all=1')
+      .then((res) => res.json())
+      .then((d) => {
+        if (Array.isArray(d?.data) && d.data.length > 0) {
+          setAreas(d.data.map((a: any) => ({ id: a.id, name: a.name, city_id: a.city_id })));
         }
       })
       .catch(() => {});
@@ -55,6 +98,8 @@ export default function MerchantProfilePage() {
           openingHours: hours,
           categoryId: categoryId || undefined,
           subcategoryId: subcategoryId || undefined,
+          cityId: cityId || undefined,
+          areaId: areaId || undefined,
         }),
       });
       setSavedSuccess(true);
@@ -113,7 +158,7 @@ export default function MerchantProfilePage() {
                 className="w-full h-[44px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 text-sm text-[#111827] font-semibold focus:border-[#2563EB] focus:bg-white focus:outline-none"
               >
                 <option value="">Select category...</option>
-                {GENUINE_MEGAMENU_CATEGORIES.map((c) => (
+                {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
@@ -131,9 +176,46 @@ export default function MerchantProfilePage() {
                 className="w-full h-[44px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 text-sm text-[#111827] focus:border-[#2563EB] focus:bg-white focus:outline-none"
               >
                 <option value="">None / General</option>
-                {GENUINE_MEGAMENU_SUBCATEGORIES.map((s) => (
+                {subcategories.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-[#111827] uppercase tracking-wider block mb-1">
+                Operating City *
+              </label>
+              <select
+                value={cityId}
+                onChange={(e) => setCityId(e.target.value)}
+                className="w-full h-[44px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 text-sm text-[#111827] font-semibold focus:border-[#2563EB] focus:bg-white focus:outline-none"
+              >
+                {cities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#111827] uppercase tracking-wider block mb-1">
+                Spatial Area / Location
+              </label>
+              <select
+                value={areaId}
+                onChange={(e) => setAreaId(e.target.value)}
+                className="w-full h-[44px] rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 text-sm text-[#111827] focus:border-[#2563EB] focus:bg-white focus:outline-none"
+              >
+                <option value="">None / General City Area</option>
+                {areas.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
                   </option>
                 ))}
               </select>

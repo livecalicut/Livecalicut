@@ -11,6 +11,8 @@ export const merchantProfileSchema = z.object({
   openingHours: z.string().optional(),
   categoryId: z.string().optional().or(z.literal('')),
   subcategoryId: z.string().optional().or(z.literal('')),
+  cityId: z.string().optional().or(z.literal('')),
+  areaId: z.string().optional().or(z.literal('')),
 });
 
 export const updateMerchantProfileSchema = merchantProfileSchema;

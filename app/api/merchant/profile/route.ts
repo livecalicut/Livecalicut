@@ -62,6 +62,12 @@ export async function PUT(request: Request) {
     if (validated.subcategoryId !== undefined) {
       updatePayload.subcategory_id = validated.subcategoryId || null;
     }
+    if (validated.cityId) {
+      updatePayload.city_id = validated.cityId;
+    }
+    if (validated.areaId !== undefined) {
+      updatePayload.area_id = validated.areaId || null;
+    }
 
     const { data, error } = await supabase
       .from('businesses')

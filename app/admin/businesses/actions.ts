@@ -14,7 +14,7 @@ export async function fetchAdminBusinessesAction() {
 
     let query = auth.supabase
       .from('businesses')
-      .select('*, business_categories(name), areas(name)')
+      .select('*, business_categories(name), areas(name), cities(name)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 

@@ -29,6 +29,9 @@ function initialValues(fields: EntityField[], record: Values): Values {
     else if (f.type === 'images') values[f.name] = Array.isArray(v) ? v : [];
     else if (f.type === 'datetime') values[f.name] = toLocalInput(v);
     else if (f.type === 'date') values[f.name] = v ? String(v).slice(0, 10) : '';
+    else if (f.name === 'city_id' && !v) {
+      values[f.name] = f.options?.[0]?.value || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+    }
     else values[f.name] = v ?? '';
   }
   return values;

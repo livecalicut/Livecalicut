@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { DataTable, type Column, type TableFilter } from './data-table';
 import { RecordDrawer, recordImages, viewFieldsFromConfig, type ViewField } from './record-drawer';
 import { RecordFormModal } from './record-form';
-import { ADMIN_ENTITIES, withJsonFields } from '@/lib/admin/entities';
+import { ADMIN_ENTITIES, withJsonFields, type EntityField } from '@/lib/admin/entities';
 import { adminApi } from '@/lib/admin/client';
 import { toast } from '@/lib/toast';
 
@@ -33,6 +33,7 @@ export function AdminEntityTable<T extends Row>({
   canEdit = true,
   canDelete = true,
   deleteEntityType,
+  fields: customFields,
 }: {
   entityType: string;
   rows: T[];
@@ -55,13 +56,16 @@ export function AdminEntityTable<T extends Row>({
   canDelete?: boolean;
   /** Delete API entity key when it differs from entityType */
   deleteEntityType?: string;
+  /** Custom dynamic fields to override config.fields */
+  fields?: EntityField[];
 }) {
   const config = ADMIN_ENTITIES[entityType];
+  const fields = customFields ?? config.fields;
   const [viewing, setViewing] = useState<T | null>(null);
   const [editing, setEditing] = useState<T | null>(null);
   // Config image fields always show in the drawer, plus any page-specific keys
   const drawerImageKeys = Array.from(
-    new Set([...imageKeys, ...config.fields.filter((f) => f.type === 'image' || f.type === 'images').map((f) => f.name)])
+    new Set([...imageKeys, ...fields.filter((f) => f.type === 'image' || f.type === 'images').map((f) => f.name)])
   );
   const viewed = viewing ? withJsonFields(config, viewing) : null;
 
@@ -114,7 +118,7 @@ export function AdminEntityTable<T extends Row>({
         images={viewed ? recordImages(viewed, drawerImageKeys) : []}
         fields={
           viewing && viewed
-            ? [...(extraViewFields?.(viewing) ?? []), ...viewFieldsFromConfig(config.fields, viewed)]
+            ? [...(extraViewFields?.(viewing) ?? []), ...viewFieldsFromConfig(fields, viewed)]
             : []
         }
         onClose={() => setViewing(null)}
@@ -125,7 +129,7 @@ export function AdminEntityTable<T extends Row>({
       <RecordFormModal
         open={editing !== null}
         title={`Edit ${config.label.toLowerCase()}`}
-        fields={config.fields}
+        fields={fields}
         record={editing ? withJsonFields(config, editing) : null}
         onClose={() => setEditing(null)}
         onSubmit={save}
